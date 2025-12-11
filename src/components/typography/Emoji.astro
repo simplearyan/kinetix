@@ -1,0 +1,112 @@
+---
+interface Props {
+    label?: string;
+    size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
+    animation?: "bounce" | "spin" | "pulse" | "shake" | "none";
+    class?: string;
+}
+
+const {
+    label,
+    size = "md",
+    animation = "none",
+    class: className,
+} = Astro.props;
+
+const sizes = {
+    sm: "1rem",
+    md: "1.5rem",
+    lg: "2rem",
+    xl: "3rem",
+    "2xl": "4rem",
+    "3xl": "5rem",
+    "4xl": "6rem",
+};
+
+const anims = {
+    bounce: "animate-bounce",
+    spin: "animate-spin",
+    pulse: "animate-pulse",
+    shake: "animate-shake",
+    none: "",
+};
+---
+
+<span
+    role="img"
+    aria-label={label}
+    class:list={["emoji", anims[animation], className]}
+    style={{ fontSize: sizes[size] }}
+>
+    <slot />
+</span>
+
+<style>
+    .emoji {
+        display: inline-block;
+        line-height: 1;
+        vertical-align: middle;
+        transition: transform 0.2s ease;
+    }
+
+    .emoji:hover {
+        transform: scale(1.2);
+    }
+
+    /* Animations */
+    @keyframes bounce {
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-25%);
+        }
+    }
+    .animate-bounce {
+        animation: bounce 1s infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    .animate-spin {
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes pulse {
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.7;
+            transform: scale(0.9);
+        }
+    }
+    .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes shake {
+        0%,
+        100% {
+            transform: rotate(0deg);
+        }
+        25% {
+            transform: rotate(-10deg);
+        }
+        75% {
+            transform: rotate(10deg);
+        }
+    }
+    .animate-shake {
+        animation: shake 0.5s ease-in-out infinite;
+    }
+</style>

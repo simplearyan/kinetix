@@ -1,0 +1,357 @@
+---
+interface Props {
+    data: (number | string)[][];
+    type?: "square" | "diagonal" | "identity" | "scalar" | "general";
+    style?: "bracket" | "glass" | "minimal" | "neon" | "chalk";
+    animate?: boolean;
+    animationType?: "fade-in" | "reveal-diagonal" | "slide-up";
+    highlight?: { row?: number; col?: number; color?: string }[];
+    class?: string;
+}
+
+const {
+    data,
+    type = "general",
+    style = "bracket",
+    animate = false,
+    animationType = "fade-in",
+    highlight = [],
+    class: className,
+} = Astro.props;
+
+const rows = data.length;
+const cols = data[0]?.length || 0;
+
+// Helper to check if a cell should be highlighted
+const getHighlightColor = (r: number, c: number) => {
+    const h = highlight.find(
+        (h) =>
+            (h.row === undefined || h.row === r) &&
+            (h.col === undefined || h.col === c),
+    );
+    return h ? h.color || "var(--color-accent)" : null;
+};
+
+// Helper to determine if a cell is part of the diagonal
+const isDiagonal = (r: number, c: number) => r === c;
+
+const matrixStyleClass = `matrix-${style}`;
+const animationClass = animate ? `animate-${animationType}` : "";
+---
+
+<div
+    class={`matrix-container ${matrixStyleClass} ${animationClass} ${className || ""}`}
+    style={`--rows: ${rows}; --cols: ${cols};`}
+>
+    <div class="matrix-bracket-left"></div>
+    <div class="matrix-content">
+        {
+            data.map((row, rIndex) => (
+                <div class="matrix-row">
+                    {row.map((cell, cIndex) => {
+                        const highlightColor = getHighlightColor(
+                            rIndex,
+                            cIndex,
+                        );
+                        const isDiag = isDiagonal(rIndex, cIndex);
+                        const isZero = cell === 0 || cell === "0";
+
+                        let cellClass = "matrix-cell";
+                        if (type === "diagonal" && !isDiag && isZero)
+                            cellClass += " faded";
+                        if (type === "identity" && isDiag)
+                            cellClass += " highlight-identity";
+                        if (type === "scalar" && isDiag)
+                            cellClass += " highlight-scalar";
+
+                        return (
+                            <div
+                                class={cellClass}
+                                style={
+                                    highlightColor
+                                        ? `--cell-highlight: ${highlightColor}; background-color: var(--cell-highlight); color: white;`
+                                        : ""
+                                }
+                                data-row={rIndex}
+                                data-col={cIndex}
+                            >
+                                {cell}
+                            </div>
+                        );
+                    })}
+                </div>
+            ))
+        }
+    </div>
+    <div class="matrix-bracket-right"></div>
+</div>
+
+<script>
+    const observerOptions = {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.2,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("in-view");
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.addEventListener("astro:page-load", () => {
+        document
+            .querySelectorAll('.matrix-container[class*="animate-"]')
+            .forEach((el) => {
+                observer.observe(el);
+            });
+    });
+
+    // Initial check for non-SPA navigation
+    document
+        .querySelectorAll('.matrix-container[class*="animate-"]')
+        .forEach((el) => {
+            observer.observe(el);
+        });
+</script>
+
+<style>
+    .matrix-container {
+        display: inline-flex;
+        align-items: stretch;
+        font-family: "KaTeX_Main", "Times New Roman", serif;
+        font-size: 1.2rem;
+        margin: 1rem;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .matrix-content {
+        display: grid;
+        grid-template-columns: repeat(var(--cols), auto);
+        gap: 0.5rem 1rem;
+        padding: 0.5rem;
+    }
+
+    .matrix-cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 1.5rem;
+        min-height: 1.5rem;
+        padding: 0.2rem;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+
+    .matrix-cell.faded {
+        opacity: 0.3;
+    }
+
+    .matrix-cell.highlight-identity,
+    .matrix-cell.highlight-scalar {
+        background-color: rgba(59, 130, 246, 0.1); /* Blue tint */
+        color: #3b82f6;
+        font-weight: bold;
+    }
+
+    /* Brackets */
+    .matrix-bracket-left,
+    .matrix-bracket-right {
+        width: 0.5rem;
+        border: 2px solid currentColor;
+        border-radius: 4px;
+        margin: 0 2px;
+    }
+
+    .matrix-bracket-left {
+        border-right: none;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .matrix-bracket-right {
+        border-left: none;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    /* Styles */
+    .matrix-glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .matrix-glass .matrix-bracket-left,
+    .matrix-glass .matrix-bracket-right {
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .matrix-neon {
+        color: #0ff;
+        text-shadow: 0 0 5px #0ff;
+    }
+    .matrix-neon .matrix-bracket-left,
+    .matrix-neon .matrix-bracket-right {
+        border-color: #0ff;
+        box-shadow: 0 0 5px #0ff;
+    }
+
+    .matrix-minimal .matrix-bracket-left,
+    .matrix-minimal .matrix-bracket-right {
+        display: none;
+    }
+    .matrix-minimal {
+        border-left: 2px solid currentColor;
+        border-right: 2px solid currentColor;
+        border-radius: 8px; /* Curved vertical bars */
+    }
+
+    /* Chalk Styles */
+    .matrix-chalk,
+    .matrix-chalk-light,
+    .matrix-chalk-blue,
+    .matrix-chalk-green {
+        font-family: "Kalam", cursive;
+        border-radius: 4px;
+        padding: 0.5rem;
+    }
+
+    .matrix-chalk .matrix-bracket-left,
+    .matrix-chalk .matrix-bracket-right,
+    .matrix-chalk-light .matrix-bracket-left,
+    .matrix-chalk-light .matrix-bracket-right,
+    .matrix-chalk-blue .matrix-bracket-left,
+    .matrix-chalk-blue .matrix-bracket-right,
+    .matrix-chalk-green .matrix-bracket-left,
+    .matrix-chalk-green .matrix-bracket-right {
+        border-width: 3px;
+        border-radius: 2px;
+        filter: url(#chalk-noise);
+    }
+
+    /* Dark Chalk (Default) */
+    .matrix-chalk {
+        background-color: #2b2b2b;
+        color: #eee;
+        border: 2px solid #5d4037;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Light Chalk / Whiteboard */
+    .matrix-chalk-light {
+        background-color: #fdfbf7; /* Off-white paper/board */
+        color: #2c3e50;
+        border: 2px solid #dcdde1;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Blue Chalkboard */
+    .matrix-chalk-blue {
+        background-color: #1e3799;
+        color: #fff;
+        border: 2px solid #0c2461;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Green Chalkboard */
+    .matrix-chalk-green {
+        background-color: #145a32;
+        color: #f4d03f; /* Yellowish chalk */
+        border: 2px solid #0b5345;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Notebook Style */
+    .matrix-notebook {
+        background-color: #fef9e7;
+        background-image: linear-gradient(#e5e7eb 1px, transparent 1px);
+        background-size: 100% 1.5rem;
+        color: #2c3e50;
+        font-family: "Indie Flower", cursive;
+        border-left: 4px solid #ef4444; /* Margin line */
+        padding-left: 1rem;
+        box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .matrix-notebook .matrix-bracket-left,
+    .matrix-notebook .matrix-bracket-right {
+        border-color: #2c3e50;
+        border-width: 2px;
+    }
+
+    /* Animations */
+    .animate-fade-in .matrix-cell {
+        opacity: 0;
+    }
+    .animate-fade-in.in-view .matrix-cell {
+        animation: fadeIn 0.5s forwards;
+    }
+
+    /* Staggered animation for cells */
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(1)
+        .matrix-cell:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(1)
+        .matrix-cell:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(1)
+        .matrix-cell:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(2)
+        .matrix-cell:nth-child(1) {
+        animation-delay: 0.2s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(2)
+        .matrix-cell:nth-child(2) {
+        animation-delay: 0.3s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(2)
+        .matrix-cell:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(3)
+        .matrix-cell:nth-child(1) {
+        animation-delay: 0.3s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(3)
+        .matrix-cell:nth-child(2) {
+        animation-delay: 0.4s;
+    }
+    .animate-fade-in.in-view
+        .matrix-row:nth-child(3)
+        .matrix-cell:nth-child(3) {
+        animation-delay: 0.5s;
+    }
+
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+
+    .animate-reveal-diagonal .matrix-cell {
+        opacity: 0.3;
+        transition: opacity 0.5s;
+    }
+    .animate-reveal-diagonal.in-view .matrix-cell.highlight-identity,
+    .animate-reveal-diagonal.in-view .matrix-cell.highlight-scalar {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+</style>

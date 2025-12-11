@@ -1,0 +1,312 @@
+---
+interface Props {
+    node: {
+        label: string;
+        type?: "root" | "node";
+        children?: Props["node"][];
+        color?: string;
+    };
+    isRoot?: boolean;
+    direction?: "vertical" | "horizontal";
+    variant?: "tree" | "organic";
+    compact?: boolean;
+    straightEdges?: boolean;
+    level?: number;
+}
+
+const {
+    node,
+    isRoot = false,
+    direction = "vertical",
+    variant = "tree",
+    compact = false,
+    straightEdges = false,
+    level = 0,
+} = Astro.props;
+
+const nodeColor = node.color || `var(--color-text)`;
+---
+
+<li
+    class:list={[
+        {
+            "is-root": isRoot,
+            "is-compact": compact,
+            "is-straight": straightEdges,
+        },
+        `direction-${direction}`,
+        `variant-${variant}`,
+    ]}
+    style={`--node-color: ${nodeColor}; --delay: ${level * 0.1}s`}
+>
+    <div class="node-content">
+        <span class="node-label">{node.label}</span>
+    </div>
+    {
+        node.children && node.children.length > 0 && (
+            <ul>
+                {node.children.map((child) => (
+                    <Astro.self
+                        node={{ ...child, color: child.color || node.color }}
+                        direction={direction}
+                        variant={variant}
+                        compact={compact}
+                        straightEdges={straightEdges}
+                        level={level + 1}
+                    />
+                ))}
+            </ul>
+        )
+    }
+</li>
+
+<style>
+    /* Base Styles */
+    li {
+        position: relative;
+        transition: all 0.5s;
+        list-style-type: none;
+        animation: appear 0.5s ease-out backwards;
+        animation-delay: var(--delay);
+    }
+
+    @keyframes appear {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* =========================================
+     VERTICAL LAYOUT 
+     ========================================= */
+
+    .direction-vertical {
+        float: left;
+        text-align: center;
+        padding: 20px 5px 0 5px;
+    }
+
+    /* Compact Vertical */
+    .direction-vertical.is-compact {
+        padding: 10px 2px 0 2px;
+    }
+
+    /* Connectors */
+    .direction-vertical::before,
+    .direction-vertical::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 50%;
+        border-top: 2px solid var(--color-border, #ccc);
+        width: 50%;
+        height: 20px;
+    }
+
+    .direction-vertical.is-compact::before,
+    .direction-vertical.is-compact::after {
+        height: 10px;
+    }
+
+    .direction-vertical::after {
+        right: auto;
+        left: 50%;
+        border-left: 2px solid var(--color-border, #ccc);
+    }
+
+    /* Root adjustments */
+    .direction-vertical.is-root::after,
+    .direction-vertical.is-root::before {
+        display: none;
+    }
+
+    .direction-vertical:only-child {
+        padding-top: 0;
+    }
+
+    .direction-vertical:first-child::before,
+    .direction-vertical:last-child::after {
+        border: 0 none;
+    }
+
+    .direction-vertical:last-child::before {
+        border-right: 2px solid var(--color-border, #ccc);
+        border-radius: 0 5px 0 0;
+    }
+
+    .direction-vertical:first-child::after {
+        border-radius: 5px 0 0 0;
+    }
+
+    /* Straight Edges Override */
+    .direction-vertical.is-straight:last-child::before,
+    .direction-vertical.is-straight:first-child::after {
+        border-radius: 0;
+    }
+
+    /* Downward connector */
+    .direction-vertical ul::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        border-left: 2px solid var(--color-border, #ccc);
+        width: 0;
+        height: 20px;
+    }
+
+    .direction-vertical.is-compact ul::before {
+        height: 10px;
+    }
+
+    .direction-vertical ul {
+        display: flex;
+        justify-content: center;
+        padding-top: 20px;
+        position: relative;
+    }
+
+    .direction-vertical.is-compact ul {
+        padding-top: 10px;
+    }
+
+    /* =========================================
+     HORIZONTAL LAYOUT
+     ========================================= */
+
+    .direction-horizontal {
+        display: flex;
+        align-items: center;
+        padding: 10px 0 10px 20px;
+    }
+
+    .direction-horizontal.is-compact {
+        padding: 5px 0 5px 15px;
+    }
+
+    .direction-horizontal ul {
+        display: flex;
+        flex-direction: column;
+        padding-left: 40px;
+        position: relative;
+        justify-content: center;
+    }
+
+    .direction-horizontal.is-compact ul {
+        padding-left: 20px;
+    }
+
+    /* Connectors */
+    .direction-horizontal ul::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        border-top: 2px solid var(--node-color, #ccc);
+        width: 40px;
+        height: 0;
+    }
+
+    .direction-horizontal.is-compact ul::before {
+        width: 20px;
+    }
+
+    .direction-horizontal ul > li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: transparent;
+        border-left: 2px solid var(--node-color, #ccc);
+    }
+
+    .direction-horizontal ul > li:first-child::before {
+        top: 50%;
+        height: 50%;
+    }
+
+    .direction-horizontal ul > li:last-child::before {
+        height: 50%;
+    }
+
+    .direction-horizontal ul > li:only-child::before {
+        display: none;
+    }
+
+    .direction-horizontal ul > li::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 20px;
+        border-top: 2px solid var(--node-color, #ccc);
+    }
+
+    /* Organic override */
+    .direction-horizontal.variant-organic ul > li::before {
+        border-left: none;
+    }
+
+    .direction-horizontal.variant-organic ul > li::after {
+        width: 20px;
+        height: 50%;
+        border-top: 2px solid var(--node-color, #ccc);
+        /* Simple curved approximation could go here via radius, but keeping simples for now */
+    }
+
+    /* Node Styling */
+    .node-content {
+        display: inline-block;
+        padding: 10px 20px;
+        text-decoration: none;
+        background: var(--color-bg, #fff);
+        border: 2px solid var(--node-color, #333);
+        border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+        font-family: var(--font-hand-drawn, "Kalam", cursive);
+        font-size: 0.9rem;
+        position: relative;
+        transition: all 0.3s;
+        z-index: 2;
+    }
+
+    /* Compact Node */
+    .is-compact .node-content {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Straight Edges Node */
+    .is-straight .node-content {
+        border-radius: 4px; /* Clean box */
+        transform: none !important; /* No wobble */
+    }
+
+    .node-content:hover {
+        transform: scale(1.05);
+        background: var(--color-code-bg);
+        box-shadow: 0 0 0 2px var(--node-color);
+        z-index: 10;
+    }
+
+    .node-content:hover .node-label {
+        font-weight: bold;
+        color: var(--color-text);
+    }
+
+    /* Light Mode specific contrast boost for lines */
+    :global(html[data-theme="light"]) .direction-horizontal ul > li::before,
+    :global(html[data-theme="light"]) .direction-horizontal ul > li::after,
+    :global(html[data-theme="light"]) .direction-horizontal ul::before,
+    :global(html[data-theme="light"]) .direction-vertical::before,
+    :global(html[data-theme="light"]) .direction-vertical::after,
+    :global(html[data-theme="light"]) .direction-vertical ul::before {
+        filter: brightness(0.8) contrast(1.2);
+    }
+</style>

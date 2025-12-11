@@ -1,0 +1,32 @@
+---
+interface Props {
+    color?: "red" | "blue" | "green" | "yellow" | "white" | "black";
+    class?: string;
+}
+
+const { color = "red", class: className } = Astro.props;
+
+const colorMap = {
+    red: "#ef4444",
+    blue: "#3b82f6",
+    green: "#22c55e",
+    yellow: "#eab308",
+    white: "#ffffff",
+    black: "#1a1a1a",
+};
+
+const strokeColor = colorMap[color];
+---
+
+<div
+    class:list={["scribble-box", className]}
+    style={`--stroke-color: ${strokeColor}`}
+>
+    <slot />
+</div>
+
+<style>
+    .scribble-box {
+        border-color: var(--stroke-color, var(--color-text));
+    }
+</style>

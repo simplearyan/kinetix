@@ -1,0 +1,115 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import Navbar from "../../components/Navbar.astro";
+import { getCollection } from "astro:content";
+import { ArrowRight } from "lucide-react";
+import CtaSection from "../../components/CtaSection.astro";
+
+const posts = (await getCollection("blog")).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+// Napkin-like pastel palette
+const styles = [
+    { bg: "bg-[#FFF0F5]", date: "text-pink-600" }, // Pink
+    { bg: "bg-[#FFF5EB]", date: "text-orange-600" }, // Peach
+    { bg: "bg-[#F0FDF4]", date: "text-emerald-600" }, // Green
+    { bg: "bg-[#F0F9FF]", date: "text-blue-600" }, // Blue
+];
+---
+
+<Layout title="Blog - Kinetix">
+    <Navbar />
+    <main class="bg-white min-h-screen pt-24">
+        {/* Header */}
+        <div class="container mx-auto px-6 py-16 text-center">
+            <h1
+                class="text-4xl md:text-5xl font-bold text-slate-900 mb-4 font-display tracking-tight"
+            >
+                Blog
+            </h1>
+            <p class="text-xl text-slate-600">
+                Latest updates, guides, and stories from the Kinetix team.
+            </p>
+        </div>
+
+        {/* Grid */}
+        <div class="container mx-auto px-6 pb-24">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {
+                    posts.map((post, index) => {
+                        const style = styles[index % styles.length];
+                        return (
+                            <article
+                                class={`group ${style.bg} rounded-[2rem] overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col p-8`}
+                            >
+                                <a
+                                    href={`/blog/${post.slug}`}
+                                    class="block h-full flex flex-col"
+                                >
+                                    {/* Illustration Area - Top */}
+                                    <div class="mb-8 flex items-center justify-center min-h-[140px]">
+                                        {post.data.image ? (
+                                            <img
+                                                src={post.data.image}
+                                                alt={post.data.title}
+                                                class="w-full h-auto rounded-xl shadow-sm mix-blend-multiply"
+                                            />
+                                        ) : (
+                                            <div class="w-24 h-24 bg-white/50 rounded-full flex items-center justify-center text-slate-300 group-hover:scale-110 transition-transform">
+                                                <div class="w-16 h-16 rounded-lg bg-current opacity-20" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Date */}
+                                    <div
+                                        class={`text-sm font-bold ${style.date} mb-3 uppercase tracking-wide`}
+                                    >
+                                        {post.data.pubDate.toLocaleDateString(
+                                            "en-US",
+                                            {
+                                                month: "long",
+                                                day: "numeric",
+                                                year: "numeric",
+                                            },
+                                        )}
+                                    </div>
+
+                                    {/* Title */}
+                                    <h2 class="text-2xl font-bold text-slate-900 mb-4 leading-tight font-display">
+                                        {post.data.title}
+                                    </h2>
+
+                                    {/* Description */}
+                                    <p class="text-slate-600 mb-8 line-clamp-3 leading-relaxed">
+                                        {post.data.description}
+                                    </p>
+
+                                    {/* Button */}
+                                    <div class="mt-auto">
+                                        <div class="inline-flex items-center justify-center px-6 py-3 bg-slate-900 text-white text-sm font-bold rounded-lg group-hover:bg-slate-800 transition-colors">
+                                            Read more{" "}
+                                            <ArrowRight
+                                                size={16}
+                                                class="ml-2"
+                                            />
+                                        </div>
+                                    </div>
+                                </a>
+                            </article>
+                        );
+                    })
+                }
+            </div>
+        </div>
+
+        <CtaSection />
+    </main>
+</Layout>
+
+<style>
+    .font-display {
+        font-family: "Outfit", sans-serif;
+    }
+</style>

@@ -1,0 +1,141 @@
+---
+interface Props {
+    text?: string;
+    speed?: number;
+    delay?: number;
+    trigger?: "visible" | "load";
+    cursor?: boolean;
+    class?: string;
+}
+
+const {
+    text,
+    speed = 50,
+    delay = 0,
+    trigger = "visible",
+    cursor = true,
+    class: className,
+} = Astro.props;
+---
+
+<span
+    class={`typing-text-container ${className || ""}`}
+    data-text={text}
+    data-speed={speed}
+    data-delay={delay}
+    data-trigger={trigger}
+>
+    <span class="typing-content"></span><span
+        class={`typing-cursor ${cursor ? "visible" : ""}`}>|</span
+    >
+</span>
+
+<script>
+    class TypingText {
+        element: HTMLElement;
+        contentElement: HTMLElement;
+        text: string;
+        speed: number;
+        delay: number;
+        trigger: string;
+        hasStarted: boolean = false;
+
+        constructor(element: HTMLElement) {
+            this.element = element;
+            this.contentElement = element.querySelector(
+                ".typing-content",
+            ) as HTMLElement;
+            this.text = element.dataset.text || "";
+            this.speed = parseInt(element.dataset.speed || "50");
+            this.delay = parseInt(element.dataset.delay || "0");
+            this.trigger = element.dataset.trigger || "visible";
+
+            if (this.trigger === "load") {
+                this.start();
+            } else {
+                this.observe();
+            }
+        }
+
+        observe() {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting && !this.hasStarted) {
+                            this.start();
+                            observer.disconnect();
+                        }
+                    });
+                },
+                { threshold: 0.1 },
+            );
+            observer.observe(this.element);
+        }
+
+        async start() {
+            this.hasStarted = true;
+            await new Promise((resolve) => setTimeout(resolve, this.delay));
+
+            let i = 0;
+            const typeChar = () => {
+                if (i < this.text.length) {
+                    this.contentElement.textContent += this.text.charAt(i);
+                    i++;
+                    setTimeout(typeChar, this.speed);
+                } else {
+                    // Animation complete
+                    const cursor = this.element.querySelector(".typing-cursor");
+                    if (cursor) {
+                        // Keep blinking or remove? Let's keep blinking for a bit then stop or just keep blinking
+                        cursor.classList.add("blinking");
+                    }
+                }
+            };
+            typeChar();
+        }
+    }
+
+    // Initialize
+    document.addEventListener("astro:page-load", () => {
+        document.querySelectorAll(".typing-text-container").forEach((el) => {
+            new TypingText(el as HTMLElement);
+        });
+    });
+
+    // Fallback for non-ViewTransitions
+    document.querySelectorAll(".typing-text-container").forEach((el) => {
+        new TypingText(el as HTMLElement);
+    });
+</script>
+
+<style>
+    .typing-text-container {
+        font-family: var(--font-mono);
+        display: inline-block;
+    }
+
+    .typing-cursor {
+        display: none;
+        margin-left: 2px;
+        font-weight: bold;
+        color: var(--color-primary);
+    }
+
+    .typing-cursor.visible {
+        display: inline;
+    }
+
+    .typing-cursor.blinking {
+        animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0;
+        }
+    }
+</style>

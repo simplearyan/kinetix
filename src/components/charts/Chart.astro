@@ -1,0 +1,103 @@
+---
+interface Props {
+  type?: "bar" | "line" | "pie" | "doughnut" | "radar" | "polarArea";
+  data: any;
+  options?: any;
+}
+
+const { type = "bar", data, options = {} } = Astro.props;
+const chartConfig = JSON.stringify({ type, data, options });
+---
+
+<chart-js data-config={chartConfig} class="chart-container">
+  <canvas></canvas>
+</chart-js>
+
+<style>
+  .chart-container {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 400px;
+    margin: var(--spacing-lg) 0;
+    background: var(--color-code-bg);
+    border-radius: 12px;
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+  }
+</style>
+
+<script>
+  import Chart from "chart.js/auto";
+
+  class ChartJS extends HTMLElement {
+    connectedCallback() {
+      const canvas = this.querySelector("canvas");
+      if (!canvas) return;
+
+      const config = JSON.parse(this.dataset.config || "{}");
+
+      const textColor = getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-text")
+        .trim();
+      const borderColor = getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-border")
+        .trim();
+
+      const themeOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: textColor,
+            },
+          },
+        },
+        scales: {
+          y: {
+            grid: {
+              color: borderColor,
+            },
+            ticks: {
+              color: textColor,
+            },
+          },
+          x: {
+            grid: {
+              color: borderColor,
+            },
+            ticks: {
+              color: textColor,
+            },
+          },
+        },
+      };
+
+      // Simple merge for top-level options. For deep merging, a library would be better,
+      // but this suffices for the demo.
+      const finalOptions = {
+        ...themeOptions,
+        ...config.options,
+        plugins: {
+          ...themeOptions.plugins,
+          ...(config.options?.plugins || {}),
+        },
+        scales: {
+          ...themeOptions.scales,
+          ...(config.options?.scales || {}),
+        },
+      };
+
+      new Chart(canvas, {
+        type: config.type,
+        data: config.data,
+        options: finalOptions,
+      });
+    }
+  }
+
+  if (!customElements.get("chart-js")) {
+    customElements.define("chart-js", ChartJS);
+  }
+</script>

@@ -1,0 +1,206 @@
+---
+interface DataPoint {
+    label: string;
+    value: number;
+    color?: string;
+}
+
+interface Props {
+    data: DataPoint[];
+    height?: number;
+    colors?: string[];
+    trigger?: "visible" | "load";
+    class?: string;
+}
+
+const {
+    data,
+    height = 400,
+    colors = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6366F1"],
+    trigger = "visible",
+    class: className,
+} = Astro.props;
+
+const total = data.reduce((acc, cur) => acc + cur.value, 0);
+const chartSize = height;
+const center = chartSize / 2;
+const radius = chartSize / 2 - 20;
+
+let cumulativePercent = 0;
+const slices = data.map((d, index) => {
+    const startPercent = cumulativePercent;
+    const slicePercent = d.value / total;
+    cumulativePercent += slicePercent;
+    const endPercent = cumulativePercent;
+
+    const getCoords = (percent: number) => {
+        const x = center + radius * Math.cos(2 * Math.PI * percent);
+        const y = center + radius * Math.sin(2 * Math.PI * percent);
+        return [x, y];
+    };
+
+    const [startX, startY] = getCoords(startPercent);
+    const [endX, endY] = getCoords(endPercent);
+    const largeArcFlag = slicePercent > 0.5 ? 1 : 0;
+
+    const pathData = [
+        `M ${center} ${center}`,
+        `L ${startX} ${startY}`,
+        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+        `Z`,
+    ].join(" ");
+
+    return {
+        ...d,
+        path: pathData,
+        color: d.color || colors[index % colors.length],
+        percent: ((d.value / total) * 100).toFixed(1),
+    };
+});
+---
+
+<div class={`vox-pie-chart ${className || ""}`} data-trigger={trigger}>
+    <div class="chart-wrapper">
+        <svg
+            viewBox={`0 0 ${chartSize} ${chartSize}`}
+            role="img"
+            aria-label="Pie Chart"
+            class="pie-svg"
+        >
+            {
+                slices.map((slice, i) => (
+                    <path
+                        d={slice.path}
+                        fill={slice.color}
+                        stroke="var(--bg-color, white)"
+                        stroke-width="2"
+                        class="slice-path"
+                        style={`--delay: ${i * 100}ms; transform-origin: center;`}
+                    />
+                ))
+            }
+        </svg>
+    </div>
+
+    <div class="legend-grid">
+        {
+            slices.map((slice) => (
+                <div class="legend-item">
+                    <span
+                        class="color-box"
+                        style={`background-color: ${slice.color}`}
+                    />
+                    <div class="legend-info">
+                        <span class="legend-label">{slice.label}</span>
+                        <span class="legend-value">{slice.percent}%</span>
+                    </div>
+                </div>
+            ))
+        }
+    </div>
+</div>
+
+<script>
+    const setup = () => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((e) => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add("in-view");
+                        observer.unobserve(e.target);
+                    }
+                });
+            },
+            { threshold: 0.2 },
+        );
+
+        document
+            .querySelectorAll('.vox-pie-chart[data-trigger="visible"]')
+            .forEach((el) => observer.observe(el));
+
+        document
+            .querySelectorAll('.vox-pie-chart[data-trigger="load"]')
+            .forEach((el) => el.classList.add("in-view"));
+    };
+    document.addEventListener("astro:page-load", setup);
+    setup();
+</script>
+
+<style>
+    .vox-pie-chart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        --bg-color: #fff;
+    }
+
+    :global(.theme-dark) .vox-pie-chart {
+        --bg-color: #222;
+    }
+
+    @media (min-width: 600px) {
+        .vox-pie-chart {
+            flex-direction: row;
+            justify-content: center;
+        }
+    }
+
+    .chart-wrapper {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .pie-svg {
+        overflow: visible;
+    }
+
+    .slice-path {
+        transform: scale(0);
+        transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition-delay: var(--delay);
+    }
+
+    .vox-pie-chart.in-view .slice-path {
+        transform: scale(1);
+    }
+
+    .legend-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .color-box {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .legend-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .legend-label {
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+
+    .legend-value {
+        font-size: 0.8rem;
+        color: #777;
+    }
+</style>

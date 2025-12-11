@@ -1,0 +1,117 @@
+---
+interface Props {
+    data: { label: string; value: number }[];
+    variant?: "clean" | "hand-drawn";
+    color?: string;
+    height?: number;
+}
+
+const {
+    data,
+    variant = "clean",
+    color = "#3b82f6",
+    height = 300,
+} = Astro.props;
+
+const maxValue = Math.max(...data.map((d) => d.value));
+const chartHeight = height;
+const barWidth = 100 / data.length;
+const gap = 10;
+
+// Helper for rough path (simplified)
+const getRoughRect = (x: number, y: number, w: number, h: number) => {
+    const wobble = 2;
+    return `
+    M ${x} ${y}
+    L ${x + w + Math.random() * wobble} ${y + Math.random() * wobble}
+    L ${x + w} ${y + h}
+    L ${x - Math.random() * wobble} ${y + h + Math.random() * wobble}
+    Z
+  `;
+};
+---
+
+<div class="w-full my-8">
+    <div
+        class="h-[300px] flex items-end gap-4 p-4 border-b-2 border-slate-900 relative"
+        style={`height: ${chartHeight}px`}
+    >
+        {/* Clean or Hand-Drawn Rendering */}
+        {
+            data.map((item, index) => {
+                const barHeight = (item.value / maxValue) * 100;
+
+                return (
+                    <div class="flex-1 flex flex-col items-center group relative h-full justify-end">
+                        <div class="mb-2 opacity-0 group-hover:opacity-100 transition-opacity absolute -top-8 font-bold text-slate-700">
+                            {item.value}
+                        </div>
+
+                        {variant === "clean" ? (
+                            <div
+                                class="w-full rounded-t-md hover:opacity-80 transition-all duration-500 ease-out origin-bottom scale-y-0 animate-[grow_1s_ease-out_forwards]"
+                                style={`height: ${barHeight}%; background-color: ${color}; animation-delay: ${index * 100}ms;`}
+                            />
+                        ) : (
+                            <div
+                                class="w-full relative hover:opacity-80 transition-opacity"
+                                style={`height: ${barHeight}%;`}
+                            >
+                                <svg
+                                    width="100%"
+                                    height="100%"
+                                    preserveAspectRatio="none"
+                                    style={`filter: url(#rough-paper-${index})`}
+                                >
+                                    <defs>
+                                        <filter id={`rough-paper-${index}`}>
+                                            <feTurbulence
+                                                type="fractalNoise"
+                                                baseFrequency="0.04"
+                                                numOctaves="5"
+                                                result="noise"
+                                            />
+                                            <feDisplacementMap
+                                                in="SourceGraphic"
+                                                in2="noise"
+                                                scale="2"
+                                            />
+                                        </filter>
+                                    </defs>
+                                    <rect
+                                        x="0"
+                                        y="0"
+                                        width="100%"
+                                        height="100%"
+                                        fill={color}
+                                        rx="2"
+                                        class="origin-bottom scale-y-0 animate-[grow_1s_ease-out_forwards]"
+                                        style={`animation-delay: ${index * 100}ms;`}
+                                    />
+                                </svg>
+                            </div>
+                        )}
+
+                        <div class="mt-2 font-hand font-bold text-slate-600 text-sm">
+                            {item.label}
+                        </div>
+                    </div>
+                );
+            })
+        }
+    </div>
+</div>
+
+<style>
+    @keyframes grow {
+        from {
+            transform: scaleY(0);
+        }
+        to {
+            transform: scaleY(1);
+        }
+    }
+    .font-hand {
+        font-family: "Patrick Hand", "Comic Sans MS", cursive; /* Fallback if custom font not loaded */
+    }
+</style>

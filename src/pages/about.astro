@@ -1,0 +1,123 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.astro";
+import CtaSection from "../components/CtaSection.astro";
+import { ArrowRight } from "lucide-react";
+---
+
+<Layout title="About Us - Kinetix">
+    <Navbar />
+    <main class="bg-white min-h-screen">
+        {/* Header */}
+        <section class="pt-32 pb-16 px-6 text-center max-w-4xl mx-auto">
+            <h1
+                class="text-5xl md:text-6xl font-bold text-slate-900 mb-6 font-display"
+            >
+                About us
+            </h1>
+            <p class="text-xl md:text-2xl text-slate-600 leading-relaxed">
+                Join us in transforming business communication, one visual at a
+                time.
+            </p>
+        </section>
+
+        {/* Story Section */}
+        <section
+            class="py-20 px-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center"
+        >
+            {/* Visual - CSS Venn Diagram Placeholder */}
+            <div
+                class="relative h-[400px] w-full flex items-center justify-center"
+            >
+                <div
+                    class="absolute top-10 left-10 w-48 h-48 bg-blue-100 rounded-full mix-blend-multiply filter blur-sm opacity-70 animate-blob"
+                >
+                </div>
+                <div
+                    class="absolute top-10 right-10 w-48 h-48 bg-purple-100 rounded-full mix-blend-multiply filter blur-sm opacity-70 animate-blob animation-delay-2000"
+                >
+                </div>
+                <div
+                    class="absolute -bottom-8 left-20 w-48 h-48 bg-pink-100 rounded-full mix-blend-multiply filter blur-sm opacity-70 animate-blob animation-delay-4000"
+                >
+                </div>
+
+                <div
+                    class="relative z-10 bg-white/80 backdrop-blur border border-slate-200 p-8 rounded-2xl shadow-sm text-center"
+                >
+                    <div
+                        class="w-12 h-12 bg-slate-900 rounded-lg mx-auto mb-4 flex items-center justify-center text-white font-bold"
+                    >
+                        K
+                    </div>
+                    <div class="font-bold text-slate-800">
+                        The Kinetix Vision
+                    </div>
+                    <div class="text-sm text-slate-500 mt-2">
+                        Text + Visuals + Logic
+                    </div>
+                </div>
+            </div>
+
+            {/* Text Content */}
+            <div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-6 font-display">
+                    Our story
+                </h2>
+                <div class="space-y-6 text-lg text-slate-600 leading-relaxed">
+                    <p>
+                        About a decade ago, we realized that while writing tools
+                        had advanced significantly, visual communication was
+                        stuck in the past. Creating a simple diagram required
+                        complex software or messy freehand drawing.
+                    </p>
+                    <p>
+                        We built Kinetix with a mission to make visual thinking
+                        accessible to everyone. We believe that the best ideas
+                        live at the intersection of clear text and intuitive
+                        visuals.
+                    </p>
+                    <p>
+                        Unlike other tools that rely on unpredictable AI
+                        generation, Kinetix uses a deterministic logic engine.
+                        This ensures that your diagrams are precise, editable,
+                        and exactly what you intended—every single time.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        {/* CTA */}
+        <CtaSection />
+    </main>
+</Layout>
+
+<style>
+    .font-display {
+        font-family: "Outfit", sans-serif;
+    }
+
+    @keyframes blob {
+        0% {
+            transform: translate(0px, 0px) scale(1);
+        }
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+        100% {
+            transform: translate(0px, 0px) scale(1);
+        }
+    }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+</style>

@@ -1,0 +1,318 @@
+---
+interface Props {
+    data: { label: string; value: number }[];
+    max?: number;
+    style?: "clean" | "hand-drawn" | "sketchy";
+    color?: "colorful" | "red" | "blue" | "green" | "yellow" | "black";
+    animation?: "draw" | "fade" | "none";
+    trigger?: "visible" | "load";
+    font?: "hand-drawn" | "sans";
+    height?: number;
+    showPoints?: boolean;
+    area?: boolean; // If true, fill area under line
+    class?: string;
+}
+
+const {
+    data,
+    max,
+    style = "clean",
+    color = "colorful",
+    animation = "draw",
+    trigger = "load",
+    font = "hand-drawn",
+    height = 300,
+    showPoints = true,
+    area = false,
+    class: className,
+} = Astro.props;
+
+const maxValue = max || Math.max(...data.map((d) => d.value));
+const chartHeight = height;
+const chartWidth = 600;
+const padding = 40;
+const availableWidth = chartWidth - padding * 2;
+const pointGap = availableWidth / (data.length - 1);
+
+const colors = {
+    red: "#ef4444",
+    blue: "#3b82f6",
+    green: "#22c55e",
+    yellow: "#eab308",
+    black: "#1a1a1a",
+    colorful: "#3b82f6", // Default single color for line
+};
+
+// For line chart, we typically use one color unless it's multi-line (which this isn't yet)
+// But points can be colorful.
+const getLineColor = () => {
+    if (color === "colorful") return colors.blue;
+    // @ts-ignore
+    return colors[color] || colors.black;
+};
+
+const getPointColor = (index: number) => {
+    if (color === "colorful") {
+        const palette = [
+            "#ef4444",
+            "#3b82f6",
+            "#22c55e",
+            "#eab308",
+            "#8b5cf6",
+            "#ec4899",
+        ];
+        return palette[index % palette.length];
+    }
+    // @ts-ignore
+    return colors[color] || colors.black;
+};
+
+const getY = (value: number) => {
+    // Invert Y because SVG 0 is top
+    return (
+        chartHeight - padding - (value / maxValue) * (chartHeight - padding * 2)
+    );
+};
+
+const points = data
+    .map((d, i) => {
+        const x = padding + i * pointGap;
+        const y = getY(d.value);
+        return `${x},${y}`;
+    })
+    .join(" ");
+
+const areaPoints = `
+    ${padding},${chartHeight - padding} 
+    ${points} 
+    ${padding + (data.length - 1) * pointGap},${chartHeight - padding}
+`;
+
+const uniqueId = Math.random().toString(36).substr(2, 9);
+const lineColor = getLineColor();
+---
+
+<div
+    class={`line-chart-container font-${font} ${className || ""}`}
+    data-trigger={trigger}
+>
+    <svg
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        class={`line-chart style-${style} animate-${animation}`}
+        role="img"
+        aria-label="Line Chart"
+    >
+        <defs>
+            <filter id={`displacement-line-${uniqueId}`}>
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.05"
+                    numOctaves="2"
+                    result="noise"></feTurbulence>
+                <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="3"
+                    xChannelSelector="R"
+                    yChannelSelector="G"></feDisplacementMap>
+            </filter>
+        </defs>
+
+        {/* Axis Lines */}
+        <line
+            x1={padding}
+            y1={padding}
+            x2={padding}
+            y2={chartHeight - padding}
+            stroke="currentColor"
+            stroke-width="2"
+            class="axis-line"></line>
+        <line
+            x1={padding}
+            y1={chartHeight - padding}
+            x2={chartWidth - padding}
+            y2={chartHeight - padding}
+            stroke="currentColor"
+            stroke-width="2"
+            class="axis-line"></line>
+
+        {/* Area Fill */}
+        {
+            area && (
+                <polyline
+                    points={areaPoints}
+                    fill={lineColor}
+                    fill-opacity="0.1"
+                    stroke="none"
+                    class="chart-area"
+                />
+            )
+        }
+
+        {/* The Line */}
+        <polyline
+            points={points}
+            fill="none"
+            stroke={lineColor}
+            stroke-width={style === "sketchy" ? 4 : 3}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="chart-line"
+            filter={style !== "clean"
+                ? `url(#displacement-line-${uniqueId})`
+                : ""}></polyline>
+
+        {/* Points & Labels */}
+        {
+            data.map((item, index) => {
+                const x = padding + index * pointGap;
+                const y = getY(item.value);
+                const c = getPointColor(index);
+
+                return (
+                    <g class="point-group" style={`--delay: ${index * 100}ms`}>
+                        {showPoints && (
+                            <circle
+                                cx={x}
+                                cy={y}
+                                r={style === "sketchy" ? 6 : 5}
+                                fill="var(--color-bg, white)"
+                                stroke={c}
+                                stroke-width="3"
+                                filter={
+                                    style !== "clean"
+                                        ? `url(#displacement-line-${uniqueId})`
+                                        : ""
+                                }
+                                class="chart-point"
+                            />
+                        )}
+                        <text
+                            x={x}
+                            y={chartHeight - padding + 20}
+                            text-anchor="middle"
+                            class="axis-label"
+                            fill="currentColor"
+                        >
+                            {item.label}
+                        </text>
+                        <text
+                            x={x}
+                            y={y - 15}
+                            text-anchor="middle"
+                            class="value-label"
+                            fill="currentColor"
+                            font-weight="bold"
+                        >
+                            {item.value}
+                        </text>
+                    </g>
+                );
+            })
+        }
+    </svg>
+</div>
+
+<script>
+    const setupObserver = () => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("in-view");
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.2 },
+        );
+
+        document
+            .querySelectorAll('.line-chart-container[data-trigger="visible"]')
+            .forEach((el) => {
+                observer.observe(el);
+            });
+
+        document
+            .querySelectorAll('.line-chart-container[data-trigger="load"]')
+            .forEach((el) => {
+                el.classList.add("in-view");
+            });
+    };
+
+    document.addEventListener("astro:page-load", setupObserver);
+    setupObserver();
+</script>
+
+<style>
+    .line-chart-container {
+        width: 100%;
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .line-chart-container.font-hand-drawn {
+        font-family: "Kalam", cursive, sans-serif;
+    }
+
+    .line-chart-container.font-sans {
+        font-family: var(--font-sans, system-ui, sans-serif);
+    }
+
+    .line-chart {
+        overflow: visible;
+        color: var(--color-text);
+    }
+
+    .axis-label {
+        font-size: 14px;
+    }
+
+    .value-label {
+        font-size: 14px;
+    }
+
+    /* Animations */
+    .chart-line {
+        stroke-dasharray: 2000; /* Long enough to cover line */
+        stroke-dashoffset: 2000;
+        transition: stroke-dashoffset 2s ease-out;
+    }
+
+    .line-chart-container.in-view .animate-draw .chart-line {
+        animation: drawLine 2s ease-out forwards;
+    }
+
+    .line-chart-container:not(.in-view) .animate-draw .chart-line {
+        stroke-dashoffset: 2000;
+    }
+
+    /* Fade points */
+    .line-chart-container.in-view .point-group {
+        opacity: 0;
+        animation: fadePoint 0.5s ease-out forwards;
+        animation-delay: calc(
+            1s + var(--delay)
+        ); /* Start after line draws a bit */
+    }
+
+    .line-chart-container:not(.in-view) .point-group {
+        opacity: 0;
+    }
+
+    @keyframes drawLine {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    @keyframes fadePoint {
+        to {
+            opacity: 1;
+        }
+    }
+
+    .style-sketchy .chart-line {
+        /* Extra rough stroke handled by filter */
+    }
+</style>

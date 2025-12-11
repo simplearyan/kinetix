@@ -1,0 +1,84 @@
+---
+interface Props {
+    color?: string;
+    delay?: number;
+    class?: string;
+}
+
+const { color = "red", delay = 0, class: className } = Astro.props;
+---
+
+<span class={`vox-circle-wrapper ${className || ""}`}>
+    <slot />
+    <svg
+        class="vox-circle-svg"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        style={`--stroke-color: ${color}; --delay: ${delay}ms;`}
+    >
+        <path
+            d="M5,50 C15,5 85,5 95,50 C85,95 15,95 5,50 Z"
+            vector-effect="non-scaling-stroke"
+            pathLength="1"></path>
+    </svg>
+</span>
+
+<style>
+    .vox-circle-wrapper {
+        position: relative;
+        display: inline-block;
+        padding: 0.2em 0.4em;
+        white-space: nowrap;
+    }
+
+    .vox-circle-svg {
+        position: absolute;
+        top: -0.2em;
+        left: -0.2em;
+        width: calc(100% + 0.4em);
+        height: calc(100% + 0.5em);
+        pointer-events: none;
+        overflow: visible;
+        z-index: 1;
+    }
+
+    .vox-circle-svg path {
+        fill: none;
+        stroke: var(--stroke-color);
+        stroke-width: 2px;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+    }
+
+    /* Animation on view */
+    .vox-circle-wrapper.visible .vox-circle-svg path {
+        animation: drawCircle 0.8s ease-in-out forwards;
+        animation-delay: var(--delay);
+    }
+
+    @keyframes drawCircle {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+</style>
+
+<script>
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("visible");
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.5 },
+    );
+
+    document
+        .querySelectorAll(".vox-circle-wrapper")
+        .forEach((el) => observer.observe(el));
+</script>

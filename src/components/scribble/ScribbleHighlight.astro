@@ -1,0 +1,30 @@
+---
+interface Props {
+    color?: "yellow" | "blue" | "green" | "pink";
+    class?: string;
+}
+
+const { color = "yellow", class: className } = Astro.props;
+
+const colorMap = {
+    yellow: "rgba(253, 224, 71, 0.6)",
+    blue: "rgba(147, 197, 253, 0.6)",
+    green: "rgba(134, 239, 172, 0.6)",
+    pink: "rgba(253, 164, 175, 0.6)",
+};
+
+const highlightColor = colorMap[color];
+---
+
+<span
+    class:list={["scribble-highlight", className]}
+    style={`--highlight-color: ${highlightColor}`}
+>
+    <slot />
+</span>
+
+<style>
+    .scribble-highlight::before {
+        background-color: var(--highlight-color, rgba(253, 224, 71, 0.6));
+    }
+</style>

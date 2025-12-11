@@ -1,0 +1,122 @@
+---
+import {
+    Type,
+    BarChart3,
+    Image as ImageIcon,
+    Box,
+    Code,
+    Hash,
+} from "lucide-react";
+---
+
+<div class="flex flex-col items-center gap-4 py-4 w-full h-full">
+    <!-- Tool: Text -->
+    <button
+        id="add-text-btn"
+        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+        title="Add Text"
+    >
+        <Type size={20} />
+        <span class="text-[10px] font-medium">Text</span>
+    </button>
+
+    <!-- Tool: Chart -->
+    <button
+        id="add-chart-btn"
+        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+        title="Add Chart"
+    >
+        <BarChart3 size={20} />
+        <span class="text-[10px] font-medium">Data</span>
+    </button>
+
+    <!-- Tool: Image -->
+    <button
+        id="add-image-btn"
+        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+        title="Add Image"
+    >
+        <ImageIcon size={20} />
+        <span class="text-[10px] font-medium">Image</span>
+    </button>
+
+    <!-- Tool: Progress -->
+    <button
+        id="add-progress-btn"
+        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+        title="Add Progress"
+    >
+        <Box size={20} />
+        <span class="text-[10px] font-medium">Prog</span>
+    </button>
+
+    <!-- Tool: Code -->
+    <button
+        id="add-code-btn"
+        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+        title="Add Code"
+    >
+        <Code size={20} />
+        <span class="text-[10px] font-medium">Code</span>
+    </button>
+
+    <!-- Tool: Counter -->
+    <button
+        id="add-counter-btn"
+        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+        title="Add Counter"
+    >
+        <Hash size={20} />
+        <span class="text-[10px] font-medium">Count</span>
+    </button>
+</div>
+
+<script>
+    document.getElementById("add-text-btn")?.addEventListener("click", () => {
+        window.dispatchEvent(
+            new CustomEvent("studio:add-object", {
+                detail: { type: "text" },
+            }),
+        );
+    });
+
+    document.getElementById("add-chart-btn")?.addEventListener("click", () => {
+        window.dispatchEvent(
+            new CustomEvent("studio:add-object", {
+                detail: { type: "chart" },
+            }),
+        );
+    });
+
+    document.getElementById("add-image-btn")?.addEventListener("click", () => {
+        window.dispatchEvent(
+            new CustomEvent("studio:add-object", { detail: { type: "image" } }),
+        );
+    });
+
+    document
+        .getElementById("add-progress-btn")
+        ?.addEventListener("click", () => {
+            window.dispatchEvent(
+                new CustomEvent("studio:add-object", {
+                    detail: { type: "progress" },
+                }),
+            );
+        });
+
+    document.getElementById("add-code-btn")?.addEventListener("click", () => {
+        window.dispatchEvent(
+            new CustomEvent("studio:add-object", { detail: { type: "code" } }),
+        );
+    });
+
+    document
+        .getElementById("add-counter-btn")
+        ?.addEventListener("click", () => {
+            window.dispatchEvent(
+                new CustomEvent("studio:add-object", {
+                    detail: { type: "counter" },
+                }),
+            );
+        });
+</script>

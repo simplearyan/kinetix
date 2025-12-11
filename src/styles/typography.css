@@ -1,0 +1,185 @@
+/* Adapted from SimpleAryan */
+:root {
+    /* Fonts */
+    --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', serif;
+    --font-mono: 'Fira Code', monospace;
+    --font-hand: 'Kalam', cursive;
+
+    /* Colors */
+    --color-primary: #0F172A;
+    /* Slate 900 */
+    --color-secondary: #2563EB;
+    /* Blue 600 - keeping this as accent from Kinetix or maybe Gold from SimpleAryan? Let's use Kinetix Blue */
+    --color-accent: #3b82f6;
+    --color-text: #334155;
+    /* Slate 700 */
+    --color-bg-code: #f1f5f9;
+
+    /* Spacing */
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
+}
+
+/* Base Prose Styles */
+.prose {
+    max-width: 65ch;
+    margin: 0 auto;
+    font-size: 1.125rem;
+    /* 18px */
+    line-height: 1.8;
+    color: var(--color-text);
+}
+
+/* Headings */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+    color: var(--color-primary);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 2.5em;
+    margin-bottom: 0.8em;
+}
+
+.prose h1 {
+    font-size: 2.5rem;
+    font-family: var(--font-serif);
+    font-style: italic;
+    background: linear-gradient(to right, #0F172A, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.prose h2 {
+    font-size: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 0.3em;
+}
+
+.prose h3 {
+    font-size: 1.5rem;
+}
+
+/* Links */
+.prose a {
+    color: var(--color-secondary);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
+    transition: all 0.2s;
+}
+
+.prose a:hover {
+    background-color: var(--color-secondary);
+    color: white;
+    text-decoration: none;
+    border-radius: 2px;
+    padding: 0 4px;
+    margin: 0 -4px;
+}
+
+/* Lists - The SimpleAryan Style */
+.prose ul,
+.prose ol {
+    margin: 1.5em 0;
+    padding-left: 0;
+}
+
+.prose ul {
+    list-style: none;
+}
+
+.prose ul>li {
+    position: relative;
+    padding-left: 1.75em;
+    margin-bottom: 0.75em;
+}
+
+.prose ul>li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    /* Adjust based on line height */
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+}
+
+/* Ordered List with Counter */
+.prose ol {
+    counter-reset: item;
+    list-style: none;
+}
+
+.prose ol>li {
+    position: relative;
+    padding-left: 2.5rem;
+    margin-bottom: 0.75em;
+}
+
+.prose ol>li::before {
+    content: counter(item) ".";
+    counter-increment: item;
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-family: var(--font-mono);
+    color: var(--color-accent);
+    font-weight: bold;
+    width: 1.5rem;
+    text-align: right;
+}
+
+/* Blockquotes */
+.prose blockquote {
+    border-left: 4px solid var(--color-secondary);
+    padding-left: 1.5em;
+    margin: 2em 0;
+    font-style: italic;
+    color: #475569;
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Code Blocks */
+.prose pre {
+    background-color: #1e293b !important;
+    /* Slate 800 */
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.prose code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+}
+
+.prose :not(pre)>code {
+    background-color: var(--color-bg-code);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    color: #db2777;
+    /* Pink 600 */
+    font-weight: 600;
+}
+
+/* Images */
+.prose img {
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    margin: 2.5rem auto;
+}
+
+/* Hand-drawn touches */
+.font-hand {
+    font-family: var(--font-hand);
+}

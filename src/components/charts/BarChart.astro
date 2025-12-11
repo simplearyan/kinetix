@@ -1,0 +1,322 @@
+---
+interface Props {
+    data: { label: string; value: number }[];
+    max?: number;
+    style?:
+        | "clean"
+        | "hand-drawn"
+        | "scribble"
+        | "outline"
+        | "fill"
+        | "sketchy"
+        | "sketchy-outline";
+    color?: "colorful" | "red" | "blue" | "green" | "yellow" | "black";
+    animation?: "grow" | "fade" | "none";
+    trigger?: "visible" | "load";
+    labelBold?: boolean;
+    font?: "hand-drawn" | "sans";
+    height?: number;
+    class?: string;
+}
+
+const {
+    data,
+    max,
+    style = "clean",
+    color = "colorful",
+    animation = "grow",
+    trigger = "load",
+    labelBold = false,
+    font = "hand-drawn",
+    height = 300,
+    class: className,
+} = Astro.props;
+
+const maxValue = max || Math.max(...data.map((d) => d.value));
+const chartHeight = height;
+const chartWidth = 600;
+const padding = 40;
+const barGap = 20;
+const availableWidth = chartWidth - padding * 2;
+const barWidth = (availableWidth - barGap * (data.length - 1)) / data.length;
+
+const colors = {
+    red: "#ef4444",
+    blue: "#3b82f6",
+    green: "#22c55e",
+    yellow: "#eab308",
+    black: "#1a1a1a",
+    colorful: [
+        "#ef4444",
+        "#3b82f6",
+        "#22c55e",
+        "#eab308",
+        "#8b5cf6",
+        "#ec4899",
+    ],
+};
+
+const getColor = (index: number) => {
+    if (color === "colorful") {
+        return colors.colorful[index % colors.colorful.length];
+    }
+    return colors[color];
+};
+
+const getBarHeight = (value: number) => {
+    return (value / maxValue) * (chartHeight - padding * 2);
+};
+
+const uniqueId = Math.random().toString(36).substr(2, 9);
+---
+
+<div
+    class={`bar-chart-container font-${font} ${className || ""}`}
+    data-trigger={trigger}
+>
+    <svg
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        class={`bar-chart style-${style} animate-${animation} ${labelBold ? "labels-bold" : ""}`}
+        role="img"
+        aria-label="Bar Chart"
+    >
+        <defs>
+            <!-- Hand-drawn filter -->
+            <filter id={`displacement-${uniqueId}`}>
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.05"
+                    numOctaves="2"
+                    result="noise"></feTurbulence>
+                <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="5"
+                    xChannelSelector="R"
+                    yChannelSelector="G"></feDisplacementMap>
+            </filter>
+
+            <!-- Scribble Pattern -->
+            <pattern
+                id={`scribble-${uniqueId}`}
+                patternUnits="userSpaceOnUse"
+                width="10"
+                height="10"
+                patternTransform="rotate(45)"
+            >
+                <line
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="10"
+                    stroke="currentColor"
+                    stroke-width="2"></line>
+            </pattern>
+        </defs>
+
+        {
+            data.map((item, index) => {
+                const h = getBarHeight(item.value);
+                const x = padding + index * (barWidth + barGap);
+                const y = chartHeight - padding - h;
+                const c = getColor(index);
+
+                const isSketchy =
+                    style === "sketchy" || style === "sketchy-outline";
+                const isOutline =
+                    style === "outline" || style === "sketchy-outline";
+                const isScribble = style === "scribble";
+                const isHandDrawn = style === "hand-drawn" || isSketchy;
+
+                const fill = isScribble
+                    ? `url(#scribble-${uniqueId})`
+                    : isOutline
+                      ? "none"
+                      : c;
+                const stroke =
+                    isOutline || isScribble || isSketchy ? c : "none";
+                const filter = isHandDrawn
+                    ? `url(#displacement-${uniqueId})`
+                    : "";
+
+                return (
+                    <g
+                        class="bar-group"
+                        style={`--bar-color: ${c}; --delay: ${index * 100}ms`}
+                    >
+                        {/* Bar */}
+                        <rect
+                            x={x}
+                            y={y}
+                            width={barWidth}
+                            height={h}
+                            class="bar-rect"
+                            fill={fill}
+                            stroke={stroke}
+                            stroke-width="3"
+                            filter={filter}
+                            rx={style === "clean" ? 4 : 0}
+                        />
+
+                        {/* Value Label */}
+                        <text
+                            x={x + barWidth / 2}
+                            y={y - 10}
+                            text-anchor="middle"
+                            class="bar-value"
+                            fill="currentColor"
+                        >
+                            {item.value}
+                        </text>
+
+                        {/* X-Axis Label */}
+                        <text
+                            x={x + barWidth / 2}
+                            y={chartHeight - padding + 20}
+                            text-anchor="middle"
+                            class="bar-label"
+                            fill="currentColor"
+                        >
+                            {item.label}
+                        </text>
+                    </g>
+                );
+            })
+        }
+
+        {/* Axis Lines */}
+        <line
+            x1={padding}
+            y1={chartHeight - padding}
+            x2={chartWidth - padding}
+            y2={chartHeight - padding}
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            class="axis-line"></line>
+    </svg>
+</div>
+
+<script>
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("in-view");
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.2 },
+    );
+
+    document.addEventListener("astro:page-load", () => {
+        document
+            .querySelectorAll('.bar-chart-container[data-trigger="visible"]')
+            .forEach((el) => {
+                observer.observe(el);
+            });
+        // Trigger load animations immediately
+        document
+            .querySelectorAll('.bar-chart-container[data-trigger="load"]')
+            .forEach((el) => {
+                el.classList.add("in-view");
+            });
+    });
+
+    // Fallback
+    document
+        .querySelectorAll('.bar-chart-container[data-trigger="visible"]')
+        .forEach((el) => {
+            observer.observe(el);
+        });
+    document
+        .querySelectorAll('.bar-chart-container[data-trigger="load"]')
+        .forEach((el) => {
+            el.classList.add("in-view");
+        });
+</script>
+
+<style>
+    .bar-chart-container {
+        width: 100%;
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .bar-chart-container.font-hand-drawn {
+        font-family: "Kalam", cursive, sans-serif;
+    }
+
+    .bar-chart-container.font-sans {
+        font-family: var(--font-sans, system-ui, sans-serif);
+    }
+
+    .bar-chart {
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        color: var(--color-text);
+    }
+
+    .bar-value {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .bar-label {
+        font-size: 14px;
+    }
+
+    .bar-chart.labels-bold .bar-label {
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    /* Animations */
+    /* Only animate when .in-view is present on container */
+    .bar-chart-container.in-view .animate-grow .bar-rect {
+        transform-origin: bottom;
+        animation: growBar 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        transform: scaleY(0);
+        animation-delay: var(--delay);
+    }
+
+    .bar-chart-container:not(.in-view) .animate-grow .bar-rect {
+        transform: scaleY(0);
+    }
+
+    .bar-chart-container.in-view .animate-fade .bar-group {
+        opacity: 0;
+        animation: fadeBar 0.5s ease-out forwards;
+        animation-delay: var(--delay);
+    }
+
+    .bar-chart-container:not(.in-view) .animate-fade .bar-group {
+        opacity: 0;
+    }
+
+    @keyframes growBar {
+        to {
+            transform: scaleY(1);
+        }
+    }
+
+    @keyframes fadeBar {
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Styles specific adjustments */
+    .style-hand-drawn .axis-line,
+    .style-sketchy .axis-line,
+    .style-sketchy-outline .axis-line {
+        /* Apply filter to axis too if possible, but might need ID */
+    }
+
+    /* Scribble specific: set color for pattern */
+    .style-scribble .bar-rect {
+        color: var(--bar-color);
+    }
+</style>

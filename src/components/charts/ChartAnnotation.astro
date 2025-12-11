@@ -1,0 +1,53 @@
+---
+import DiagramArrow from "../scribble/DiagramArrow.astro";
+import ScribbleCircle from "../scribble/ScribbleCircle.astro";
+---
+
+<div class="chart-annotation-wrapper">
+    <div class="arrow-container">
+        <DiagramArrow direction="left" color="red" />
+    </div>
+    <div class="text-container">
+        <ScribbleCircle color="red">
+            <span style="font-size: 0.9rem; font-weight: bold;"
+                >Struggling to cross 15%</span
+            >
+        </ScribbleCircle>
+    </div>
+</div>
+
+<style>
+    .chart-annotation-wrapper {
+        position: relative;
+        margin-top: -150px;
+        margin-left: 60%;
+        width: 150px;
+    }
+    .arrow-container {
+        display: block;
+    }
+    .text-container {
+        position: absolute;
+        top: 40px;
+        right: -20px;
+        width: 120px;
+    }
+
+    @media (max-width: 640px) {
+        .chart-annotation-wrapper {
+            position: static;
+            margin-top: 1rem;
+            margin-left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .arrow-container {
+            display: none;
+        }
+        .text-container {
+            position: static;
+            width: auto;
+        }
+    }
+</style>

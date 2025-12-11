@@ -1,0 +1,334 @@
+---
+interface Props {
+    data: { label: string; value: number }[];
+    style?: "clean" | "hand-drawn" | "scribble" | "outline";
+    color?: "colorful" | "monochrome"; // Pie usually needs multiple colors
+    animation?: "scale" | "fade" | "none";
+    trigger?: "visible" | "load";
+    font?: "hand-drawn" | "sans";
+    size?: number;
+    class?: string;
+}
+
+const {
+    data,
+    style = "clean",
+    color = "colorful",
+    animation = "scale",
+    trigger = "load",
+    font = "hand-drawn",
+    size = 400,
+    class: className,
+} = Astro.props;
+
+const total = data.reduce((acc, cur) => acc + cur.value, 0);
+const chartSize = size;
+const center = chartSize / 2;
+const radius = chartSize / 2 - 40; // Padding
+
+const colors = {
+    colorful: [
+        "#ef4444",
+        "#3b82f6",
+        "#22c55e",
+        "#eab308",
+        "#8b5cf6",
+        "#ec4899",
+        "#14b8a6",
+        "#f97316",
+    ],
+    monochrome: ["#1a1a1a", "#404040", "#737373", "#a3a3a3", "#d4d4d4"],
+};
+
+const getSliceColor = (index: number) => {
+    // @ts-ignore
+    const palette = colors[color] || colors.colorful;
+    return palette[index % palette.length];
+};
+
+// Helper for Arc Path
+const getCoordinatesForPercent = (percent: number) => {
+    const x = center + radius * Math.cos(2 * Math.PI * percent);
+    const y = center + radius * Math.sin(2 * Math.PI * percent);
+    return [x, y];
+};
+
+let cumulativePercent = 0;
+const slices = data.map((d, index) => {
+    const startPercent = cumulativePercent;
+    const slicePercent = d.value / total;
+    cumulativePercent += slicePercent;
+    const endPercent = cumulativePercent;
+
+    // Calculate path
+    const [startX, startY] = getCoordinatesForPercent(startPercent);
+    const [endX, endY] = getCoordinatesForPercent(endPercent);
+    const largeArcFlag = slicePercent > 0.5 ? 1 : 0;
+
+    const pathData = [
+        `M ${center} ${center}`,
+        `L ${startX} ${startY}`,
+        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+        `Z`,
+    ].join(" ");
+
+    // Label position (centroidish)
+    const midPercent = startPercent + slicePercent / 2;
+    const [labelX, labelY] = (() => {
+        const r = radius * 0.7; // Place label closer in
+        const x = center + r * Math.cos(2 * Math.PI * midPercent);
+        const y = center + r * Math.sin(2 * Math.PI * midPercent);
+        return [x, y];
+    })();
+
+    return {
+        ...d,
+        path: pathData,
+        color: getSliceColor(index),
+        labelX,
+        labelY,
+        percent: (slicePercent * 100).toFixed(1),
+    };
+});
+
+const uniqueId = Math.random().toString(36).substr(2, 9);
+---
+
+<div
+    class={`pie-chart-container font-${font} ${className || ""}`}
+    data-trigger={trigger}
+>
+    <svg
+        viewBox={`0 0 ${chartSize} ${chartSize}`}
+        class={`pie-chart style-${style} animate-${animation}`}
+        role="img"
+        aria-label="Pie Chart"
+    >
+        <defs>
+            <!-- Hand-drawn filter -->
+            <filter id={`displacement-pie-${uniqueId}`}>
+                <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.04"
+                    numOctaves="2"
+                    result="noise"></feTurbulence>
+                <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="noise"
+                    scale="6"
+                    xChannelSelector="R"
+                    yChannelSelector="G"></feDisplacementMap>
+            </filter>
+
+            <!-- Scribble Pattern (dynamic color needed, or masked) -->
+            <!-- For scribble style in pie, we might just hatch over the color -->
+            <pattern
+                id={`scribble-pie-${uniqueId}`}
+                patternUnits="userSpaceOnUse"
+                width="12"
+                height="12"
+                patternTransform="rotate(45)"
+            >
+                <line
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="12"
+                    stroke="rgba(0,0,0,0.3)"
+                    stroke-width="2"></line>
+            </pattern>
+        </defs>
+
+        {
+            slices.map((slice, index) => {
+                const isHandDrawn = style === "hand-drawn";
+                const isScribble = style === "scribble";
+
+                // For scribble, overlay pattern on color, or just pattern?
+                // Let's do color fill + pattern overlay if scribble, or just pattern if outlines?
+                // Simpler: Just normal fill, maybe texture overlay later.
+                // If scribble, use color but add pattern? SVG masks are heavy.
+                // Let's just use solid color for scribble style but with "sketchy" borders logic or just the filter.
+
+                const filter =
+                    isHandDrawn || style === "scribble"
+                        ? `url(#displacement-pie-${uniqueId})`
+                        : "";
+
+                return (
+                    <g
+                        class="slice-group"
+                        style={`--delay: ${index * 100}ms; transform-origin: ${center}px ${center}px;`}
+                    >
+                        <path
+                            d={slice.path}
+                            fill={slice.color}
+                            stroke="var(--color-bg, white)"
+                            stroke-width="2"
+                            filter={filter}
+                            class="slice-path"
+                        />
+                        {isScribble && (
+                            <path
+                                d={slice.path}
+                                fill={`url(#scribble-pie-${uniqueId})`}
+                                stroke="none"
+                                filter={filter}
+                                style="pointer-events: none;"
+                            />
+                        )}
+
+                        <text
+                            x={slice.labelX}
+                            y={slice.labelY}
+                            text-anchor="middle"
+                            dy=".3em"
+                            class="slice-label"
+                            fill="white"
+                            font-weight="bold"
+                            style="text-shadow: 0 0 2px rgba(0,0,0,0.5);"
+                        >
+                            {slice.percent}%
+                        </text>
+                    </g>
+                );
+            })
+        }
+
+        {/* Legend */}
+        {
+            /* We can put legend outside or in corners, but for now simplistic: text on slice */
+        }
+    </svg>
+
+    <div class="legend">
+        {
+            slices.map((slice) => (
+                <div class="legend-item">
+                    <span
+                        class="legend-color"
+                        style={`background-color: ${slice.color}`}
+                    />
+                    <span class="legend-label">{slice.label}</span>
+                </div>
+            ))
+        }
+    </div>
+</div>
+
+<script>
+    const setupObserver = () => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("in-view");
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.2 },
+        );
+
+        document
+            .querySelectorAll('.pie-chart-container[data-trigger="visible"]')
+            .forEach((el) => {
+                observer.observe(el);
+            });
+
+        document
+            .querySelectorAll('.pie-chart-container[data-trigger="load"]')
+            .forEach((el) => {
+                el.classList.add("in-view");
+            });
+    };
+
+    document.addEventListener("astro:page-load", setupObserver);
+    setupObserver();
+</script>
+
+<style>
+    .pie-chart-container {
+        width: 100%;
+        max-width: 500px;
+        margin: 2rem auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .pie-chart-container.font-hand-drawn {
+        font-family: "Kalam", cursive, sans-serif;
+    }
+
+    .pie-chart-container.font-sans {
+        font-family: var(--font-sans, system-ui, sans-serif);
+    }
+
+    .pie-chart {
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 0.5rem;
+    }
+
+    /* Animations */
+    .pie-chart-container.in-view .animate-scale .slice-group {
+        animation: scaleSlice 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+            forwards;
+        transform: scale(0);
+        animation-delay: var(--delay);
+    }
+
+    .pie-chart-container:not(.in-view) .animate-scale .slice-group {
+        transform: scale(0);
+    }
+
+    .pie-chart-container.in-view .animate-fade .slice-group {
+        animation: fadeSlice 0.5s ease-out forwards;
+        opacity: 0;
+        animation-delay: var(--delay);
+    }
+
+    .pie-chart-container:not(.in-view) .animate-fade .slice-group {
+        opacity: 0;
+    }
+
+    @keyframes scaleSlice {
+        to {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes fadeSlice {
+        to {
+            opacity: 1;
+        }
+    }
+
+    .style-outline .slice-path {
+        fill: none;
+        stroke: var(--color-text);
+        stroke-width: 2;
+    }
+</style>

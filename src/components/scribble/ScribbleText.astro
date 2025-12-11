@@ -1,0 +1,140 @@
+---
+interface Props {
+    text: string;
+    as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span" | "div";
+    color?: string;
+    shadowColor?: string;
+    animation?: "wiggle" | "pop" | "draw" | "none";
+    trigger?: "load" | "scroll" | "hover";
+    class?: string;
+}
+
+const {
+    text,
+    as: Tag = "span",
+    color = "var(--color-text)",
+    shadowColor = "rgba(0,0,0,0.1)",
+    animation = "none",
+    trigger = "load",
+    class: className,
+} = Astro.props;
+---
+
+<Tag
+    class:list={[
+        "scribble-text",
+        `animate-${animation}`,
+        `trigger-${trigger}`,
+        className,
+    ]}
+    style={`--scribble-color: ${color}; --scribble-shadow: ${shadowColor};`}
+>
+    {text}
+</Tag>
+
+<style>
+    .scribble-text {
+        font-family: "Kalam", cursive;
+        color: var(--scribble-color);
+        text-shadow: 2px 2px 0px var(--scribble-shadow);
+        display: inline-block;
+        line-height: 1.4;
+        transition: transform 0.3s ease;
+    }
+
+    /* Animations */
+    @keyframes wiggle {
+        0%,
+        100% {
+            transform: rotate(-2deg);
+        }
+        50% {
+            transform: rotate(2deg);
+        }
+    }
+
+    @keyframes pop {
+        0% {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes draw {
+        0% {
+            clip-path: inset(0 100% 0 0);
+        }
+        100% {
+            clip-path: inset(0 0 0 0);
+        }
+    }
+
+    /* Trigger: Load */
+    .trigger-load.animate-wiggle {
+        animation: wiggle 2s ease-in-out infinite;
+    }
+    .trigger-load.animate-pop {
+        animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .trigger-load.animate-draw {
+        animation: draw 1s ease-out forwards;
+    }
+
+    /* Trigger: Hover */
+    .trigger-hover:hover.animate-wiggle {
+        animation: wiggle 0.5s ease-in-out infinite;
+    }
+    .trigger-hover:hover.animate-pop {
+        animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* Trigger: Scroll (handled by IntersectionObserver script below) */
+    .trigger-scroll {
+        opacity: 0; /* Hidden initially */
+        transform: translateY(20px);
+        transition:
+            opacity 0.6s ease-out,
+            transform 0.6s ease-out;
+    }
+
+    .trigger-scroll.in-view {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .trigger-scroll.in-view.animate-wiggle {
+        animation: wiggle 2s ease-in-out infinite;
+    }
+    .trigger-scroll.in-view.animate-pop {
+        animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .trigger-scroll.in-view.animate-draw {
+        animation: draw 1s ease-out forwards;
+    }
+</style>
+
+<script>
+    const observerOptions = {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.1,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("in-view");
+                // Optional: Stop observing once animated
+                // observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll(".trigger-scroll").forEach((el) => {
+        observer.observe(el);
+    });
+</script>

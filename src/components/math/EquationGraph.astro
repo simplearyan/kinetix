@@ -1,0 +1,854 @@
+---
+interface Point {
+    x: number;
+    y: number;
+    label?: string;
+    color?: string;
+    r?: number;
+}
+
+interface Vector {
+    start?: [number, number]; // Defaults to [0,0]
+    end: [number, number];
+    color?: string;
+    width?: number;
+    label?: string;
+    dashed?: boolean;
+}
+
+interface Series {
+    function?: string;
+    expression?: string;
+    color?: string;
+    width?: number;
+    dash?: string; // "5,5" for dashed
+}
+
+interface Props {
+    // Legacy/Single Props
+    function?: string;
+    expression?: string;
+    color?: string;
+
+    // New Multi Props
+    series?: Series[];
+    points?: Point[];
+    vectors?: Vector[]; // New Vector Prop
+
+    domain?: [number, number];
+    range?: [number, number];
+    grid?: boolean;
+    title?: string;
+    height?: number;
+    width?: number;
+
+    // Grid & Label Control
+    xStep?: number;
+    yStep?: number;
+    showLabels?: boolean;
+
+    // Styling
+    variant?:
+        | "classic"
+        | "minimal"
+        | "paper"
+        | "pencil"
+        | "scribble"
+        | "stroke";
+    allowFullscreen?: boolean; // New prop
+    class?: string;
+}
+
+const {
+    function: funcName,
+    expression,
+    color,
+
+    series = [],
+    points: outputPoints = [],
+    vectors = [],
+
+    domain = [-Math.PI * 2, Math.PI * 2],
+    range = [-2, 2],
+    grid = true,
+    title,
+    height = 300,
+    width = 600,
+
+    xStep,
+    yStep,
+    showLabels = false,
+    variant = "classic",
+    allowFullscreen = false, // Default to false as requested
+    class: className,
+} = Astro.props;
+
+// Normalizing data
+const allSeries: Series[] = [...series];
+if (funcName || expression) {
+    allSeries.unshift({
+        function: funcName || "sin",
+        expression: expression,
+        color: color || "var(--color-primary)",
+        width: 3,
+    });
+}
+if (allSeries.length === 0) {
+    allSeries.push({
+        function: "sin",
+        color: "var(--color-primary)",
+        width: 3,
+    });
+}
+
+// Helpers
+const [minX, maxX] = domain;
+const [minY, maxY] = range;
+const mapX = (x: number) => ((x - minX) / (maxX - minX)) * width;
+const mapY = (y: number) => height - ((y - minY) / (maxY - minY)) * height;
+
+// Calculate Steps if not provided
+const calculatedXStep = xStep || (maxX - minX) / 10;
+const calculatedYStep = yStep || (maxY - minY) / 5;
+
+const basePoints = 300;
+
+const getY = (x: number, s: Series) => {
+    if (s.expression) {
+        try {
+            return new Function("x", `return ${s.expression}`)(x);
+        } catch (e) {
+            return 0;
+        }
+    }
+    const fn = s.function || "sin";
+    switch (fn) {
+        case "sin":
+            return Math.sin(x);
+        case "cos":
+            return Math.cos(x);
+        case "tan":
+        case "tangent":
+            return Math.tan(x);
+        case "quadratic":
+            return x * x;
+        case "cubic":
+            return x * x * x;
+        case "log":
+            return x > 0 ? Math.log(x) : NaN;
+        case "exp":
+            return Math.exp(x);
+        default:
+            return Math.sin(x);
+    }
+};
+
+// Generate Paths
+const generatedPaths = allSeries.map((s, idx) => {
+    let d = "";
+    let currentSegment = "";
+
+    for (let i = 0; i <= basePoints; i++) {
+        const x = minX + (i / basePoints) * (maxX - minX);
+        const y = getY(x, s);
+
+        if (
+            isNaN(y) ||
+            !isFinite(y) ||
+            Math.abs(y) > Math.max(Math.abs(minY), Math.abs(maxY)) * 10
+        ) {
+            if (currentSegment) {
+                d += currentSegment;
+                currentSegment = "";
+            }
+            continue;
+        }
+
+        const px = mapX(x);
+        const py = mapY(y);
+
+        if (currentSegment === "") {
+            currentSegment = `M ${px.toFixed(1)} ${py.toFixed(1)}`;
+        } else {
+            currentSegment += ` L ${px.toFixed(1)} ${py.toFixed(1)}`;
+        }
+    }
+    if (currentSegment) d += currentSegment;
+
+    // Override colors for styles
+    let pathColor = s.color || `hsl(${idx * 60 + 200}, 70%, 50%)`;
+    if (variant === "pencil") pathColor = "#555"; // Graphite look
+    if (variant === "paper") pathColor = "#1e3a8a"; // Blue ink look
+    if (variant === "scribble") pathColor = "#000"; // Black ink
+
+    // Adjust width for stroke style
+    let pathWidth = s.width || 3;
+    if (variant === "stroke") pathWidth = (s.width || 3) * 2; // Thicker marker
+
+    return {
+        d,
+        color: pathColor,
+        width: pathWidth,
+        dash: s.dash || "",
+    };
+});
+
+// Grid generation
+const gridLines = [];
+const labels = [];
+const uniqueId = Math.random().toString(36).substr(2, 9);
+const isMinimal = variant === "minimal";
+// New Styles (organic) shouldn't be minimal by default, but might have specific grid traits
+const isOrganic = ["paper", "pencil", "scribble", "stroke"].includes(variant);
+
+if (grid) {
+    // Vertical Grid & Labels
+    const startX = Math.ceil(minX / calculatedXStep) * calculatedXStep;
+    for (let xVal = startX; xVal <= maxX + 0.001; xVal += calculatedXStep) {
+        const cleanX = Math.round(xVal * 1000) / 1000;
+        const xPos = mapX(cleanX);
+
+        if (xPos < 0 || xPos > width) continue;
+
+        let opacity = isMinimal ? "0.1" : "0.2";
+        if (isOrganic) opacity = "0.4"; // Slightly darker grid for paper like effects
+
+        if (!isMinimal) {
+            gridLines.push(
+                `<line x1="${xPos}" y1="0" x2="${xPos}" y2="${height}" class="grid-line" stroke="currentColor" stroke-width="1" opacity="${opacity}" vector-effect="non-scaling-stroke" />`,
+            );
+        }
+
+        if (showLabels) {
+            labels.push({
+                x: xPos,
+                y: height + 15,
+                text: cleanX.toString(),
+                anchor: "middle",
+                baseline: "hanging",
+            });
+        }
+    }
+
+    // Horizontal Grid & Labels
+    const startY = Math.ceil(minY / calculatedYStep) * calculatedYStep;
+    for (let yVal = startY; yVal <= maxY + 0.001; yVal += calculatedYStep) {
+        const cleanY = Math.round(yVal * 1000) / 1000;
+        const yPos = mapY(cleanY);
+
+        if (yPos < 0 || yPos > height) continue;
+
+        let opacity = isMinimal ? "0.1" : "0.2";
+        if (isOrganic) opacity = "0.4";
+
+        if (!isMinimal) {
+            gridLines.push(
+                `<line x1="0" y1="${yPos}" x2="${width}" y2="${yPos}" class="grid-line" stroke="currentColor" stroke-width="1" opacity="${opacity}" vector-effect="non-scaling-stroke" />`,
+            );
+        }
+
+        if (showLabels) {
+            labels.push({
+                x: -10,
+                y: yPos + 4,
+                text: cleanY.toString(),
+                anchor: "end",
+                baseline: "middle",
+            });
+        }
+    }
+
+    // Axes Highlights
+    const zeroX = mapX(0);
+    const zeroY = mapY(0);
+    if (zeroX >= 0 && zeroX <= width) {
+        gridLines.push(
+            `<line x1="${zeroX}" y1="0" x2="${zeroX}" y2="${height}" class="axis-line" stroke="currentColor" stroke-width="${isMinimal ? 1.5 : 2}" opacity="${isMinimal ? 0.8 : 0.6}" />`,
+        );
+    }
+    if (zeroY >= 0 && zeroY <= height) {
+        gridLines.push(
+            `<line x1="0" y1="${zeroY}" x2="${width}" y2="${zeroY}" class="axis-line" stroke="currentColor" stroke-width="${isMinimal ? 1.5 : 2}" opacity="${isMinimal ? 0.8 : 0.6}" />`,
+        );
+    }
+}
+---
+
+<div
+    class={`equation-graph-wrapper variant-${variant} ${className || ""} ${allowFullscreen ? "interactive" : ""}`}
+    id={`graph-${uniqueId}`}
+    data-allow-fullscreen={allowFullscreen}
+>
+    <!-- Fullscreen Button -->
+    {
+        allowFullscreen && (
+            <button class="fullscreen-btn" aria-label="Toggle Fullscreen">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="maximize-icon"
+                >
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="minimize-icon"
+                    style="display: none;"
+                >
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                </svg>
+            </button>
+        )
+    }
+
+    <div
+        class="graph-container"
+        style={`max-width: ${width}px; aspect-ratio: ${width}/${height}; padding-left: ${showLabels ? "30px" : "0"}; padding-bottom: ${showLabels ? "20px" : "0"};`}
+    >
+        <svg
+            viewBox={`${showLabels ? -40 : 0} 0 ${width + (showLabels ? 40 : 0)} ${height + (showLabels ? 30 : 0)}`}
+            preserveAspectRatio="xMidYMid meet"
+            class="graph-svg"
+            style="overflow: visible;"
+        >
+            <defs>
+                <clipPath id={`clip-${uniqueId}`}>
+                    <rect x="0" y="0" width={width} height={height}></rect>
+                </clipPath>
+
+                <!-- Hand-drawn filter -->
+                <filter id={`filter-${uniqueId}`}>
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.01"
+                        numOctaves="3"
+                        result="noise"></feTurbulence>
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="5"
+                    ></feDisplacementMap>
+                </filter>
+
+                <!-- Scribble filter (rougher) -->
+                <filter id={`scribble-${uniqueId}`}>
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.02"
+                        numOctaves="4"
+                        result="noise"></feTurbulence>
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="8"
+                    ></feDisplacementMap>
+                </filter>
+
+                <!-- Stroke filter (marker) -->
+                <filter id={`stroke-${uniqueId}`}>
+                    <feTurbulence
+                        type="fractalNoise"
+                        baseFrequency="0.05"
+                        numOctaves="1"
+                        result="noise"></feTurbulence>
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="2"
+                    ></feDisplacementMap>
+                </filter>
+                <!-- Markers for vectors -->
+                <marker
+                    id={`arrow-${uniqueId}`}
+                    viewBox="0 0 10 10"
+                    refX="9"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto"
+                >
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"></path>
+                </marker>
+                <marker
+                    id={`arrow-blue-${uniqueId}`}
+                    viewBox="0 0 10 10"
+                    refX="9"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto"
+                >
+                    <path
+                        d="M 0 0 L 10 5 L 0 10 z"
+                        fill="var(--color-blue-500, #3b82f6)"></path>
+                </marker>
+                <marker
+                    id={`arrow-red-${uniqueId}`}
+                    viewBox="0 0 10 10"
+                    refX="9"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto"
+                >
+                    <path
+                        d="M 0 0 L 10 5 L 0 10 z"
+                        fill="var(--color-red-500, #ef4444)"></path>
+                </marker>
+            </defs>
+
+            {
+                /* Vectors Layer */
+                vectors.map((v, i) => {
+                    const start = v.start || [0, 0];
+                    const x1 = mapX(start[0]);
+                    const y1 = mapY(start[1]);
+                    const x2 = mapX(v.end[0]);
+                    const y2 = mapY(v.end[1]);
+
+                    // Determine marker color roughly
+                    let markerId = `url(#arrow-${uniqueId})`;
+                    if (v.color?.includes("blue"))
+                        markerId = `url(#arrow-blue-${uniqueId})`;
+                    if (v.color?.includes("red"))
+                        markerId = `url(#arrow-red-${uniqueId})`;
+
+                    return (
+                        <g
+                            class="vector-group"
+                            style={`--order: ${i}; color: ${v.color || "currentColor"}`}
+                        >
+                            <line
+                                x1={x1}
+                                y1={y1}
+                                x2={x2}
+                                y2={y2}
+                                stroke={v.color || "currentColor"}
+                                stroke-width={v.width || 2}
+                                stroke-dasharray={v.dashed ? "5,5" : "none"}
+                                marker-end={markerId}
+                                filter={
+                                    variant === "pencil" || variant === "paper"
+                                        ? `url(#filter-${uniqueId})`
+                                        : ""
+                                }
+                            />
+                            {v.label && (
+                                <text
+                                    x={(x1 + x2) / 2}
+                                    y={(y1 + y2) / 2 - 10}
+                                    fill={v.color || "currentColor"}
+                                    text-anchor="middle"
+                                    class="vector-label"
+                                    font-weight="bold"
+                                >
+                                    {v.label}
+                                </text>
+                            )}
+                        </g>
+                    );
+                })
+            }
+
+            {
+                grid && (
+                    <g
+                        set:html={gridLines.join("")}
+                        style="pointer-events: none;"
+                        class="grid-group"
+                    />
+                )
+            }
+
+            {/* Draw Labels outside clip path */}
+            {
+                showLabels &&
+                    labels.map((l) => (
+                        <text
+                            x={l.x}
+                            y={l.y}
+                            text-anchor={l.anchor}
+                            alignment-baseline={l.baseline}
+                            class="axis-label"
+                        >
+                            {l.text}
+                        </text>
+                    ))
+            }
+
+            <g clip-path={`url(#clip-${uniqueId})`}>
+                {
+                    generatedPaths.map((p, i) => (
+                        <path
+                            d={p.d}
+                            fill="none"
+                            stroke={p.color}
+                            stroke-width={p.width}
+                            stroke-dasharray={p.dash}
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="function-path"
+                            filter={
+                                variant === "pencil" || variant === "paper"
+                                    ? `url(#filter-${uniqueId})`
+                                    : variant === "scribble"
+                                      ? `url(#scribble-${uniqueId})`
+                                      : variant === "stroke"
+                                        ? `url(#stroke-${uniqueId})`
+                                        : ""
+                            }
+                            style={`--order: ${i};`}
+                        />
+                    ))
+                }
+
+                {
+                    outputPoints.map((pt) => (
+                        <g
+                            class="graph-point-group"
+                            style="animation-delay: 1s;"
+                        >
+                            <circle
+                                cx={mapX(pt.x)}
+                                cy={mapY(pt.y)}
+                                r={pt.r || 5}
+                                fill={pt.color || "currentColor"}
+                                stroke="var(--color-bg)"
+                                stroke-width="2"
+                            />
+                            {pt.label && (
+                                <text
+                                    x={mapX(pt.x)}
+                                    y={mapY(pt.y) - (pt.r || 5) - 8}
+                                    text-anchor="middle"
+                                    class="point-label"
+                                >
+                                    {pt.label}
+                                </text>
+                            )}
+                        </g>
+                    ))
+                }
+            </g>
+        </svg>
+    </div>
+    {title && <div class="graph-caption">{title}</div>}
+</div>
+
+<style>
+    .equation-graph-wrapper {
+        margin: 3rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        position: relative; /* For caption and buttons */
+        --grid-color: var(--color-border);
+        --axis-color: var(--color-text);
+        --label-color: var(--color-text-muted);
+        --bg-color: var(--color-surface);
+        --border-color: var(--color-border);
+        transition: all 0.3s ease;
+    }
+
+    /* FULLSCREEN STYLES (Native API) */
+    .equation-graph-wrapper:fullscreen,
+    .equation-graph-wrapper::backdrop {
+        background-color: var(--color-bg);
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Compatibility for different browser pseudo-elements */
+    .equation-graph-wrapper:-webkit-full-screen {
+        background-color: var(--color-bg);
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        background: var(--color-surface);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+    }
+
+    /* FULLSCREEN BUTTON */
+    .fullscreen-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        cursor: pointer;
+        padding: 0.4rem;
+        border-radius: 50%;
+        color: var(--color-text-muted);
+        transition: all 0.2s ease;
+        opacity: 0; /* Hidden unless hover */
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .equation-graph-wrapper:hover .fullscreen-btn,
+    .equation-graph-wrapper:fullscreen .fullscreen-btn {
+        opacity: 1;
+    }
+
+    @media (hover: none) {
+        .fullscreen-btn {
+            opacity: 1;
+        }
+    }
+
+    .fullscreen-btn:hover {
+        color: var(--color-primary);
+        transform: scale(1.1);
+    }
+
+    /* CONTAINER STYLES */
+    .graph-container {
+        width: 100%;
+        background: var(--bg-color);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow:
+            inset 0 2px 4px rgba(0, 0, 0, 0.05),
+            0 1px 2px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+
+    .grid-line {
+        stroke: var(--grid-color);
+    }
+    .axis-line {
+        stroke: var(--axis-color);
+    }
+    .axis-label {
+        fill: var(--label-color);
+        font-size: 10px;
+        font-family: monospace;
+    }
+    .point-label {
+        fill: var(--axis-color);
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    /* --- VARIANTS --- */
+
+    /* Minimal: Clean look, blending with page */
+    .variant-minimal .graph-container {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 1rem 0; /* Minimal vertical padding */
+    }
+    /* Minimal variant specific overrides for grid/axis */
+    .variant-minimal {
+        --grid-color: rgba(150, 150, 150, 0.2); /* Very subtle grid */
+        --border-color: transparent;
+        --axis-color: var(--color-text);
+    }
+    :global(.dark) .variant-minimal {
+        --grid-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Paper: Graph paper look */
+    .variant-paper {
+        --grid-color: #93c5fd; /* Soft blue */
+        --axis-color: #1e3a8a;
+        --label-color: #1e3a8a;
+        --bg-color: #f8fafc; /* Off-white */
+        --border-color: #e2e8f0;
+    }
+    .variant-paper .graph-container {
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+    }
+    .variant-paper .axis-label {
+        font-family: "Kalam", cursive, sans-serif;
+        font-size: 12px;
+    }
+
+    /* Pencil: Sketchy gray look */
+    .variant-pencil {
+        --grid-color: #94a3b8;
+        --axis-color: #475569;
+        --label-color: #64748b;
+        --bg-color: #fff;
+    }
+    .variant-pencil .graph-container {
+        border-radius: 4px;
+        border: 2px solid #cbd5e1;
+    }
+    .variant-pencil .axis-label {
+        font-family: "Kalam", cursive, sans-serif;
+    }
+
+    /* Scribble: Rough high-contrast */
+    .variant-scribble {
+        --grid-color: #525252;
+        --axis-color: #000;
+        --label-color: #000;
+        --bg-color: transparent;
+        --border-color: #000;
+    }
+    .variant-scribble .graph-container {
+        border: 3px solid #000;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
+        border-radius: 0;
+        background: #fff;
+    }
+    .variant-scribble .grid-line {
+        stroke-dasharray: 5, 5;
+        opacity: 1;
+    }
+
+    /* Stroke: Marker look */
+    .variant-stroke {
+        --grid-color: var(--color-border);
+        --axis-color: var(--color-text);
+        --bg-color: var(--color-surface);
+    }
+
+    .function-path {
+        stroke-dasharray: 6000; /* Increased for complex paths */
+        stroke-dashoffset: 6000;
+        transition: stroke-dashoffset 2s ease-in-out;
+    }
+
+    .equation-graph-wrapper.visible .function-path {
+        stroke-dashoffset: 0;
+    }
+
+    .graph-point-group {
+        opacity: 0;
+        transform: scale(0);
+        transform-origin: center;
+        transition:
+            opacity 0.5s ease-out,
+            transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .equation-graph-wrapper.visible .graph-point-group {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* Caption Styling */
+    .graph-caption {
+        margin-top: 1rem;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        background: transparent;
+        padding: 0.25rem 0.75rem;
+        text-align: center;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+    }
+</style>
+
+<script>
+    // Intersection Observer for animation
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("visible");
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.3 },
+    );
+
+    function setupCharts() {
+        // Animation
+        document.querySelectorAll(".equation-graph-wrapper").forEach((el) => {
+            observer.observe(el);
+        });
+
+        // Fullscreen Logic
+        const wrappers = document.querySelectorAll(
+            '.equation-graph-wrapper[data-allow-fullscreen="true"]',
+        );
+
+        wrappers.forEach((wrapper) => {
+            if (wrapper.hasAttribute("data-fs-init")) return;
+            wrapper.setAttribute("data-fs-init", "true");
+
+            const btn = wrapper.querySelector(".fullscreen-btn");
+            const maximizeIcon = btn?.querySelector(
+                ".maximize-icon",
+            ) as HTMLElement;
+            const minimizeIcon = btn?.querySelector(
+                ".minimize-icon",
+            ) as HTMLElement;
+
+            const updateIcons = () => {
+                const isFs = document.fullscreenElement === wrapper;
+                if (isFs) {
+                    if (maximizeIcon) maximizeIcon.style.display = "none";
+                    if (minimizeIcon) minimizeIcon.style.display = "block";
+                } else {
+                    if (maximizeIcon) maximizeIcon.style.display = "block";
+                    if (minimizeIcon) minimizeIcon.style.display = "none";
+                }
+            };
+
+            const toggleFullscreen = () => {
+                if (!document.fullscreenElement) {
+                    wrapper.requestFullscreen().catch((err) => {
+                        console.error(
+                            `Error attempting to enable fullscreen: ${err.message}`,
+                        );
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            };
+
+            // 1. Button Click
+            btn?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                toggleFullscreen();
+            });
+
+            // 2. Double Click on Wrapper (background)
+            wrapper.addEventListener("dblclick", (e) => {
+                toggleFullscreen();
+            });
+
+            // 3. Double Tap Mobile
+            let lastTap = 0;
+            wrapper.addEventListener("touchend", (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+                if (tapLength < 300 && tapLength > 0) {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+                lastTap = currentTime;
+            });
+
+            // 4. Update state when fullscreen changes (whether via button, Esc, or generic API)
+            document.addEventListener("fullscreenchange", () => {
+                updateIcons();
+            });
+        });
+    }
+
+    document.addEventListener("astro:page-load", setupCharts);
+    setupCharts();
+</script>

@@ -1,0 +1,68 @@
+---
+interface Props {
+    color?: "red" | "blue" | "green" | "yellow" | "white" | "black";
+    type?: "underline" | "strike" | "zigzag";
+    class?: string;
+}
+
+const { color = "red", type = "underline", class: className } = Astro.props;
+
+const colorMap = {
+    red: "#ef4444",
+    blue: "#3b82f6",
+    green: "#22c55e",
+    yellow: "#eab308",
+    white: "#ffffff",
+    black: "#1a1a1a",
+};
+
+const strokeColor = colorMap[color];
+---
+
+<span
+    class:list={["scribble-line", `type-${type}`, className]}
+    style={`--stroke-color: ${strokeColor}`}
+>
+    <slot />
+</span>
+
+<style>
+    .scribble-line {
+        position: relative;
+        display: inline-block;
+    }
+
+    .scribble-line::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 0.2em;
+        background: var(--stroke-color);
+        z-index: -1;
+        border-radius: 2px;
+        opacity: 0.7;
+    }
+
+    .type-underline::after {
+        bottom: 0;
+        transform: rotate(-1deg);
+        clip-path: polygon(0 0, 100% 10%, 98% 100%, 2% 90%);
+    }
+
+    .type-strike::after {
+        top: 50%;
+        transform: translateY(-50%) rotate(-2deg);
+        height: 0.15em;
+    }
+
+    .type-zigzag::after {
+        bottom: -0.2em;
+        height: 0.4em;
+        background: transparent;
+        border-bottom: 2px solid var(--stroke-color);
+        /* Simple CSS zigzag is hard, maybe just a wavy underline */
+        text-decoration: underline wavy var(--stroke-color);
+        /* Actually let's use SVG for zigzag if we really want it, but for now simple underline is good */
+    }
+</style>

@@ -1,0 +1,305 @@
+---
+interface Props {
+    title: string;
+    subtitle?: string;
+    source?: string;
+    theme?: "light" | "dark";
+    allowFullscreen?: boolean;
+    class?: string;
+}
+
+const {
+    title,
+    subtitle,
+    source,
+    theme = "light",
+    allowFullscreen = false,
+    class: className,
+} = Astro.props;
+---
+
+<div
+    class={`vox-container theme-${theme} ${allowFullscreen ? "interactive" : ""} ${className || ""}`}
+    data-allow-fullscreen={allowFullscreen}
+>
+    {
+        allowFullscreen && (
+            <button class="fullscreen-btn" aria-label="Toggle Fullscreen">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="maximize-icon"
+                >
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="minimize-icon"
+                    style="display: none;"
+                >
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                </svg>
+            </button>
+        )
+    }
+
+    <div class="vox-header">
+        <h3 class="vox-title">{title}</h3>
+        {subtitle && <p class="vox-subtitle">{subtitle}</p>}
+    </div>
+
+    <div class="vox-content">
+        <slot />
+    </div>
+
+    {source && <div class="vox-source">Source: {source}</div>}
+</div>
+
+<script>
+    function setupFullscreen() {
+        const containers = document.querySelectorAll(
+            '.vox-container[data-allow-fullscreen="true"]',
+        );
+
+        containers.forEach((container) => {
+            if (container.hasAttribute("data-fs-init")) return;
+            container.setAttribute("data-fs-init", "true");
+
+            const btn = container.querySelector(".fullscreen-btn");
+
+            const maximizeIcon = btn?.querySelector(
+                ".maximize-icon",
+            ) as HTMLElement;
+            const minimizeIcon = btn?.querySelector(
+                ".minimize-icon",
+            ) as HTMLElement;
+
+            const toggleFullscreen = () => {
+                if (!document.fullscreenElement) {
+                    container.requestFullscreen().catch((err) => {
+                        console.error(
+                            `Error attempting to enable fullscreen: ${err.message}`,
+                        );
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            };
+
+            // 1. Button Click
+            btn?.addEventListener("click", (e) => {
+                e.stopPropagation(); // Prevent dblclick interference if fast clicking?
+                toggleFullscreen();
+            });
+
+            // 2. Double Click on Container
+            container.addEventListener("dblclick", (e) => {
+                toggleFullscreen();
+            });
+
+            // 3. Double Tap for Mobile
+            let lastTap = 0;
+            container.addEventListener("touchend", (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+
+                if (tapLength < 300 && tapLength > 0) {
+                    e.preventDefault(); // Prevent zoom
+                    toggleFullscreen();
+                }
+                lastTap = currentTime;
+            });
+
+            // Update UI on change
+            document.addEventListener("fullscreenchange", () => {
+                if (document.fullscreenElement === container) {
+                    container.classList.add("is-fullscreen");
+                    if (maximizeIcon) maximizeIcon.style.display = "none";
+                    if (minimizeIcon) minimizeIcon.style.display = "block";
+                } else {
+                    container.classList.remove("is-fullscreen");
+                    // Check if *this* container was the one
+                    if (!container.classList.contains("is-fullscreen")) {
+                        if (maximizeIcon) maximizeIcon.style.display = "block";
+                        if (minimizeIcon) minimizeIcon.style.display = "none";
+                    }
+                }
+            });
+        });
+    }
+
+    document.addEventListener("astro:page-load", setupFullscreen);
+    setupFullscreen();
+</script>
+
+<style>
+    .vox-container {
+        width: 100%;
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .vox-container.interactive {
+        cursor: default; /* Or pointer? Text selection might be annoying if pointer. */
+    }
+
+    .vox-container.interactive:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Fullscreen State */
+    .vox-container.is-fullscreen {
+        width: 100%;
+        max-width: none;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow-y: auto;
+        border: none;
+        border-radius: 0;
+    }
+
+    .vox-container.is-fullscreen .vox-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* Ensure charts grow in fullscreen */
+    .vox-container.is-fullscreen :global(.vox-line-chart),
+    .vox-container.is-fullscreen :global(.vox-bar-chart),
+    .vox-container.is-fullscreen :global(.vox-pie-chart) {
+        width: 100%;
+        max-width: 1200px; /* Constrain slightly so it doesn't look absurd on ultra-wide */
+        max-height: 80vh;
+    }
+
+    .vox-container.is-fullscreen .vox-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .vox-container.is-fullscreen .vox-source {
+        margin-top: auto;
+        text-align: center;
+    }
+
+    /* Colors and Themes */
+    .vox-container.theme-light {
+        background-color: #ffffff;
+        color: #333333;
+        border-bottom: 1px solid #e5e5e5;
+    }
+
+    .vox-container.theme-dark {
+        background-color: #222222;
+        color: #f5f5f5;
+    }
+
+    /* Header */
+    .vox-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem 0;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    .vox-container.is-fullscreen .vox-title {
+        font-size: 2.5rem;
+    }
+
+    .vox-subtitle {
+        font-size: 1rem;
+        color: #777;
+        margin: 0 0 1.5rem 0;
+        font-weight: 400;
+    }
+
+    .vox-container.is-fullscreen .vox-subtitle {
+        font-size: 1.25rem;
+    }
+
+    .theme-dark .vox-subtitle {
+        color: #aaa;
+    }
+
+    /* Fullscreen Button */
+    .fullscreen-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        color: #999;
+        transition: all 0.2s ease;
+        opacity: 0; /* Hidden by default */
+    }
+
+    .vox-container:hover .fullscreen-btn,
+    .vox-container.is-fullscreen .fullscreen-btn {
+        opacity: 1;
+    }
+
+    @media (hover: none) {
+        .fullscreen-btn {
+            opacity: 1;
+        }
+    }
+
+    .fullscreen-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #333;
+    }
+
+    .theme-dark .fullscreen-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    .vox-content {
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .vox-source {
+        font-size: 0.75rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: 1rem;
+        border-top: 1px solid #eee;
+        padding-top: 0.5rem;
+    }
+
+    .theme-dark .vox-source {
+        border-color: #444;
+        color: #777;
+    }
+</style>

@@ -1,0 +1,305 @@
+---
+import { Code } from "astro:components";
+
+interface Props {
+    code: string;
+    lang?: any; // Astro's Code component lang type is loose
+    theme?: string;
+    speed?: number;
+    delay?: number;
+}
+
+const {
+    code,
+    lang = "javascript",
+    theme = "github-dark",
+    speed = 30,
+    delay = 0,
+} = Astro.props;
+---
+
+<div class="typewriter-syntax-wrapper" data-speed={speed} data-delay={delay}>
+    <div class="code-header">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+        <span class="lang-badge">{lang}</span>
+    </div>
+    <div class="code-content">
+        <Code code={code} lang={lang} theme={theme} />
+    </div>
+</div>
+
+<style>
+    .typewriter-syntax-wrapper {
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 2rem 0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        font-family: "Fira Code", monospace;
+        border: 1px solid #333;
+        background: #0d1117; /* Fallback/Header bg */
+    }
+
+    .code-header {
+        background: #161b22;
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 1px solid #30363d;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .dot.red {
+        background: #ff5f56;
+    }
+    .dot.yellow {
+        background: #ffbd2e;
+    }
+    .dot.green {
+        background: #27c93f;
+    }
+
+    .lang-badge {
+        margin-left: auto;
+        font-size: 0.75rem;
+        color: #8b949e;
+        text-transform: uppercase;
+    }
+
+    .code-content {
+        padding: 1.5rem;
+        overflow-x: auto;
+    }
+
+    /* Ensure the pre tag from Astro Code component doesn't have default margins */
+    .code-content :global(pre) {
+        margin: 0 !important;
+        background-color: transparent !important; /* Let wrapper handle bg if needed, or keep shiki's */
+        padding: 0 !important;
+    }
+
+    /* Cursor style */
+    .code-content :global(.cursor) {
+        display: inline-block;
+        width: 0.6em;
+        height: 1.2em;
+        background-color: #fff;
+        vertical-align: text-bottom;
+        animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0;
+        }
+    }
+
+    /* Hide all characters initially */
+    .code-content :global(.char) {
+        opacity: 0;
+    }
+
+    .code-content :global(.char.revealed) {
+        opacity: 1;
+    }
+</style>
+
+<script>
+    class TypewriterSyntax extends HTMLElement {
+        constructor() {
+            super();
+            this.observer = null;
+            this.hasStarted = false;
+        }
+
+        connectedCallback() {
+            // Prepare the DOM: split text nodes into spans
+            this.prepareContent();
+
+            this.observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting && !this.hasStarted) {
+                            this.startTyping();
+                            this.observer.unobserve(entry.target);
+                        }
+                    });
+                },
+                { threshold: 0.2 },
+            );
+            this.observer.observe(this);
+        }
+
+        prepareContent() {
+            const pre = this.querySelector("pre");
+            if (!pre) return;
+
+            // Recursive function to traverse and split text nodes
+            const splitTextNodes = (node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent;
+                    const fragment = document.createDocumentFragment();
+                    for (let char of text) {
+                        const span = document.createElement("span");
+                        span.textContent = char;
+                        span.className = "char";
+                        fragment.appendChild(span);
+                    }
+                    node.parentNode.replaceChild(fragment, node);
+                } else {
+                    // Convert NodeList to Array to avoid issues while modifying DOM
+                    Array.from(node.childNodes).forEach(splitTextNodes);
+                }
+            };
+
+            splitTextNodes(pre);
+
+            // Add cursor at the end
+            const cursor = document.createElement("span");
+            cursor.className = "cursor";
+            pre.appendChild(cursor);
+        }
+
+        startTyping() {
+            this.hasStarted = true;
+            const speed = parseInt(this.dataset.speed || "30");
+            const delay = parseInt(this.dataset.delay || "0");
+
+            const chars = this.querySelectorAll(".char");
+            let i = 0;
+
+            setTimeout(() => {
+                const type = () => {
+                    if (i < chars.length) {
+                        chars[i].classList.add("revealed");
+                        i++;
+
+                        // Scroll into view if needed
+                        const pre = this.querySelector("pre");
+                        if (pre && i % 5 === 0) {
+                            // optimization: don't scroll every char
+                            // pre.scrollTop = pre.scrollHeight; // Simple auto-scroll
+                        }
+
+                        setTimeout(type, speed);
+                    } else {
+                        // Finished
+                        const cursor = this.querySelector(".cursor");
+                        if (cursor) {
+                            // cursor.style.display = 'none'; // Optional: hide cursor
+                        }
+                    }
+                };
+                type();
+            }, delay);
+        }
+
+        disconnectedCallback() {
+            if (this.observer) {
+                this.observer.disconnect();
+            }
+        }
+    }
+
+    // We need to register the custom element, but since we are using a wrapper div in the template,
+    // we can't just use the class directly on the div unless we change the HTML structure.
+    // Let's use the standard custom element approach.
+    // I will wrap the component content in <typewriter-syntax> tag in the next step if I were to rewrite.
+    // But here I used a div with class.
+    // Let's use the script to upgrade the elements.
+
+    // Actually, defining a custom element is cleaner. Let's change the wrapper to a custom element.
+    // But wait, Astro components render to HTML. I can just use a script tag to find the elements.
+    // Or I can define the custom element and use it in the HTML.
+
+    // Let's stick to the script finding elements for now, similar to previous component,
+    // OR better: use the custom element pattern properly.
+
+    // Re-writing the script to define custom element and assume the wrapper IS the custom element.
+    // I will modify the HTML in the template to use <typewriter-syntax> instead of <div class="typewriter-syntax-wrapper">
+    // Wait, I can't easily change the tag name dynamically in Astro without dynamic tag.
+    // I'll just use the script to find `.typewriter-syntax-wrapper` and attach logic.
+
+    const initTypewriterSyntax = (el) => {
+        let hasStarted = false;
+
+        const prepareContent = () => {
+            const pre = el.querySelector("pre");
+            if (!pre) return;
+
+            const splitTextNodes = (node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const text = node.textContent;
+                    if (!text) return;
+                    const fragment = document.createDocumentFragment();
+                    for (let char of text) {
+                        const span = document.createElement("span");
+                        span.textContent = char;
+                        span.className = "char";
+                        fragment.appendChild(span);
+                    }
+                    node.parentNode.replaceChild(fragment, node);
+                } else {
+                    Array.from(node.childNodes).forEach(splitTextNodes);
+                }
+            };
+
+            splitTextNodes(pre);
+
+            const cursor = document.createElement("span");
+            cursor.className = "cursor";
+            pre.appendChild(cursor);
+        };
+
+        const startTyping = () => {
+            hasStarted = true;
+            const speed = parseInt(el.dataset.speed || "30");
+            const delay = parseInt(el.dataset.delay || "0");
+
+            const chars = el.querySelectorAll(".char");
+            let i = 0;
+
+            setTimeout(() => {
+                const type = () => {
+                    if (i < chars.length) {
+                        chars[i].classList.add("revealed");
+                        i++;
+                        setTimeout(type, speed);
+                    }
+                };
+                type();
+            }, delay);
+        };
+
+        prepareContent();
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && !hasStarted) {
+                        startTyping();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.2 },
+        );
+
+        observer.observe(el);
+    };
+
+    document
+        .querySelectorAll(".typewriter-syntax-wrapper")
+        .forEach(initTypewriterSyntax);
+</script>

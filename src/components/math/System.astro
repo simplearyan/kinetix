@@ -1,0 +1,93 @@
+---
+import Matrix from "./Matrix.astro";
+
+interface Props {
+    A: (number | string)[][];
+    x: (number | string)[];
+    b: (number | string)[];
+    style?: "bracket" | "glass" | "minimal" | "neon" | "chalk";
+    animate?: boolean;
+}
+
+const { A, x, b, style = "bracket", animate = false } = Astro.props;
+
+// Convert 1D vectors to 2D matrices for Matrix component
+const xMatrix = x.map((val) => [val]);
+const bMatrix = b.map((val) => [val]);
+---
+
+<div class="system-container">
+    <div class="matrix-wrapper a-matrix">
+        <Matrix
+            data={A}
+            style={style}
+            animate={animate}
+            animationType="fade-in"
+        />
+        <span class="label">A</span>
+    </div>
+
+    <div class="matrix-wrapper x-vector">
+        <Matrix
+            data={xMatrix}
+            style={style}
+            animate={animate}
+            animationType="slide-up"
+        />
+        <span class="label">x</span>
+    </div>
+
+    <div class="operator">=</div>
+
+    <div class="matrix-wrapper b-vector">
+        <Matrix
+            data={bMatrix}
+            style={style}
+            animate={animate}
+            animationType="fade-in"
+        />
+        <span class="label">b</span>
+    </div>
+</div>
+
+<style>
+    .system-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .matrix-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .label {
+        font-family: "KaTeX_Main", serif;
+        font-style: italic;
+        color: var(--color-text-muted, #666);
+        font-size: 1.1rem;
+    }
+
+    .operator {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--color-text, #333);
+        margin: 0 0.5rem;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+        .system-container {
+            gap: 0.5rem;
+        }
+        .operator {
+            font-size: 1.5rem;
+        }
+    }
+</style>

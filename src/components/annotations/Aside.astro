@@ -1,0 +1,85 @@
+---
+interface Props {
+    type?: "note" | "tip" | "warn";
+    title?: string;
+}
+
+const { type = "note", title } = Astro.props;
+
+// We map types to CSS classes to support theming via CSS variables
+---
+
+<aside class={`vox-aside type-${type}`}>
+    {title && <div class="aside-title">{title}</div>}
+    <div class="aside-content">
+        <slot />
+    </div>
+</aside>
+
+<style>
+    .vox-aside {
+        /* Default Variables (Light Mode) */
+        --aside-border: var(--color-primary);
+        --aside-bg: var(--color-surface, #f9fafb);
+        --aside-text: var(--color-text);
+
+        margin: 2rem 0;
+        padding: 1rem 1.5rem;
+        border-right: 4px solid var(--aside-border);
+        background: var(--aside-bg);
+        border-radius: 4px 0 0 4px;
+        position: relative;
+    }
+
+    /* Type Specific Variables - Light Mode Defaults */
+    .type-note {
+        --aside-border: var(--color-primary);
+        --aside-bg: var(--color-code-bg);
+    }
+
+    .type-tip {
+        --aside-border: #10b981;
+        --aside-bg: #ecfdf5;
+    }
+
+    .type-warn {
+        --aside-border: #f59e0b;
+        --aside-bg: #fffbeb;
+    }
+
+    /* Dark Mode Overrides */
+    :global([data-theme="dark"]) .type-tip {
+        --aside-border: #34d399;
+        --aside-bg: rgba(16, 185, 129, 0.1);
+    }
+
+    :global([data-theme="dark"]) .type-warn {
+        --aside-border: #fbbf24;
+        --aside-bg: rgba(245, 158, 11, 0.1);
+    }
+
+    :global([data-theme="dark"]) .type-note {
+        --aside-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    .aside-title {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--aside-border);
+        text-transform: uppercase;
+        font-size: 0.8em;
+        letter-spacing: 0.05em;
+    }
+
+    .aside-content {
+        font-family: var(--font-body);
+        font-size: 0.95em;
+        line-height: 1.6;
+        color: var(--color-text);
+    }
+
+    .type-note .aside-content {
+        color: var(--color-text-muted);
+    }
+</style>

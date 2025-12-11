@@ -1,0 +1,148 @@
+---
+interface Props {
+    data: { label: string; value: number }[];
+    variant?: "basic" | "sketchy";
+    color?: string;
+}
+
+const { data, variant = "basic", color = "#3b82f6" } = Astro.props;
+
+// Calculate points
+const width = 800; // viewBox width
+const height = 300; // viewBox height
+const padding = 40;
+
+const maxValue = Math.max(...data.map((d) => d.value)) * 1.2;
+const points = data.map((d, i) => {
+    const x = padding + i * ((width - padding * 2) / (data.length - 1));
+    const y = height - padding - (d.value / maxValue) * (height - padding * 2);
+    return { x, y, value: d.value, label: d.label };
+});
+
+const pathD = `M ${points.map((p) => `${p.x},${p.y}`).join(" L ")}`;
+const areaD = `${pathD} L ${points[points.length - 1].x},${height - padding} L ${points[0].x},${height - padding} Z`;
+---
+
+<div
+    class="w-full my-8 bg-white/50 rounded-xl p-4 border border-slate-100 shadow-sm"
+>
+    <div class="aspect-[16/9] w-full relative">
+        <svg
+            viewBox={`0 0 ${width} ${height}`}
+            class="w-full h-full overflow-visible"
+        >
+            {/* Axes */}
+            <line
+                x1={padding}
+                y1={height - padding}
+                x2={width - padding}
+                y2={height - padding}
+                stroke="#334155"
+                stroke-width="2"></line>
+            <line
+                x1={padding}
+                y1={padding}
+                x2={padding}
+                y2={height - padding}
+                stroke="#334155"
+                stroke-width="2"></line>
+
+            {/* Area Fill for Sketchy */}
+            {
+                variant === "sketchy" && (
+                    <path
+                        d={areaD}
+                        fill={color}
+                        fill-opacity="0.1"
+                        stroke="none"
+                    />
+                )
+            }
+
+            {/* Line */}
+            <path
+                d={pathD}
+                fill="none"
+                stroke={color}
+                stroke-width={variant === "sketchy" ? "4" : "3"}
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="path-draw"
+                style={variant === "sketchy" ? "filter: url(#rough-line);" : ""}
+            ></path>
+
+            {/* Points */}
+            {
+                points.map((p, i) => (
+                    <g
+                        class="group"
+                        style={`animation: fadeIn 0.5s ease-out forwards; animation-delay: ${1 + i * 0.1}s; opacity: 0;`}
+                    >
+                        <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r={variant === "sketchy" ? 6 : 4}
+                            fill="white"
+                            stroke={color}
+                            stroke-width="3"
+                        />
+                        <text
+                            x={p.x}
+                            y={p.y - 15}
+                            text-anchor="middle"
+                            class="text-[12px] font-bold fill-slate-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            {p.value}
+                        </text>
+                        <text
+                            x={p.x}
+                            y={height - padding + 20}
+                            text-anchor="middle"
+                            class="text-[12px] fill-slate-500"
+                        >
+                            {p.label}
+                        </text>
+                    </g>
+                ))
+            }
+
+            {
+                variant === "sketchy" && (
+                    <defs>
+                        <filter id="rough-line">
+                            <feTurbulence
+                                type="fractalNoise"
+                                baseFrequency="0.01"
+                                numOctaves="3"
+                                result="noise"
+                            />
+                            <feDisplacementMap
+                                in="SourceGraphic"
+                                in2="noise"
+                                scale="5"
+                            />
+                        </filter>
+                    </defs>
+                )
+            }
+        </svg>
+    </div>
+</div>
+
+<style>
+    .path-draw {
+        stroke-dasharray: 2000;
+        stroke-dashoffset: 2000;
+        animation: draw 2s ease-out forwards;
+    }
+    @keyframes draw {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+</style>

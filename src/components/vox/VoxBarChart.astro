@@ -1,0 +1,418 @@
+---
+interface DataPoint {
+    label: string | number;
+    value: number;
+    color?: string;
+}
+
+interface StackedGroup {
+    label: string;
+    // Map of segment key to value
+    segments: { [key: string]: number };
+}
+
+interface Props {
+    // Mode A: Simple Bar Chart
+    data?: DataPoint[];
+    // Mode B: Stacked Bar Chart
+    stackedData?: StackedGroup[];
+    keys?: string[]; // Keys for stacked data segments
+    colors?: string[]; // Colors for keys
+
+    orientation?: "vertical" | "horizontal";
+    height?: number;
+    showGrid?: boolean;
+    trigger?: "visible" | "load";
+    class?: string;
+}
+
+const {
+    data,
+    stackedData,
+    keys = [],
+    colors = ["#3B82F6", "#EC4899", "#10B981"],
+    orientation = "vertical",
+    height = 400,
+    showGrid = true,
+    trigger = "visible",
+    class: className,
+} = Astro.props;
+
+// Determine Mode
+const isStacked = !!stackedData;
+const chartHeight = height;
+const chartWidth = 800;
+const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+
+let items = [];
+let maxValue = 0;
+
+if (isStacked) {
+    items = stackedData!;
+    // Calculate max total value for stacking
+    maxValue = Math.max(
+        ...items.map((item) =>
+            keys.reduce((sum, key) => sum + (item.segments[key] || 0), 0),
+        ),
+    );
+} else {
+    items = data!;
+    maxValue = Math.max(...items.map((d) => d.value));
+}
+
+// Add padding to max value
+maxValue = maxValue * 1.1;
+
+// Drawing dimensions
+const graphWidth = chartWidth - padding.left - padding.right;
+const graphHeight = chartHeight - padding.top - padding.bottom;
+const itemCount = items.length;
+const barGap = 0.2; // 20% gap
+const stepSize =
+    orientation === "vertical"
+        ? graphWidth / itemCount
+        : graphHeight / itemCount;
+const barSize = stepSize * (1 - barGap);
+
+// Helpers
+const getScale = (val: number) => {
+    const range = orientation === "vertical" ? graphHeight : graphWidth;
+    return (val / maxValue) * range;
+};
+
+const uniqueId = Math.random().toString(36).substr(2, 9);
+---
+
+<div
+    class={`vox-bar-chart ${orientation} ${className || ""}`}
+    data-trigger={trigger}
+>
+    <svg
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        aria-label="Bar Chart"
+    >
+        {/* Grid Lines */}
+        {
+            showGrid && (
+                <g class="grid-lines">
+                    {[0, 0.25, 0.5, 0.75, 1].map((tick) => {
+                        const val = Math.round(maxValue * tick);
+                        // If vertical, grid is horizontal lines
+                        if (orientation === "vertical") {
+                            const y =
+                                chartHeight - padding.bottom - getScale(val);
+                            return (
+                                <g>
+                                    <line
+                                        x1={padding.left}
+                                        y1={y}
+                                        x2={chartWidth - padding.right}
+                                        y2={y}
+                                        stroke="currentColor"
+                                        stroke-opacity="0.1"
+                                        stroke-dasharray={
+                                            tick === 0 ? "" : "4 4"
+                                        }
+                                    />
+                                    <text
+                                        x={padding.left - 10}
+                                        y={y + 4}
+                                        text-anchor="end"
+                                        class="axis-label"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            );
+                        } else {
+                            // If horizontal, grid is vertical lines
+                            const x = padding.left + getScale(val);
+                            return (
+                                <g>
+                                    <line
+                                        x1={x}
+                                        y1={padding.top}
+                                        x2={x}
+                                        y2={chartHeight - padding.bottom}
+                                        stroke="currentColor"
+                                        stroke-opacity="0.1"
+                                        stroke-dasharray={
+                                            tick === 0 ? "" : "4 4"
+                                        }
+                                    />
+                                    <text
+                                        x={x}
+                                        y={chartHeight - padding.bottom + 15}
+                                        text-anchor="middle"
+                                        class="axis-label"
+                                    >
+                                        {val}
+                                    </text>
+                                </g>
+                            );
+                        }
+                    })}
+                </g>
+            )
+        }
+
+        {/* Bars */}
+        {
+            items.map((item: any, i) => {
+                const pos =
+                    orientation === "vertical"
+                        ? padding.left + i * stepSize + (stepSize - barSize) / 2
+                        : padding.top + i * stepSize + (stepSize - barSize) / 2;
+
+                if (isStacked) {
+                    let currentOffset = 0;
+                    return (
+                        <g class="bar-group" style={`--delay: ${i * 100}ms`}>
+                            {keys.map((key, kIndex) => {
+                                const val = item.segments[key] || 0;
+                                const barLen = getScale(val);
+                                const color = colors[kIndex % colors.length];
+
+                                let rectAttrs = {};
+                                if (orientation === "vertical") {
+                                    const y =
+                                        chartHeight -
+                                        padding.bottom -
+                                        getScale(currentOffset) -
+                                        barLen;
+                                    rectAttrs = {
+                                        x: pos,
+                                        y,
+                                        width: barSize,
+                                        height: barLen,
+                                    };
+                                } else {
+                                    const x =
+                                        padding.left + getScale(currentOffset);
+                                    rectAttrs = {
+                                        x,
+                                        y: pos,
+                                        width: barLen,
+                                        height: barSize,
+                                    };
+                                }
+                                currentOffset += val;
+
+                                return (
+                                    <rect
+                                        {...rectAttrs}
+                                        fill={color}
+                                        class="bar-rect"
+                                    />
+                                );
+                            })}
+                            {/* Label */}
+                            <text
+                                x={
+                                    orientation === "vertical"
+                                        ? pos + barSize / 2
+                                        : padding.left - 10
+                                }
+                                y={
+                                    orientation === "vertical"
+                                        ? chartHeight - padding.bottom + 15
+                                        : pos + barSize / 2 + 4
+                                }
+                                text-anchor={
+                                    orientation === "vertical"
+                                        ? "middle"
+                                        : "end"
+                                }
+                                class="axis-label"
+                            >
+                                {item.label}
+                            </text>
+                        </g>
+                    );
+                } else {
+                    // Simple Bar
+                    const val = item.value;
+                    const barLen = getScale(val);
+                    const color = item.color || colors[0];
+
+                    let rectAttrs = {};
+                    let labelAttrs = {};
+                    let valueAttrs = {};
+
+                    if (orientation === "vertical") {
+                        const y = chartHeight - padding.bottom - barLen;
+                        rectAttrs = {
+                            x: pos,
+                            y,
+                            width: barSize,
+                            height: barLen,
+                        };
+                        labelAttrs = {
+                            x: pos + barSize / 2,
+                            y: chartHeight - padding.bottom + 15,
+                            textAnchor: "middle",
+                        };
+                        valueAttrs = {
+                            x: pos + barSize / 2,
+                            y: y - 5,
+                            textAnchor: "middle",
+                        };
+                    } else {
+                        rectAttrs = {
+                            x: padding.left,
+                            y: pos,
+                            width: barLen,
+                            height: barSize,
+                        };
+                        labelAttrs = {
+                            x: padding.left - 10,
+                            y: pos + barSize / 2 + 4,
+                            textAnchor: "end",
+                        };
+                        valueAttrs = {
+                            x: padding.left + barLen + 5,
+                            y: pos + barSize / 2 + 4,
+                            textAnchor: "start",
+                        };
+                    }
+
+                    return (
+                        <g class="bar-group" style={`--delay: ${i * 100}ms`}>
+                            <rect
+                                {...rectAttrs}
+                                fill={color}
+                                class="bar-rect"
+                            />
+                            <text {...labelAttrs} class="axis-label">
+                                {item.label}
+                            </text>
+                            <text {...valueAttrs} class="value-label">
+                                {val}
+                            </text>
+                        </g>
+                    );
+                }
+            })
+        }
+    </svg>
+
+    {
+        isStacked && (
+            <div class="legend">
+                {keys.map((key, i) => (
+                    <div class="legend-item">
+                        <span
+                            class="legend-color"
+                            style={`background-color: ${colors[i % colors.length]}`}
+                        />
+                        <span class="legend-text">{key}</span>
+                    </div>
+                ))}
+            </div>
+        )
+    }
+</div>
+
+<script>
+    const setup = () => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((e) => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add("in-view");
+                        observer.unobserve(e.target);
+                    }
+                });
+            },
+            { threshold: 0.2 },
+        );
+
+        document
+            .querySelectorAll('.vox-bar-chart[data-trigger="visible"]')
+            .forEach((el) => observer.observe(el));
+
+        document
+            .querySelectorAll('.vox-bar-chart[data-trigger="load"]')
+            .forEach((el) => el.classList.add("in-view"));
+    };
+    document.addEventListener("astro:page-load", setup);
+    setup();
+</script>
+
+<style>
+    .vox-bar-chart {
+        width: 100%;
+        overflow: visible;
+    }
+
+    .axis-label {
+        font-size: 12px;
+        fill: #555;
+    }
+
+    .value-label {
+        font-size: 12px;
+        font-weight: bold;
+        fill: #333;
+        opacity: 0;
+        transition: opacity 0.5s ease 1s;
+    }
+
+    :global(.theme-dark) .axis-label {
+        fill: #aaa;
+    }
+    :global(.theme-dark) .value-label {
+        fill: #fff;
+    }
+
+    .bar-rect {
+        transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Vertical grow from bottom */
+    .vertical .bar-rect {
+        transform-origin: bottom;
+        transform: scaleY(0);
+    }
+
+    .vox-bar-chart.in-view.vertical .bar-rect {
+        transform: scaleY(1);
+    }
+
+    /* Horizontal grow from left */
+    .horizontal .bar-rect {
+        transform-origin: left;
+        transform: scaleX(0);
+    }
+
+    .vox-bar-chart.in-view.horizontal .bar-rect {
+        transform: scaleX(1);
+    }
+
+    .vox-bar-chart.in-view .value-label {
+        opacity: 1;
+    }
+
+    .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        font-size: 14px;
+        font-family: inherit;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        margin-right: 6px;
+        border-radius: 2px;
+    }
+</style>

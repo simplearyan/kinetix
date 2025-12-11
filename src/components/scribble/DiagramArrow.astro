@@ -1,0 +1,44 @@
+---
+interface Props {
+    direction?:
+        | "right"
+        | "down"
+        | "left"
+        | "up"
+        | "down-right"
+        | "down-left"
+        | "up-right"
+        | "up-left";
+    color?: "red" | "blue" | "green" | "yellow" | "white" | "black";
+    class?: string;
+}
+
+const { direction = "right", color = "black", class: className } = Astro.props;
+
+const arrows = {
+    right: "→",
+    down: "↓",
+    left: "←",
+    up: "↑",
+    "down-right": "↘",
+    "down-left": "↙",
+    "up-right": "↗",
+    "up-left": "↖",
+};
+
+const colorMap = {
+    red: "#ef4444",
+    blue: "#3b82f6",
+    green: "#22c55e",
+    yellow: "#eab308",
+    white: "#ffffff",
+    black: "var(--color-text)",
+};
+
+const arrowSymbol = arrows[direction];
+const arrowColor = colorMap[color];
+---
+
+<div class:list={["diagram-arrow", className]} style={`color: ${arrowColor}`}>
+    {arrowSymbol}
+</div>

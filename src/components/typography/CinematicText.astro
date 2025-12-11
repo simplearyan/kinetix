@@ -1,0 +1,199 @@
+---
+interface Props {
+    text: string;
+    animation?:
+        | "fade"
+        | "slide-up"
+        | "blur-reveal"
+        | "scale-up"
+        | "glitch"
+        | "shake"
+        | "rotate-in"
+        | "tracking-in";
+    font?: "sans" | "serif" | "mono" | "cinematic" | "cursive" | "bold-sans";
+    shadow?: "none" | "neon" | "3d" | "soft";
+    color?: string;
+    delay?: string;
+    duration?: string;
+    className?: string;
+}
+
+const {
+    text,
+    animation = "fade",
+    font = "sans",
+    shadow = "none",
+    color = "var(--color-text)",
+    delay = "0s",
+    duration = "1s",
+    className = "",
+} = Astro.props;
+
+const fontClass = {
+    sans: "font-sans",
+    serif: "font-serif",
+    mono: "font-mono",
+    cinematic: "font-cinematic",
+    cursive: "font-cursive",
+    "bold-sans": "font-bold-sans",
+}[font];
+
+const shadowClass = {
+    none: "",
+    neon: "text-shadow-neon",
+    "3d": "text-shadow-3d",
+    soft: "text-shadow-soft",
+}[shadow];
+---
+
+<div
+    class={`cinematic-text-wrapper ${className}`}
+    style={`--delay: ${delay}; --duration: ${duration}; --color: ${color};`}
+>
+    <p class={`cinematic-text ${animation} ${fontClass} ${shadowClass}`}>
+        {text}
+    </p>
+</div>
+
+<style>
+    .cinematic-text-wrapper {
+        overflow: hidden;
+        margin: 1.5rem 0;
+    }
+
+    .cinematic-text {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+            opacity var(--duration) ease-out,
+            transform var(--duration) ease-out,
+            filter var(--duration) ease-out,
+            letter-spacing var(--duration) ease-out;
+        transition-delay: var(--delay);
+        color: var(--color);
+        font-size: 1.25rem;
+        line-height: 1.6;
+        display: inline-block; /* Required for some transforms */
+    }
+
+    .cinematic-text.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Animation Variants */
+    .cinematic-text.fade.visible {
+        opacity: 1;
+    }
+    .cinematic-text.slide-up.visible {
+        transform: translateY(0);
+    }
+
+    .cinematic-text.blur-reveal {
+        filter: blur(10px);
+        transform: scale(0.95);
+    }
+    .cinematic-text.blur-reveal.visible {
+        filter: blur(0);
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .cinematic-text.scale-up {
+        transform: scale(0.8);
+    }
+    .cinematic-text.scale-up.visible {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .cinematic-text.rotate-in {
+        transform: rotateX(90deg);
+        opacity: 0;
+    }
+    .cinematic-text.rotate-in.visible {
+        transform: rotateX(0);
+        opacity: 1;
+    }
+
+    .cinematic-text.tracking-in {
+        letter-spacing: -0.5em;
+        opacity: 0;
+    }
+    .cinematic-text.tracking-in.visible {
+        letter-spacing: normal;
+        opacity: 1;
+    }
+
+    .cinematic-text.glitch.visible {
+        animation: glitch 1s linear infinite;
+    }
+    .cinematic-text.shake.visible {
+        animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    /* Font Styles */
+    .font-sans {
+        font-family: var(--font-sans);
+    }
+    .font-serif {
+        font-family: var(--font-serif);
+    }
+    .font-mono {
+        font-family: var(--font-mono);
+    }
+    .font-cinematic {
+        font-family: "Playfair Display", serif;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    .font-cursive {
+        font-family: "Kalam", cursive;
+    }
+    .font-bold-sans {
+        font-family: "Montserrat", sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    /* Shadow Styles */
+    .text-shadow-neon {
+        text-shadow:
+            0 0 5px var(--color),
+            0 0 10px var(--color),
+            0 0 20px var(--color);
+    }
+    .text-shadow-3d {
+        text-shadow:
+            1px 1px 0 #000,
+            2px 2px 0 #000,
+            3px 3px 0 #000;
+    }
+    .text-shadow-soft {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+</style>
+
+<script>
+    const observerOptions = {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.1,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target
+                    .querySelector(".cinematic-text")
+                    ?.classList.add("visible");
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll(".cinematic-text-wrapper").forEach((el) => {
+        observer.observe(el);
+    });
+</script>

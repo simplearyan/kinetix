@@ -1,16 +1,476 @@
 ---
-
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.astro";
+import { ArrowRight, Play, Sparkles } from "lucide-react";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Kinetix - Visuals from Text">
+	<main class="min-h-screen">
+		<!-- Navbar -->
+		<Navbar />
+
+		<!-- Hero Section -->
+		<section class="pt-32 pb-20 px-6">
+			<div class="container mx-auto text-center max-w-4xl relative">
+				<!-- Floating Icons (Decoration) -->
+				<div
+					class="absolute -left-12 top-20 text-blue-500 opacity-20 animate-bounce delay-100 hidden lg:block"
+				>
+					<Sparkles size={48} />
+				</div>
+				<div
+					class="absolute -right-12 top-40 text-purple-500 opacity-20 animate-bounce delay-300 hidden lg:block"
+				>
+					<Play size={48} />
+				</div>
+
+				<div
+					class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold uppercase tracking-wider mb-8"
+				>
+					<span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"
+					></span>
+					Beta Access Now Open
+				</div>
+
+				<h1
+					class="text-5xl md:text-7xl font-bold text-slate-900 leading-[1.1] mb-8 tracking-tight"
+				>
+					Get <span class="text-blue-600 relative inline-block">
+						visuals
+						<svg
+							class="absolute w-full h-3 -bottom-1 left-0 text-blue-200 -z-10"
+							viewBox="0 0 100 10"
+							preserveAspectRatio="none"
+						>
+							<path
+								d="M0 5 Q 50 10 100 5"
+								stroke="currentColor"
+								stroke-width="3"
+								fill="none"></path>
+						</svg>
+					</span><br />
+					from your text.
+				</h1>
+
+				<p
+					class="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed"
+				>
+					Kinetix turns your ideas into professional motion graphics,
+					charts, and diagrams instantly. Export as MP4/WebM for
+					premiere, Resolve, or social media.
+				</p>
+
+				<div
+					class="flex flex-col sm:flex-row items-center justify-center gap-4"
+				>
+					<a
+						href="/app"
+						class="px-8 py-4 bg-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:scale-105 transition-all flex items-center gap-2 group"
+					>
+						Start Creating Free
+						<ArrowRight
+							size={20}
+							className="group-hover:translate-x-1 transition-transform"
+						/>
+					</a>
+					<button
+						class="px-8 py-4 bg-white text-slate-700 font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors flex items-center gap-2"
+					>
+						<Play
+							size={20}
+							fill="currentColor"
+							className="text-slate-400"
+						/>
+						Watch Demo
+					</button>
+				</div>
+			</div>
+		</section>
+
+		<!-- Feature Grid (Quick Preview) -->
+		<section class="py-20 bg-slate-50 border-t border-slate-100">
+			<div class="container mx-auto px-6">
+				<div class="grid md:grid-cols-3 gap-8">
+					<!-- Feature 1 -->
+					<div
+						class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+					>
+						<div
+							class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6"
+						>
+							<span class="font-hand font-bold text-2xl">A</span>
+						</div>
+						<h3 class="text-xl font-bold text-slate-900 mb-3">
+							Text to Diagram
+						</h3>
+						<p class="text-slate-600">
+							Type "Step 1, Step 2, Step 3" and instantly get a
+							flow chart.
+						</p>
+					</div>
+					<!-- Feature 2 -->
+					<div
+						class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+					>
+						<div
+							class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mb-6"
+						>
+							<span class="font-hand font-bold text-2xl">B</span>
+						</div>
+						<h3 class="text-xl font-bold text-slate-900 mb-3">
+							Export Transparent
+						</h3>
+						<p class="text-slate-600">
+							Download your clips with transparency (Alpha
+							Channel) for easy overlay.
+						</p>
+					</div>
+					<!-- Feature 3 -->
+					<div
+						class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+					>
+						<div
+							class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 mb-6"
+						>
+							<span class="font-hand font-bold text-2xl">C</span>
+						</div>
+						<h3 class="text-xl font-bold text-slate-900 mb-3">
+							Hand-Drawn Styles
+						</h3>
+						<p class="text-slate-600">
+							Switch between corporate clean and sketchy
+							whiteboard aesthetics.
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Gallery / Showcase Section -->
+		<section class="py-24 bg-white relative overflow-hidden">
+			<div class="container mx-auto px-6 text-center mb-16">
+				<span
+					class="inline-block px-3 py-1 rounded-full bg-orange-50 text-orange-600 text-xs font-semibold uppercase tracking-wider mb-4 border border-orange-100"
+				>
+					Inspiration
+				</span>
+				<h2 class="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+					Generated entirely from text.
+				</h2>
+				<p class="text-xl text-slate-600 max-w-2xl mx-auto">
+					No template hunting. Just describe your idea and Kinetix
+					builds the visualization.
+				</p>
+			</div>
+
+			<div class="container mx-auto px-6">
+				<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{/* Gallery Item 1 */}
+					<div
+						class="group relative rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 aspect-video hover:shadow-xl transition-all duration-300"
+					>
+						<div
+							class="absolute inset-0 flex items-center justify-center p-8 opacity-90 group-hover:scale-105 transition-transform"
+						>
+							{/* Placeholder SVG Graph */}
+							<svg
+								viewBox="0 0 400 300"
+								class="w-full text-slate-300 fill-current"
+							>
+								<circle
+									cx="200"
+									cy="150"
+									r="40"
+									class="text-blue-100"></circle>
+								<circle
+									cx="100"
+									cy="150"
+									r="30"
+									class="text-purple-100"></circle>
+								<circle
+									cx="300"
+									cy="150"
+									r="30"
+									class="text-green-100"></circle>
+								<path
+									d="M130 150h30 M240 150h30"
+									stroke="currentColor"
+									stroke-width="2"></path>
+							</svg>
+						</div>
+						<div
+							class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+						>
+							<span class="text-white font-medium"
+								>Process Flow</span
+							>
+						</div>
+					</div>
+
+					{/* Gallery Item 2 */}
+					<div
+						class="group relative rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 aspect-video hover:shadow-xl transition-all duration-300"
+					>
+						<div
+							class="absolute inset-0 flex items-center justify-center p-8 opacity-90 group-hover:scale-105 transition-transform"
+						>
+							<svg
+								viewBox="0 0 400 300"
+								class="w-full text-slate-300 fill-current"
+							>
+								<rect
+									x="50"
+									y="50"
+									width="140"
+									height="200"
+									rx="10"
+									class="text-orange-50"></rect>
+								<rect
+									x="210"
+									y="50"
+									width="140"
+									height="200"
+									rx="10"
+									class="text-blue-50"></rect>
+								<text
+									x="120"
+									y="150"
+									text-anchor="middle"
+									class="text-orange-300 text-xs">A</text
+								>
+								<text
+									x="280"
+									y="150"
+									text-anchor="middle"
+									class="text-blue-300 text-xs">B</text
+								>
+							</svg>
+						</div>
+						<div
+							class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+						>
+							<span class="text-white font-medium"
+								>Comparison</span
+							>
+						</div>
+					</div>
+
+					{/* Gallery Item 3 */}
+					<div
+						class="group relative rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 aspect-video hover:shadow-xl transition-all duration-300"
+					>
+						<div
+							class="absolute inset-0 flex items-center justify-center p-8 opacity-90 group-hover:scale-105 transition-transform"
+						>
+							<svg
+								viewBox="0 0 400 300"
+								class="w-full text-slate-300 fill-current"
+							>
+								<circle
+									cx="200"
+									cy="150"
+									r="80"
+									stroke="currentColor"
+									stroke-width="2"
+									fill="none"
+									stroke-dasharray="10,5"></circle>
+								<path
+									d="M200 150 L200 70"
+									stroke="currentColor"
+									stroke-width="2"></path>
+								<path
+									d="M200 150 L260 190"
+									stroke="currentColor"
+									stroke-width="2"></path>
+							</svg>
+						</div>
+						<div
+							class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+						>
+							<span class="text-white font-medium">Cycle</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Testimonials Section -->
+		<section class="py-24 bg-slate-50 border-t border-slate-200">
+			<div class="container mx-auto px-6 mb-16 text-center">
+				<h2 class="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
+					Don't take our word for it.
+				</h2>
+			</div>
+
+			<div class="container mx-auto px-6">
+				<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+					<!-- Testimonial 1 -->
+					<div
+						class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:-translate-y-1 transition-transform duration-300"
+					>
+						<div class="flex gap-1 mb-4">
+							{
+								[1, 2, 3, 4, 5].map(() => (
+									<svg
+										class="w-4 h-4 text-amber-400 fill-current"
+										viewBox="0 0 20 20"
+									>
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+									</svg>
+								))
+							}
+						</div>
+						<p class="text-slate-600 mb-6 leading-relaxed">
+							"I created 5 diagrams for my presentation in
+							literally 30 seconds. The hand-drawn style is
+							actually clear enough for client meetings."
+						</p>
+						<div class="flex items-center gap-4">
+							<div
+								class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold"
+							>
+								JD
+							</div>
+							<div>
+								<h4 class="font-bold text-slate-900 text-sm">
+									John Doe
+								</h4>
+								<p class="text-slate-500 text-xs">
+									Product Manager
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Testimonial 2 -->
+					<div
+						class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:-translate-y-1 transition-transform duration-300"
+					>
+						<div class="flex gap-1 mb-4">
+							{
+								[1, 2, 3, 4, 5].map(() => (
+									<svg
+										class="w-4 h-4 text-amber-400 fill-current"
+										viewBox="0 0 20 20"
+									>
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+									</svg>
+								))
+							}
+						</div>
+						<p class="text-slate-600 mb-6 leading-relaxed">
+							"Finally a tool that understands semantics. I typed
+							a list and it gave me a hierarchy chart
+							automatically. Huge timesaver."
+						</p>
+						<div class="flex items-center gap-4">
+							<div
+								class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold"
+							>
+								SK
+							</div>
+							<div>
+								<h4 class="font-bold text-slate-900 text-sm">
+									Sarah King
+								</h4>
+								<p class="text-slate-500 text-xs">
+									Content Creator
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Testimonial 3 -->
+					<div
+						class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:-translate-y-1 transition-transform duration-300"
+					>
+						<div class="flex gap-1 mb-4">
+							{
+								[1, 2, 3, 4, 5].map(() => (
+									<svg
+										class="w-4 h-4 text-amber-400 fill-current"
+										viewBox="0 0 20 20"
+									>
+										<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+									</svg>
+								))
+							}
+						</div>
+						<p class="text-slate-600 mb-6 leading-relaxed">
+							"The export to transparent video is killer. I drop
+							these straight into my Premiere timeline and it
+							looks like I spent hours animating in After
+							Effects."
+						</p>
+						<div class="flex items-center gap-4">
+							<div
+								class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold"
+							>
+								MR
+							</div>
+							<div>
+								<h4 class="font-bold text-slate-900 text-sm">
+									Mike Ross
+								</h4>
+								<p class="text-slate-500 text-xs">
+									Video Editor
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- FAQ Section -->
+		<section class="py-24 bg-white relative">
+			<div
+				class="container mx-auto px-6 grid md:grid-cols-2 gap-16 items-start"
+			>
+				<div>
+					<h2
+						class="text-4xl md:text-5xl font-bold text-slate-900 mb-6"
+					>
+						Frequently asked questions
+					</h2>
+					<p class="text-lg text-slate-600 mb-8">
+						Can't find the answer you are looking for? Reach out to
+						us <a href="#" class="text-blue-600 underline">here</a>.
+					</p>
+				</div>
+				<div class="space-y-4">
+					<div
+						class="border border-slate-200 rounded-xl p-6 hover:border-slate-300 transition-colors cursor-pointer bg-slate-50"
+					>
+						<h3
+							class="font-bold text-slate-900 flex justify-between items-center"
+						>
+							What is special about Kinetix?
+							<ArrowRight size={16} className="text-slate-400" />
+						</h3>
+					</div>
+					<div
+						class="border border-slate-200 rounded-xl p-6 hover:border-slate-300 transition-colors cursor-pointer bg-slate-50"
+					>
+						<h3
+							class="font-bold text-slate-900 flex justify-between items-center"
+						>
+							Is Kinetix free to use?
+							<ArrowRight size={16} className="text-slate-400" />
+						</h3>
+					</div>
+					<div
+						class="border border-slate-200 rounded-xl p-6 hover:border-slate-300 transition-colors cursor-pointer bg-slate-50"
+					>
+						<h3
+							class="font-bold text-slate-900 flex justify-between items-center"
+						>
+							Can I use Kinetix on mobile?
+							<ArrowRight size={16} className="text-slate-400" />
+						</h3>
+					</div>
+				</div>
+			</div>
+		</section>
+	</main>
+</Layout>

@@ -1,0 +1,117 @@
+---
+
+---
+
+<div class="p-4 bg-gray-800 border-t border-gray-700">
+    <label
+        class="text-xs text-gray-400 uppercase font-bold mb-3 block tracking-wider"
+        >Export Settings</label
+    >
+
+    <div class="space-y-3">
+        <div>
+            <label class="text-xs text-gray-400 block mb-1">Duration</label>
+            <div class="relative">
+                <input
+                    type="number"
+                    id="global-duration"
+                    value="5"
+                    class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm pl-2 pr-8 focus:border-blue-500 outline-none"
+                />
+                <span class="absolute right-3 top-2 text-gray-500 text-xs"
+                    >sec</span
+                >
+            </div>
+        </div>
+        <div>
+            <label class="text-xs text-gray-400 block mb-1">Format</label>
+            <select
+                id="global-format"
+                class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm focus:border-blue-500 outline-none"
+            >
+                <option value="video/mp4">MP4 (H.264)</option>
+                <option value="video/webm">WebM (VP9)</option>
+            </select>
+        </div>
+    </div>
+
+    <button
+        id="export-btn"
+        class="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+    >
+        <span>Export Video</span>
+    </button>
+
+    <!-- Progress Bar -->
+    <div id="export-progress" class="hidden mt-3 space-y-1.5 animate-fade-in">
+        <div class="flex justify-between text-xs text-gray-400 font-medium">
+            <span>Rendering...</span>
+            <span id="progress-val">0%</span>
+        </div>
+        <div class="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+            <div
+                id="progress-bar"
+                class="h-full bg-gradient-to-r from-blue-500 to-emerald-500 w-0 transition-all duration-75"
+            >
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handles export logic via CustomEvent or window.engine
+    const exportBtn = document.getElementById(
+        "export-btn",
+    ) as HTMLButtonElement;
+    const progressDiv = document.getElementById("export-progress")!;
+    const progressBar = document.getElementById("progress-bar")!;
+    const progressVal = document.getElementById("progress-val")!;
+    const globalDur = document.getElementById(
+        "global-duration",
+    ) as HTMLInputElement;
+    const globalFmt = document.getElementById(
+        "global-format",
+    ) as HTMLSelectElement;
+
+    // Sync Duration changes to engine
+    globalDur.addEventListener("change", () => {
+        if ((window as any).studioEngine) {
+            (window as any).studioEngine.totalDuration =
+                parseInt(globalDur.value) * 1000;
+        }
+    });
+
+    exportBtn.addEventListener("click", async () => {
+        const engine = (window as any).studioEngine;
+        if (!engine) return;
+
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = '<span class="animate-pulse">Preparing...</span>';
+        progressDiv.classList.remove("hidden");
+
+        try {
+            const url = await engine.exportVideo({
+                fps: 60,
+                mimeType: globalFmt.value,
+                onProgress: (p: number) => {
+                    const pct = Math.round(p * 100);
+                    progressBar.style.width = `${pct}%`;
+                    progressVal.textContent = `${pct}%`;
+                },
+            });
+
+            const a = document.createElement("a");
+            a.href = url;
+            const ext = globalFmt.value.includes("mp4") ? "mp4" : "webm";
+            a.download = `kinetix-studio-${Date.now()}.${ext}`;
+            a.click();
+        } catch (e) {
+            console.error(e);
+            alert("Export failed.");
+        } finally {
+            exportBtn.disabled = false;
+            exportBtn.textContent = "Export Video";
+            progressDiv.classList.add("hidden");
+        }
+    });
+</script>

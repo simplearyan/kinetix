@@ -1,0 +1,683 @@
+---
+interface Props {
+    markdown: string;
+    height?: string;
+    title?: string;
+    variant?: "default" | "minimal" | "colorful";
+    animateOnScroll?: boolean;
+    animationDuration?: number;
+    font?: string;
+}
+
+const {
+    markdown,
+    height = "400px",
+    title = "Mind Map",
+    variant = "default",
+    animateOnScroll = false,
+    animationDuration = 500,
+    font = "sans-serif",
+} = Astro.props;
+---
+
+<astro-markmap
+    data-markdown={markdown}
+    data-variant={variant}
+    data-height={height}
+    data-animate-on-scroll={animateOnScroll ? "true" : "false"}
+    data-animation-duration={animationDuration}
+    data-font={font}
+>
+    <div class={`markmap-wrapper variant-${variant}`}>
+        <div class="markmap-header">
+            {title && <div class="markmap-title">{title}</div>}
+            <button class="fullscreen-btn" aria-label="Toggle Fullscreen">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="maximize-icon"
+                    ><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path
+                        d="M16 3h3a2 2 0 0 1 2 2v3"></path><path
+                        d="M8 21H5a2 2 0 0 1-2-2v-3"></path><path
+                        d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg
+                >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="minimize-icon"
+                    style="display: none;"
+                    ><path d="M8 3v3a2 2 0 0 1-2 2H3"></path><path
+                        d="M21 8h-3a2 2 0 0 1-2-2V3"></path><path
+                        d="M3 16h3a2 2 0 0 1 2 2v3"></path><path
+                        d="M16 21v-3a2 2 0 0 1 2-2h3"></path></svg
+                >
+            </button>
+        </div>
+
+        <svg class="markmap-svg"></svg>
+
+        <div class="markmap-toolbar-custom">
+            <button class="theme-btn" aria-label="Toggle Theme">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="moon-icon"
+                >
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                    ></path>
+                </svg>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="sun-icon"
+                    style="display: none;"
+                >
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            </button>
+            <button class="fit-btn" aria-label="Fit View">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+</astro-markmap>
+
+<style>
+    astro-markmap {
+        display: block;
+        width: 100%;
+    }
+
+    .markmap-wrapper {
+        position: relative;
+        width: 100%;
+        margin: 2rem 0;
+        border-radius: 1rem;
+        overflow: hidden;
+        background: var(--color-bg, #ffffff);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Dark Mode Override Class */
+    .markmap-wrapper.markmap-dark {
+        background: #1f2937 !important;
+    }
+
+    /* Target all text elements in SVG for dark mode */
+    .markmap-wrapper.markmap-dark .markmap-svg {
+        color: #e5e7eb;
+    }
+
+    .markmap-wrapper.markmap-dark .markmap-svg text,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject div,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject span,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject p,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject h1,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject h2,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject h3,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject h4,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject h5,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject h6,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject li,
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject code {
+        color: #e5e7eb !important;
+        fill: #e5e7eb !important;
+    }
+
+    /* Specific fix for links in dark mode to keep them distinct but readable */
+    .markmap-wrapper.markmap-dark .markmap-svg foreignObject a {
+        color: #60a5fa !important;
+    }
+
+    /* Global Dark Mode Support (if user wants auto-adaptation) */
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg {
+        color: #e5e7eb;
+    }
+
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg text,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject,
+    :global([data-theme="dark"])
+        .markmap-wrapper
+        .markmap-svg
+        foreignObject
+        div,
+    :global([data-theme="dark"])
+        .markmap-wrapper
+        .markmap-svg
+        foreignObject
+        span,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject p,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject h1,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject h2,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject h3,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject h4,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject h5,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject h6,
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject li,
+    :global([data-theme="dark"])
+        .markmap-wrapper
+        .markmap-svg
+        foreignObject
+        code {
+        color: #e5e7eb !important;
+        fill: #e5e7eb !important;
+    }
+
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg foreignObject a {
+        color: #60a5fa !important;
+    }
+
+    :global([data-theme="dark"]) .markmap-wrapper .markmap-svg path {
+        /* Keep path colors as is, usually strokes are handled by markmap */
+    }
+
+    .markmap {
+        --markmap-max-width: 9999px;
+        --markmap-a-color: #0097e6;
+        --markmap-a-hover-color: #00a8ff;
+        --markmap-code-bg: #f0f0f0;
+        --markmap-code-color: #555;
+        --markmap-highlight-bg: #ffeaa7;
+        --markmap-table-border: 1px solid currentColor;
+        --markmap-font: 300 16px / 20px sans-serif;
+        --markmap-circle-open-bg: #fff;
+        --markmap-text-color: #333;
+        --markmap-highlight-node-bg: #ff02;
+        font: var(--markmap-font);
+        color: var(--markmap-text-color);
+    }
+
+    :global([data-theme="dark"]) .markmap {
+        --markmap-max-width: 9999px;
+        --markmap-a-color: #60a5fa;
+        --markmap-a-hover-color: #93c5fd;
+        --markmap-code-bg: #374151;
+        --markmap-code-color: #e5e7eb;
+        --markmap-highlight-bg: #ffeaa7;
+        --markmap-table-border: 1px solid currentColor;
+        --markmap-font: 300 16px / 20px sans-serif;
+        --markmap-circle-open-bg: #1f2937;
+        --markmap-text-color: #e5e7eb;
+        --markmap-highlight-node-bg: #ff02;
+        font: var(--markmap-font);
+        color: #e5e7eb;
+    }
+
+    /* Default Style */
+    .markmap-wrapper.variant-default {
+        /* border: 2px solid var(--color-border, #e5e7eb); */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Minimal Style */
+    .markmap-wrapper.variant-minimal {
+        border: 1px solid transparent;
+        background: transparent;
+        box-shadow: none;
+    }
+    .markmap-wrapper.variant-minimal .markmap-header {
+        background: transparent;
+        border-bottom: none;
+    }
+
+    /* Colorful Style */
+    .markmap-wrapper.variant-colorful {
+        border: 2px solid transparent;
+        background:
+            linear-gradient(var(--color-bg), var(--color-bg)) padding-box,
+            linear-gradient(45deg, #ec4899, #8b5cf6) border-box;
+        box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.15);
+    }
+
+    .markmap-wrapper:fullscreen {
+        border-radius: 0;
+        border: none;
+        width: 100vw;
+        height: 100vh;
+        padding: 2rem;
+        background: var(--color-bg, #ffffff);
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+    }
+
+    :global([data-theme="dark"]) .markmap-wrapper:fullscreen {
+        background: #0f0f0f;
+    }
+
+    /* Ensure manual dark mode works in fullscreen too */
+    .markmap-wrapper.markmap-dark:fullscreen {
+        background: #1f2937 !important;
+    }
+
+    .markmap-wrapper:fullscreen .markmap-svg {
+        height: 100% !important;
+    }
+
+    .markmap-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1rem;
+        /* background: rgba(255, 255, 255, 0.8); */
+        /* border-bottom: 1px solid var(--color-border, #e5e7eb); */
+        z-index: 10;
+        backdrop-filter: blur(4px);
+    }
+
+    :global([data-theme="dark"]) .markmap-header {
+        background: rgba(31, 41, 55, 0.8);
+        border-color: #374151;
+    }
+
+    .markmap-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--color-text, #374151);
+    }
+
+    .markmap-wrapper.markmap-dark .markmap-title {
+        color: #e5e7eb;
+    }
+
+    .fullscreen-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--color-text, #6b7280);
+        padding: 4px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    .fullscreen-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--color-primary, #3b82f6);
+    }
+
+    :global([data-theme="dark"]) .fullscreen-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .markmap-wrapper.markmap-dark .fullscreen-btn {
+        color: #9ca3af;
+    }
+    .markmap-wrapper.markmap-dark .fullscreen-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #60a5fa;
+    }
+
+    .markmap-svg {
+        width: 100%;
+        display: block;
+    }
+
+    .markmap-toolbar-custom {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 10;
+    }
+
+    .fit-btn,
+    .theme-btn {
+        background: var(--color-bg, #ffffff);
+        border: 1px solid var(--color-border, #e5e7eb);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--color-text, #6b7280);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
+    }
+
+    .fit-btn:hover,
+    .theme-btn:hover {
+        transform: scale(1.1);
+        color: var(--color-primary, #3b82f6);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    :global([data-theme="dark"]) .fit-btn,
+    :global([data-theme="dark"]) .theme-btn {
+        background: #1f2937;
+        border-color: #374151;
+        color: #9ca3af;
+    }
+
+    /* Manual dark mode button styles */
+    .markmap-wrapper.markmap-dark .fit-btn,
+    .markmap-wrapper.markmap-dark .theme-btn {
+        background: #374151;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+
+    .markmap-wrapper.markmap-dark .fit-btn:hover,
+    .markmap-wrapper.markmap-dark .theme-btn:hover {
+        background: #4b5563;
+        color: #60a5fa;
+    }
+</style>
+
+<script>
+    import { Transformer } from "markmap-lib";
+    import { Markmap } from "markmap-view";
+
+    class MarkmapComponent extends HTMLElement {
+        mm: Markmap | null = null;
+        observer: MutationObserver | null = null;
+        resizeObserver: ResizeObserver | null = null;
+        intersectionObserver: IntersectionObserver | null = null;
+
+        constructor() {
+            super();
+        }
+
+        connectedCallback() {
+            const animateOnScroll = this.dataset.animateOnScroll === "true";
+
+            if (animateOnScroll) {
+                this.intersectionObserver = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                this.init();
+                                this.intersectionObserver?.disconnect();
+                            }
+                        });
+                    },
+                    { threshold: 0.1 },
+                );
+                this.intersectionObserver.observe(this);
+            } else {
+                this.init();
+            }
+
+            // Watch for attribute changes
+            this.observer = new MutationObserver((mutations) => {
+                let shouldReinit = false;
+                mutations.forEach((mutation) => {
+                    if (
+                        mutation.type === "attributes" &&
+                        [
+                            "data-markdown",
+                            "data-animation-duration",
+                            "data-font",
+                        ].includes(mutation.attributeName || "")
+                    ) {
+                        shouldReinit = true;
+                    }
+                });
+                if (shouldReinit) {
+                    this.update();
+                }
+            });
+
+            this.observer.observe(this, {
+                attributes: true,
+                attributeFilter: [
+                    "data-markdown",
+                    "data-animation-duration",
+                    "data-font",
+                ],
+            });
+        }
+
+        disconnectedCallback() {
+            this.observer?.disconnect();
+            this.resizeObserver?.disconnect();
+            this.intersectionObserver?.disconnect();
+            if (this.mm) {
+                this.mm.destroy();
+            }
+        }
+
+        update() {
+            const font = this.dataset.font;
+            if (font) {
+                this.style.setProperty("--markmap-font", font);
+            }
+
+            if (this.mm) {
+                this.mm.destroy();
+                this.mm = null;
+            }
+            this.init();
+        }
+
+        init() {
+            const markdown = this.dataset.markdown;
+            const height = this.dataset.height || "400px";
+            const animationDuration = parseInt(
+                this.dataset.animationDuration || "500",
+            );
+            const font = this.dataset.font;
+            const svg = this.querySelector(".markmap-svg") as SVGElement;
+            const wrapper = this.querySelector(".markmap-wrapper");
+            const fullscreenBtn = this.querySelector(".fullscreen-btn");
+            const fitBtn = this.querySelector(".fit-btn");
+            const themeBtn = this.querySelector(".theme-btn");
+
+            if (!markdown || !svg || !wrapper) {
+                return;
+            }
+
+            // Apply font
+            if (font) {
+                this.style.setProperty("--markmap-font", font);
+            }
+
+            // Explicitly set dimensions
+            svg.style.width = "100%";
+            svg.style.height = height;
+            svg.setAttribute("width", "100%");
+
+            try {
+                const transformer = new Transformer();
+                const { root } = transformer.transform(markdown);
+
+                // Initialize Markmap
+                this.mm = Markmap.create(
+                    svg,
+                    {
+                        embedGlobalCSS: true,
+                        scrollForPan: true,
+                        zoom: true,
+                        pan: true,
+                        spacingVertical: 5,
+                        paddingX: 20,
+                        autoFit: true,
+                        duration: animationDuration,
+                    },
+                    root,
+                );
+
+                // Fit Button Logic
+                if (fitBtn) {
+                    const newFitBtn = fitBtn.cloneNode(true);
+                    fitBtn.parentNode?.replaceChild(newFitBtn, fitBtn);
+                    newFitBtn.addEventListener("click", () => {
+                        this.mm?.fit();
+                    });
+                }
+
+                // Theme Button Logic
+                const updateThemeUI = (isDark: boolean) => {
+                    if (isDark) {
+                        wrapper.classList.add("markmap-dark");
+                    } else {
+                        wrapper.classList.remove("markmap-dark");
+                    }
+
+                    if (themeBtn) {
+                        const moonIcon = themeBtn.querySelector(
+                            ".moon-icon",
+                        ) as HTMLElement;
+                        const sunIcon = themeBtn.querySelector(
+                            ".sun-icon",
+                        ) as HTMLElement;
+                        if (moonIcon && sunIcon) {
+                            moonIcon.style.display = isDark ? "none" : "block";
+                            sunIcon.style.display = isDark ? "block" : "none";
+                        }
+                    }
+                };
+
+                // Auto-sync with site theme
+                const htmlElement = document.documentElement;
+                const themeObserver = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.attributeName === "data-theme") {
+                            const isSiteDark =
+                                htmlElement.getAttribute("data-theme") ===
+                                "dark";
+                            updateThemeUI(isSiteDark);
+                            localStorage.setItem(
+                                "markmap-theme-preference",
+                                isSiteDark ? "dark" : "light",
+                            );
+                        }
+                    });
+                });
+                themeObserver.observe(htmlElement, { attributes: true });
+
+                // Initial check
+                const savedTheme = localStorage.getItem(
+                    "markmap-theme-preference",
+                );
+                const isSiteDark =
+                    htmlElement.getAttribute("data-theme") === "dark";
+
+                if (savedTheme) {
+                    updateThemeUI(savedTheme === "dark");
+                } else {
+                    updateThemeUI(isSiteDark);
+                }
+
+                if (themeBtn) {
+                    const newThemeBtn = themeBtn.cloneNode(true);
+                    themeBtn.parentNode?.replaceChild(newThemeBtn, themeBtn);
+                    newThemeBtn.addEventListener("click", () => {
+                        const isDark =
+                            !wrapper.classList.contains("markmap-dark");
+                        updateThemeUI(isDark);
+                        localStorage.setItem(
+                            "markmap-theme-preference",
+                            isDark ? "dark" : "light",
+                        );
+                    });
+                }
+
+                // Fullscreen Logic
+                if (fullscreenBtn) {
+                    const newFullscreenBtn = fullscreenBtn.cloneNode(true);
+                    fullscreenBtn.parentNode?.replaceChild(
+                        newFullscreenBtn,
+                        fullscreenBtn,
+                    );
+                    newFullscreenBtn.addEventListener("click", () => {
+                        if (!document.fullscreenElement) {
+                            wrapper.requestFullscreen().catch((err) => {
+                                console.error(
+                                    `Error attempting to enable fullscreen: ${err.message}`,
+                                );
+                            });
+                        } else {
+                            document.exitFullscreen();
+                        }
+                    });
+                }
+
+                // Handle Fullscreen Change & Resize
+                const handleResize = () => {
+                    requestAnimationFrame(() => {
+                        this.mm?.fit();
+                    });
+                };
+
+                this.resizeObserver = new ResizeObserver(() => {
+                    handleResize();
+                });
+                this.resizeObserver.observe(wrapper);
+
+                // Initial fit
+                handleResize();
+            } catch (e) {
+                console.error("Markmap initialization error:", e);
+            }
+        }
+    }
+
+    if (!customElements.get("astro-markmap")) {
+        customElements.define("astro-markmap", MarkmapComponent);
+    }
+</script>

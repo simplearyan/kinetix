@@ -1,0 +1,185 @@
+---
+interface Props {
+    data: number[][];
+    style?: "cross" | "highlight" | "simple";
+    animate?: boolean;
+}
+
+const { data, style = "cross", animate = false } = Astro.props;
+
+const rows = data.length;
+const cols = data[0]?.length || 0;
+const is2x2 = rows === 2 && cols === 2;
+
+// Calculate determinant for display
+const det = is2x2 ? data[0][0] * data[1][1] - data[0][1] * data[1][0] : null;
+---
+
+<div class={`determinant-container ${animate ? "animate" : ""}`}>
+    <div class="det-matrix">
+        <div class="bar left"></div>
+        <div class="grid" style={`--rows: ${rows}; --cols: ${cols};`}>
+            {
+                data.map((row, r) =>
+                    row.map((cell, c) => (
+                        <div class={`cell r${r} c${c}`} data-r={r} data-c={c}>
+                            {cell}
+                        </div>
+                    )),
+                )
+            }
+
+            {
+                is2x2 && style === "cross" && (
+                    <svg
+                        class="cross-lines"
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                    >
+                        <line
+                            x1="20"
+                            y1="20"
+                            x2="80"
+                            y2="80"
+                            class="line-main"
+                        />
+                        <line
+                            x1="80"
+                            y1="20"
+                            x2="20"
+                            y2="80"
+                            class="line-secondary"
+                        />
+                    </svg>
+                )
+            }
+        </div>
+        <div class="bar right"></div>
+    </div>
+
+    {
+        is2x2 && (
+            <div class="calculation">
+                <span class="part main">
+                    ({data[0][0]} × {data[1][1]})
+                </span>
+                <span class="op">−</span>
+                <span class="part secondary">
+                    ({data[0][1]} × {data[1][0]})
+                </span>
+                <span class="op">=</span>
+                <span class="result">{det}</span>
+            </div>
+        )
+    }
+</div>
+
+<style>
+    .determinant-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        font-family: "KaTeX_Main", serif;
+    }
+
+    .det-matrix {
+        display: flex;
+        align-items: stretch;
+        position: relative;
+    }
+
+    .bar {
+        width: 2px;
+        background: currentColor;
+        margin: 0 4px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(var(--cols), 1fr);
+        gap: 0.5rem 1rem;
+        padding: 0.5rem;
+        position: relative;
+    }
+
+    .cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 2rem;
+        height: 2rem;
+        z-index: 1;
+    }
+
+    .cross-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.5;
+    }
+
+    .line-main {
+        stroke: #3b82f6; /* Blue */
+        stroke-width: 2;
+    }
+
+    .line-secondary {
+        stroke: #ef4444; /* Red */
+        stroke-width: 2;
+        stroke-dasharray: 4;
+    }
+
+    .calculation {
+        font-size: 1.1rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        opacity: 0.8;
+    }
+
+    .part.main {
+        color: #3b82f6;
+    }
+    .part.secondary {
+        color: #ef4444;
+    }
+    .result {
+        font-weight: bold;
+    }
+
+    /* Animations */
+    .animate .line-main {
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: drawLine 1s ease forwards 0.5s;
+    }
+
+    .animate .line-secondary {
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: drawLine 1s ease forwards 1s; /* Delayed */
+    }
+
+    .animate .calculation {
+        opacity: 0;
+        animation: fadeIn 0.5s forwards 1.5s;
+    }
+
+    @keyframes drawLine {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+</style>

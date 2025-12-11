@@ -1,0 +1,182 @@
+---
+interface Step {
+    id: string;
+    label: string;
+    type?: "start" | "process" | "decision" | "end";
+    next?: string[]; // IDs of next steps
+    description?: string;
+}
+
+interface Props {
+    steps: Step[];
+    direction?: "vertical" | "horizontal";
+    color?: string;
+}
+
+const { steps, direction = "vertical" } = Astro.props;
+
+// Simple topological sort or just render in order?
+// For a simple component, we might just assume the 'steps' are in linear order for the main flow, or basic branching.
+// To keep it CSS-only simple without complex layout engines, we'll render them as a flex/grid list.
+// If the user wants a complex graph, they should use a canvas lib.
+// We will treat this as a "Sequence" or "Process View" where items flow one to another.
+---
+
+<div class={`flowchart-container direction-${direction}`}>
+    {
+        steps.map((step, index) => (
+            <div class="flow-step-wrapper">
+                <div
+                    class={`flow-node type-${step.type || "process"}`}
+                    id={`step-${step.id}`}
+                >
+                    <span class="node-text">{step.label}</span>
+                    {step.description && (
+                        <span class="node-desc">{step.description}</span>
+                    )}
+                </div>
+
+                {index < steps.length - 1 && (
+                    <div class="flow-arrow">
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="24"
+                            height="24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            {direction === "vertical" ? (
+                                <path d="M12 5v14M19 12l-7 7-7-7" />
+                            ) : (
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            )}
+                        </svg>
+                    </div>
+                )}
+            </div>
+        ))
+    }
+</div>
+
+<style>
+    .flowchart-container {
+        display: flex;
+        gap: 1rem;
+        padding: 2rem;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-hand-drawn, "Kalam", cursive);
+        animation: fadeIn 0.8s ease-out backwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .direction-vertical {
+        flex-direction: column;
+    }
+
+    .direction-horizontal {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .flow-step-wrapper {
+        display: flex;
+        align-items: center;
+        flex-direction: inherit;
+        gap: 1rem;
+    }
+
+    .flow-node {
+        padding: 1rem 1.5rem;
+        border: 2px solid var(--color-text);
+        background: var(--color-bg);
+        min-width: 120px;
+        text-align: center;
+        position: relative;
+        transition: transform 0.2s;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .flow-node:hover {
+        transform: scale(1.02);
+        box-shadow: 2px 2px 0px var(--color-secondary);
+    }
+
+    /* Shapes */
+    .type-start,
+    .type-end {
+        border-radius: 2rem; /* Oval/Rounded */
+        background-color: var(--color-code-bg);
+    }
+
+    .type-process {
+        border-radius: 2px 255px 3px 25px / 255px 5px 225px 5px; /* Sketchy rect */
+    }
+
+    .type-decision {
+        transform: rotate(
+            -0deg
+        ); /* We'll use a clip-path or visual trick for diamond */
+        border-radius: 0;
+        /* Diamond shape via CSS */
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+
+    .type-decision::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 2px solid var(--color-text);
+        transform: rotate(45deg);
+        border-radius: 2px 55px 3px 25px / 55px 5px 25px 5px; /* Sketchy diamond */
+        background: var(--color-bg);
+        z-index: 0;
+    }
+
+    .type-decision .node-text,
+    .type-decision .node-desc {
+        position: relative;
+        z-index: 1;
+        padding: 1.5rem; /* More padding to fit inside diamond */
+    }
+
+    .node-text {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .node-desc {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .flow-arrow {
+        color: var(--color-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Hand drawn arrow animation */
+    .flow-arrow svg {
+        filter: drop-shadow(1px 1px 0px rgba(0, 0, 0, 0.1));
+    }
+</style>

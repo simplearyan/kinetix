@@ -1,0 +1,94 @@
+---
+title: "Introducing Custom Charts Collection"
+description: "How we align our content with our brand using custom MDX components."
+pubDate: 2024-12-10
+author: "Design Team"
+image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop"
+tags: ["Design", "Engineering", "Update"]
+slug: "custom-charts-collection"
+---
+
+import BarChart from '../../components/mdx/BarChart.astro';
+import LineChart from '../../components/mdx/LineChart.astro';
+import PieChart from '../../components/mdx/PieChart.astro';
+
+Visual storytelling is at the heart of Kinetix. We realized that standard chart libraries didn't fit our "sketchbook" aesthetic, so we built our own set of **Astro components** that render directly from our markdown.
+
+This allows us to drop in charts as easily as images, but with full interactivity and CSS styling.
+
+## 1. Bar Charts
+
+Use the `<BarChart />` component to compare values. It supports both a corporate "clean" style and our signature "hand-drawn" look.
+
+### Clean Style
+Perfect for formal reports or precise data.
+
+<BarChart 
+  data={[
+    { label: 'A', value: 10 },
+    { label: 'B', value: 25 },
+    { label: 'C', value: 15 }
+  ]} 
+  variant="clean"
+  color="#3b82f6" 
+/>
+
+### Hand-Drawn Style
+Using SVG filters to simulate rough paper edges.
+
+<BarChart 
+  data={[
+    { label: 'Sketch', value: 80 },
+    { label: 'Draw', value: 60 }
+  ]} 
+  variant="hand-drawn"
+  color="#ef4444" 
+/>
+
+---
+
+## 2. Line Charts
+
+Great for showing trends over time.
+
+### Basic Line
+<LineChart 
+    data={[
+        { label: 'Jan', value: 10 },
+        { label: 'Feb', value: 25 },
+        { label: 'Mar', value: 45 },
+        { label: 'Apr', value: 30 },
+        { label: 'May', value: 60 }
+    ]}
+    variant="basic"
+    color="#3b82f6"
+/>
+
+### Sketchy Line with Area
+<LineChart 
+    data={[
+        { label: 'Mon', value: 20 },
+        { label: 'Tue', value: 40 },
+        { label: 'Wed', value: 35 },
+        { label: 'Thu', value: 80 },
+        { label: 'Fri', value: 55 }
+    ]}
+    variant="sketchy"
+    color="#10b981"
+/>
+
+---
+
+## 3. Pie Charts [NEW]
+
+Visualizing proportions has never been this fun.
+
+### Hand-Drawn Pie
+<PieChart 
+    data={[
+        { label: 'Work', value: 30, color: '#3b82f6' },
+        { label: 'Sleep', value: 30, color: '#10b981' },
+        { label: 'Play', value: 40, color: '#ef4444' }
+    ]}
+    variant="hand-drawn"
+/>

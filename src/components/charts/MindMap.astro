@@ -1,0 +1,196 @@
+---
+import MindMapNode from "./MindMapNode.astro";
+
+interface Props {
+    data: {
+        label: string;
+        children?: any[];
+        color?: string;
+    };
+    direction?: "vertical" | "horizontal";
+    variant?: "tree" | "organic";
+    interactive?: boolean;
+    compact?: boolean;
+    straightEdges?: boolean;
+    class?: string;
+}
+
+const {
+    data,
+    direction = "vertical",
+    variant = "tree",
+    interactive = false,
+    compact = false,
+    straightEdges = false,
+    class: className,
+} = Astro.props;
+---
+
+<div
+    class={`mindmap-wrapper direction-${direction} ${interactive ? "interactive" : ""} ${className || ""}`}
+    data-interactive={interactive}
+>
+    <div class="mindmap-content">
+        <ul class="tree-root">
+            <MindMapNode
+                node={data}
+                isRoot={true}
+                direction={direction}
+                variant={variant}
+                compact={compact}
+                straightEdges={straightEdges}
+            />
+        </ul>
+    </div>
+    {interactive && <div class="hint">Double click to Maximize</div>}
+</div>
+
+<script>
+    // Handle interactive fullscreen toggle
+    // Handle interactive fullscreen toggle
+    document
+        .querySelectorAll('.mindmap-wrapper[data-interactive="true"]')
+        .forEach((el) => {
+            // Create a placeholder comment or invisible div to hold the spot
+            const placeholder = document.createElement("div");
+            placeholder.className = "mindmap-placeholder";
+            placeholder.style.display = "none";
+
+            // Mobile Double Tap Support
+            let lastTap = 0;
+
+            el.addEventListener("touchend", (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTap;
+
+                if (tapLength < 300 && tapLength > 0) {
+                    // Double Tap Detected
+                    e.preventDefault(); // Prevent zoom
+                    toggleFullscreen(el);
+                }
+                lastTap = currentTime;
+            });
+
+            el.addEventListener("dblclick", (e) => {
+                // prevent triggering if clicking inside a node link/button
+                if ((e.target as HTMLElement).closest("a")) return;
+                toggleFullscreen(el);
+            });
+
+            function toggleFullscreen(element: Element) {
+                const isFullscreen = element.classList.contains("fullscreen");
+
+                if (!isFullscreen) {
+                    // Enter Fullscreen
+                    element.parentNode?.insertBefore(placeholder, element);
+                    document.body.appendChild(element);
+
+                    requestAnimationFrame(() => {
+                        element.classList.add("fullscreen");
+                    });
+                } else {
+                    // Exit Fullscreen
+                    element.classList.remove("fullscreen");
+
+                    if (placeholder.parentNode) {
+                        placeholder.parentNode.insertBefore(
+                            element,
+                            placeholder,
+                        );
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+                }
+
+                const hint = element.querySelector(".hint");
+                if (hint) {
+                    hint.textContent = !isFullscreen //Logic flipped because isFullscreen is old state
+                        ? "Double click/tap to Exit"
+                        : "Double click/tap to Maximize";
+                }
+            }
+        });
+</script>
+
+<style>
+    .mindmap-wrapper {
+        width: 100%;
+        overflow: auto;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        position: relative;
+        background: var(--color-bg); /* Ensure bg is opaque for fullscreen */
+        border-radius: 8px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .mindmap-wrapper.interactive {
+        cursor: zoom-in;
+        border: 1px dashed var(--color-border);
+    }
+
+    .mindmap-wrapper.interactive:hover {
+        border-color: var(--color-primary);
+    }
+
+    /* Fullscreen Mode */
+    .mindmap-wrapper.fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 10000;
+        padding: 4rem;
+        align-items: center;
+        cursor: zoom-out;
+        overflow: auto;
+        background: var(--color-bg); /* Opaque background */
+        border: none;
+        border-radius: 0;
+    }
+
+    .mindmap-wrapper.direction-horizontal {
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    /* Entrance Animation */
+    .mindmap-content {
+        animation: fadeIn 0.8s ease-out backwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .tree-root {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        display: flex;
+    }
+
+    .direction-horizontal .tree-root {
+        flex-direction: column;
+    }
+
+    /* Hint */
+    .hint {
+        position: absolute;
+        bottom: 10px;
+        right: 15px;
+        font-size: 0.8rem;
+        opacity: 0.5;
+        font-family: var(--font-sans);
+        pointer-events: none;
+    }
+</style>

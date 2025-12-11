@@ -1,0 +1,326 @@
+---
+interface Props {
+    rank?: string;
+    suit?: "spades" | "hearts" | "diamonds" | "clubs" | "none";
+    flip?: boolean;
+    backContent?: string /* Optional content for the back of the card */;
+    animation?: "fade-up" | "zoom-in" | "flip-in";
+    duration?: string;
+    delay?: string;
+    class?: string;
+}
+
+const {
+    rank = "",
+    suit = "none",
+    flip = false,
+    backContent = "SimpleAryan",
+    animation = "fade-up",
+    duration = "0.6s",
+    delay = "0s",
+    class: className = "",
+} = Astro.props;
+
+const suitIcons = {
+    spades: "♠",
+    hearts: "♥",
+    diamonds: "♦",
+    clubs: "♣",
+    none: "",
+};
+
+const suitColor = suit === "hearts" || suit === "diamonds" ? "red" : "black";
+---
+
+<div
+    class={`playing-card-container ${animation} ${className}`}
+    style={`--duration: ${duration}; --delay: ${delay};`}
+>
+    <div class={`playing-card ${flip ? "can-flip" : ""} ${suitColor}`}>
+        <div class="card-face card-front">
+            {
+                suit !== "none" && (
+                    <div class="card-corner top-left">
+                        <span class="rank">{rank}</span>
+                        <span class="suit">{suitIcons[suit]}</span>
+                    </div>
+                )
+            }
+
+            <div class="card-content">
+                <slot />
+            </div>
+
+            {
+                suit !== "none" && (
+                    <div class="card-corner bottom-right">
+                        <span class="rank">{rank}</span>
+                        <span class="suit">{suitIcons[suit]}</span>
+                    </div>
+                )
+            }
+        </div>
+
+        {
+            flip && (
+                <div class="card-face card-back">
+                    <div class="pattern">
+                        <div class="inner-text">{backContent}</div>
+                    </div>
+                </div>
+            )
+        }
+    </div>
+</div>
+
+<style>
+    .playing-card-container {
+        perspective: 1000px;
+        width: 100%;
+        max-width: 300px; /* Standard card-ish width, but flexible */
+        aspect-ratio: 2.5/3.5; /* Poker card ratio */
+        margin: 2rem auto;
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+            opacity var(--duration) ease-out,
+            transform var(--duration) ease-out;
+        transition-delay: var(--delay);
+    }
+
+    .playing-card-container.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* On-scroll Animations */
+    .playing-card-container.zoom-in.is-visible {
+        animation: zoomIn var(--duration) ease-out forwards;
+    }
+
+    .playing-card-container.flip-in.is-visible {
+        animation: flipIn var(--duration) ease-out forwards;
+    }
+
+    @keyframes zoomIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes flipIn {
+        from {
+            transform: rotateY(90deg);
+            opacity: 0;
+        }
+        to {
+            transform: rotateY(0);
+            opacity: 1;
+        }
+    }
+
+    .playing-card {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+        border-radius: 1rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .playing-card.can-flip:hover {
+        transform: rotateY(180deg);
+        cursor: pointer;
+    }
+
+    .card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 1rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1.5rem;
+        overflow: hidden;
+    }
+
+    .card-front {
+        color: #1a1a1a;
+    }
+
+    .card-back {
+        background: #1a1a1a; /* Dark back */
+        color: white;
+        transform: rotateY(180deg);
+        border: 4px solid white;
+    }
+
+    .card-back .pattern {
+        width: 100%;
+        height: 100%;
+        background-image: repeating-linear-gradient(
+                45deg,
+                #1a1a1a 25%,
+                transparent 25%,
+                transparent 75%,
+                #1a1a1a 75%,
+                #1a1a1a
+            ),
+            repeating-linear-gradient(
+                45deg,
+                #1a1a1a 25%,
+                #262626 25%,
+                #262626 75%,
+                #1a1a1a 75%,
+                #1a1a1a
+            );
+        background-position:
+            0 0,
+            10px 10px;
+        background-size: 20px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+    }
+
+    .card-back .inner-text {
+        background: #1a1a1a;
+        padding: 0.5rem 1rem;
+        border: 1px solid white;
+        border-radius: 4px;
+        font-family: "Playfair Display", serif;
+        font-weight: bold;
+        letter-spacing: 2px;
+    }
+
+    /* Suit Colors */
+    .playing-card.red {
+        color: #ef4444;
+    }
+
+    .playing-card.black {
+        color: #1a1a1a;
+    }
+
+    .card-corner {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1;
+        font-family: "Courier New", Courier, monospace;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+
+    .top-left {
+        top: 0.75rem;
+        left: 0.75rem;
+    }
+
+    .bottom-right {
+        bottom: 0.75rem;
+        right: 0.75rem;
+        transform: rotate(180deg);
+    }
+
+    .card-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1;
+    }
+
+    /* Markdown Content Styling inside Card */
+    .card-content :global(h1),
+    .card-content :global(h2),
+    .card-content :global(h3) {
+        margin: 0.5rem 0;
+        font-size: 1.5rem;
+        font-family: "Playfair Display", serif;
+    }
+
+    .card-content :global(p) {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-content :global(img) {
+        max-width: 100%;
+        max-height: 150px;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    .card-content :global(pre) {
+        font-size: 0.7rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        width: 100%;
+        text-align: left;
+        background: #f3f4f6;
+        color: #1f2937;
+    }
+
+    /* Dark Mode Support */
+    :global([data-theme="dark"]) .card-face {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    :global([data-theme="dark"]) .card-front {
+        color: #e5e7eb;
+    }
+
+    :global([data-theme="dark"]) .playing-card.red {
+        color: #f87171;
+    }
+
+    :global([data-theme="dark"]) .playing-card.black {
+        color: #e5e7eb;
+    }
+
+    :global([data-theme="dark"]) .card-content :global(pre) {
+        background: #111827;
+        color: #e5e7eb;
+    }
+</style>
+
+<script>
+    const observerOptions = {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.1,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("is-visible");
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll(".playing-card-container").forEach((card) => {
+        observer.observe(card);
+    });
+</script>

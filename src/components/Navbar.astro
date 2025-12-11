@@ -1,0 +1,143 @@
+---
+import { Menu, X } from "lucide-react";
+
+const links = [
+    { label: "Pricing", href: "/#pricing" },
+    { label: "About", href: "/about" },
+    { label: "Blog", href: "/blog" },
+];
+---
+
+<nav class="w-full z-50 bg-white border-b border-slate-100 relative">
+    <div class="container mx-auto px-6 h-20 flex items-center justify-between">
+        {/* Logo */}
+        <a
+            href="/"
+            class="flex items-center gap-2 font-bold text-xl tracking-tight text-slate-900 group z-50 relative"
+        >
+            <div
+                class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M7 2v20M17 2v20M2 12h20"></path>
+                </svg>
+            </div>
+            Kinetix
+        </a>
+
+        {/* Desktop Menu */}
+        <div class="hidden md:flex items-center gap-8">
+            {
+                links.map((link) => (
+                    <a
+                        href={link.href}
+                        class="text-base font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                    >
+                        {link.label}
+                    </a>
+                ))
+            }
+
+            <a
+                href="/app"
+                class="px-5 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-full hover:bg-slate-800 transition-all hover:scale-105"
+            >
+                Launch App
+            </a>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+            id="mobile-menu-btn"
+            class="md:hidden z-50 text-slate-900 focus:outline-none"
+        >
+            <span class="icon-menu block">
+                <Menu class="w-8 h-8" />
+            </span>
+            <span class="icon-close hidden">
+                <X class="w-8 h-8" />
+            </span>
+        </button>
+    </div>
+
+    {/* Mobile Overlay */}
+    <div
+        id="mobile-menu"
+        class="fixed inset-0 bg-white z-40 flex flex-col items-center justify-center gap-8 opacity-0 pointer-events-none transition-all duration-300 translate-y-[-100%] md:hidden"
+    >
+        {
+            links.map((link) => (
+                <a
+                    href={link.href}
+                    class="text-2xl font-bold text-slate-900 hover:text-blue-600 transition-colors mobile-link"
+                >
+                    {link.label}
+                </a>
+            ))
+        }
+        <a
+            href="/app"
+            class="mt-4 px-8 py-4 bg-slate-900 text-white text-xl font-bold rounded-full hover:bg-slate-800 transition-transform hover:scale-105 mobile-link"
+        >
+            Launch Kinetix
+        </a>
+    </div>
+</nav>
+
+<script>
+    const menuBtn = document.getElementById("mobile-menu-btn");
+    const mobileMenu = document.getElementById("mobile-menu");
+    const iconMenu = document.querySelector(".icon-menu");
+    const iconClose = document.querySelector(".icon-close");
+    const mobileLinks = document.querySelectorAll(".mobile-link");
+    let isMenuOpen = false;
+
+    if (menuBtn && mobileMenu && iconMenu && iconClose) {
+        menuBtn.addEventListener("click", () => {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                mobileMenu.classList.remove(
+                    "opacity-0",
+                    "pointer-events-none",
+                    "translate-y-[-100%]",
+                );
+                iconMenu.classList.add("hidden");
+                iconClose.classList.remove("hidden");
+                document.body.style.overflow = "hidden"; // Prevent scrolling
+            } else {
+                mobileMenu.classList.add(
+                    "opacity-0",
+                    "pointer-events-none",
+                    "translate-y-[-100%]",
+                );
+                iconMenu.classList.remove("hidden");
+                iconClose.classList.add("hidden");
+                document.body.style.overflow = "";
+            }
+        });
+
+        // Close menu on link click
+        mobileLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+                isMenuOpen = false;
+                mobileMenu.classList.add(
+                    "opacity-0",
+                    "pointer-events-none",
+                    "translate-y-[-100%]",
+                );
+                iconMenu.classList.remove("hidden");
+                iconClose.classList.add("hidden");
+                document.body.style.overflow = "";
+            });
+        });
+    }
+</script>

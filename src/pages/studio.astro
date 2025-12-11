@@ -1,0 +1,673 @@
+---
+import Layout from "../layouts/Layout.astro";
+import StudioSidebar from "../components/studio/StudioSidebar.astro";
+import PropertiesPanel from "../components/studio/PropertiesPanel.astro";
+import LayersPanel from "../components/studio/LayersPanel.astro";
+---
+
+<Layout title="Kinetix Studio" showFooter={false}>
+    <style>
+        :global(body) {
+            background-color: #0f172a !important; /* slate-900 */
+            color: white !important;
+            overflow: hidden;
+        }
+
+        /* Light Mode Native Support */
+        :global(body.light-mode) {
+            background-color: #f8fafc !important; /* slate-50 */
+            color: #1e293b !important; /* slate-800 */
+        }
+    </style>
+
+    <div class="flex h-screen w-screen overflow-hidden">
+        <!-- Sidebar (Slim Toolkit) -->
+        <aside
+            class="w-20 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col z-20 shadow-xl relative"
+        >
+            <!-- Logo Icon -->
+            <div
+                class="h-14 flex items-center justify-center border-b border-gray-200 dark:border-gray-800/50"
+            >
+                <div
+                    class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm"
+                >
+                    K
+                </div>
+            </div>
+
+            <!-- Tools -->
+            <StudioSidebar />
+
+            <!-- Bottom Actions -->
+            <div
+                class="mt-auto flex flex-col items-center gap-4 py-4 border-t border-gray-200 dark:border-gray-800/50"
+            >
+                <button
+                    id="theme-toggle"
+                    class="w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center transition-colors"
+                    title="Toggle Theme"
+                >
+                    <!-- Sun (Light Mode) -->
+                    <svg
+                        id="icon-sun"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        ></path>
+                    </svg>
+                    <!-- Moon (Dark Mode) -->
+                    <svg
+                        id="icon-moon"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 hidden"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main
+            class="flex-1 flex flex-col bg-slate-100 dark:bg-gray-950 relative min-w-0"
+        >
+            <!-- Toolbar (Header) -->
+            <div
+                class="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm relative z-30"
+            >
+                <!-- Left: Home & File Info -->
+                <div class="flex items-center gap-3">
+                    <button
+                        class="p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                        title="Home"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path
+                                d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                            ></path><polyline points="9 22 9 12 15 12 15 22"
+                            ></polyline></svg
+                        >
+                    </button>
+                    <div class="h-6 w-px bg-gray-200 dark:bg-gray-800"></div>
+                    <div class="flex flex-col">
+                        <input
+                            type="text"
+                            value="Untitled Project"
+                            class="bg-transparent font-semibold text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 -ml-1 w-48 transition-all"
+                        />
+                        <span class="text-[10px] text-gray-400 px-1"
+                            >Cloud • Saved</span
+                        >
+                    </div>
+                </div>
+
+                <!-- Center: Canvas Settings (Resolution & Background) -->
+                <div
+                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2"
+                >
+                    <!-- Resolution -->
+                    <div
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors group relative"
+                    >
+                        <select
+                            id="header-resolution"
+                            class="appearance-none bg-transparent text-xs font-medium focus:outline-none cursor-pointer pr-4 text-center"
+                        >
+                            <option value="854x480">480p (SD)</option>
+                            <option value="1280x720">720p (HD)</option>
+                            <option value="1920x1080" selected
+                                >1080p (FHD)</option
+                            >
+                            <option value="3840x2160">4K (UHD)</option>
+                        </select>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200"
+                            ><path d="m6 9 6 6 6-6"></path></svg
+                        >
+                    </div>
+
+                    <div class="h-4 w-px bg-gray-200 dark:bg-gray-800"></div>
+
+                    <!-- Background Color -->
+                    <div class="relative group">
+                        <input
+                            type="color"
+                            id="header-bgcolor"
+                            value="#111827"
+                            class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                        />
+                        <div
+                            class="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                        >
+                            <div
+                                id="header-bgcolor-preview"
+                                class="w-4 h-4 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm"
+                                style="background-color: #111827;"
+                            >
+                            </div>
+                            <span
+                                class="text-xs font-medium text-gray-600 dark:text-gray-300"
+                                >Bg</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Export & Share -->
+                <div class="flex items-center gap-3">
+                    <div
+                        class="flex items-center gap-3 pr-3 border-r border-gray-200 dark:border-gray-800"
+                    >
+                        <div class="flex items-center gap-1.5">
+                            <span
+                                class="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                                >Duration</span
+                            >
+                            <div
+                                class="flex items-center bg-gray-100 dark:bg-gray-800 rounded px-2 py-1"
+                            >
+                                <input
+                                    type="number"
+                                    id="header-duration"
+                                    value="5"
+                                    class="w-8 bg-transparent text-xs font-medium text-center focus:outline-none text-gray-900 dark:text-white"
+                                />
+                                <span class="text-[10px] text-gray-500">s</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex items-center bg-gray-100 dark:bg-gray-800 rounded px-2 py-1"
+                        >
+                            <select
+                                id="header-format"
+                                class="bg-transparent text-xs font-medium focus:outline-none text-gray-900 dark:text-white cursor-pointer"
+                            >
+                                <option value="video/webm">WebM</option>
+                                <option value="video/mp4">MP4</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button
+                        id="header-export-btn"
+                        class="px-4 py-1.5 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 text-xs font-bold rounded shadow-sm hover:shadow flex items-center gap-2 transition-all active:scale-95"
+                    >
+                        <span>Export</span>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path><polyline points="7 10 12 15 17 10"
+                            ></polyline><line x1="12" y1="15" x2="12" y2="3"
+                            ></line></svg
+                        >
+                    </button>
+
+                    <!-- Hidden Progress Toast -->
+                    <div
+                        id="export-toast"
+                        class="hidden absolute top-16 right-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 rounded-xl shadow-2xl w-72 z-50 animate-fade-in"
+                    >
+                        <div class="flex justify-between items-center mb-2">
+                            <span
+                                class="text-xs font-bold text-gray-900 dark:text-white"
+                                >Exporting...</span
+                            >
+                            <span
+                                id="toast-progress-val"
+                                class="text-xs font-mono text-blue-600 dark:text-blue-400"
+                                >0%</span
+                            >
+                        </div>
+                        <div
+                            class="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden"
+                        >
+                            <div
+                                id="toast-progress-bar"
+                                class="h-full bg-blue-600 dark:bg-blue-500 w-0 transition-all duration-75"
+                            >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div
+                class="flex-1 overflow-auto flex items-center justify-center p-8 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] relative"
+            >
+                <div
+                    class="relative shadow-2xl shadow-gray-200/50 dark:shadow-black/50 border border-gray-200 dark:border-gray-800 ring-1 ring-gray-200 dark:ring-gray-900/50 rounded-sm"
+                >
+                    <canvas
+                        id="studio-canvas"
+                        width="1920"
+                        height="1080"
+                        class="w-[800px] h-[450px] bg-white dark:bg-gray-900 block cursor-crosshair"
+                    ></canvas>
+                </div>
+
+                <!-- Floating Player Controls (Overlay) -->
+                <div
+                    class="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
+                >
+                    <div
+                        class="flex items-center gap-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur border border-gray-200 dark:border-gray-700 p-2 rounded-2xl shadow-lg ring-1 ring-black/5"
+                    >
+                        <button
+                            id="play-btn"
+                            class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-blue-600/20"
+                            title="Play"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                stroke="none"
+                                ><polygon points="5 3 19 12 5 21 5 3"
+                                ></polygon></svg
+                            >
+                        </button>
+                        <button
+                            id="pause-btn"
+                            class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 text-white hidden flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-blue-600/20"
+                            title="Pause"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                stroke="none"
+                                ><rect x="6" y="4" width="4" height="16"
+                                ></rect><rect x="14" y="4" width="4" height="16"
+                                ></rect></svg
+                            >
+                        </button>
+
+                        <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1">
+                        </div>
+                        <span
+                            id="time-display"
+                            class="font-mono text-sm font-medium text-gray-700 dark:text-gray-200 w-16 text-center tabular-nums"
+                            >0.00s</span
+                        >
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar (Properties & Layers) -->
+        <!-- Right Sidebar (Properties & Layers) -->
+        <!-- Right Sidebar (Properties & Layers) -->
+        <aside
+            class="w-80 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col z-20 shadow-xl shrink-0 h-full right-sidebar"
+        >
+            <!-- Tabs -->
+            <div
+                class="flex items-center border-b border-gray-200 dark:border-gray-800 relative z-30"
+            >
+                <button
+                    id="tab-inspector"
+                    class="flex-1 py-3 text-[10px] font-bold uppercase tracking-wider text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/10 transition-colors"
+                >
+                    Inspector
+                </button>
+                <button
+                    id="tab-layers"
+                    class="flex-1 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors border-b-2 border-transparent"
+                >
+                    Layers
+                </button>
+            </div>
+
+            <div class="flex-1 flex flex-col overflow-hidden relative">
+                <!-- Inspector View -->
+                <div
+                    id="view-inspector"
+                    class="absolute inset-0 flex flex-col overflow-hidden bg-white dark:bg-gray-900 z-10"
+                >
+                    <PropertiesPanel />
+                </div>
+
+                <!-- Layers View -->
+                <div
+                    id="view-layers"
+                    class="absolute inset-0 flex flex-col overflow-hidden bg-white dark:bg-gray-900 hidden"
+                >
+                    <div
+                        class="p-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50"
+                    >
+                        <div class="relative">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                ><circle cx="11" cy="11" r="8"></circle><path
+                                    d="m21 21-4.3-4.3"></path></svg
+                            >
+                            <input
+                                type="text"
+                                placeholder="Filter layers..."
+                                class="w-full pl-8 pr-2 py-1.5 text-xs bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto">
+                        <LayersPanel />
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</Layout>
+
+<script>
+    import { StudioEngine } from "../utils/studio/StudioEngine";
+    import { CanvasText } from "../utils/studio/renderers/CanvasText";
+    import { CanvasBarChart } from "../utils/studio/renderers/CanvasBarChart";
+    import { CanvasImage } from "../utils/studio/renderers/CanvasImage";
+    import { CanvasProgress } from "../utils/studio/renderers/CanvasProgress";
+    import { CanvasCode } from "../utils/studio/renderers/CanvasCode";
+    import { CanvasCounter } from "../utils/studio/renderers/CanvasCounter";
+
+    let engine: StudioEngine;
+    const canvas = document.getElementById(
+        "studio-canvas",
+    ) as HTMLCanvasElement;
+
+    // Initialize Engine
+    if (canvas) {
+        engine = new StudioEngine(canvas);
+
+        // Expose for child components
+        (window as any).studioEngine = engine;
+        window.dispatchEvent(new Event("studio:ready"));
+
+        // Initial State
+        const demoText = new CanvasText("demo-1", {
+            text: "Kinetix Studio",
+            x: 600,
+            y: 300,
+            fontSize: 80,
+            color: "#60a5fa",
+        });
+        engine.addObject(demoText);
+    }
+
+    // --- Global Event Listeners (Glue) ---
+    window.addEventListener("studio:add-object", ((e: CustomEvent) => {
+        if (!engine) return;
+        const { type } = e.detail;
+        const id = `${type}-${Date.now()}`;
+
+        // Center offset
+        const cx = 960; // Approx center of 1920
+        const cy = 540; // Approx center of 1080
+
+        if (type === "text") {
+            engine.addObject(new CanvasText(id, { x: cx - 200, y: cy }));
+        } else if (type === "chart") {
+            engine.addObject(
+                new CanvasBarChart(id, { x: cx - 200, y: cy - 150 }),
+            );
+        } else if (type === "image") {
+            engine.addObject(new CanvasImage(id, { x: cx - 200, y: cy - 150 }));
+        } else if (type === "progress") {
+            engine.addObject(new CanvasProgress(id, { x: cx - 150, y: cy }));
+        } else if (type === "code") {
+            engine.addObject(new CanvasCode(id, { x: cx - 200, y: cy - 100 }));
+        } else if (type === "counter") {
+            engine.addObject(new CanvasCounter(id, { x: cx, y: cy }));
+        }
+    }) as EventListener);
+
+    // --- Playback Controls ---
+    const playBtn = document.getElementById("play-btn");
+    const pauseBtn = document.getElementById("pause-btn");
+    const timeDisplay = document.getElementById("time-display");
+
+    if (playBtn && pauseBtn) {
+        playBtn.addEventListener("click", () => {
+            if (engine) {
+                engine.play();
+                playBtn.classList.add("hidden");
+                pauseBtn.classList.remove("hidden");
+            }
+        });
+
+        pauseBtn.addEventListener("click", () => {
+            if (engine) {
+                engine.pause();
+                if (engine.isPreviewing) engine.stopPreview();
+                pauseBtn.classList.add("hidden");
+                playBtn.classList.remove("hidden");
+            }
+        });
+    }
+
+    // Time Loop
+    setInterval(() => {
+        if (
+            engine &&
+            !document.getElementById("pause-btn")?.classList.contains("hidden")
+        ) {
+            const t = engine.currentTime / 1000;
+            if (timeDisplay) timeDisplay.textContent = t.toFixed(2) + "s";
+        }
+    }, 50);
+
+    // --- Theme Toggle ---
+    const themeBtn = document.getElementById("theme-toggle");
+    const sunIcon = document.getElementById("icon-sun");
+    const moonIcon = document.getElementById("icon-moon");
+    const body = document.body;
+    const html = document.documentElement;
+
+    if (!body.classList.contains("light-mode")) {
+        body.classList.add("light-mode");
+    }
+
+    function updateThemeUI() {
+        const isLight = body.classList.contains("light-mode");
+        if (isLight) {
+            html.classList.remove("dark");
+            sunIcon?.classList.remove("hidden");
+            moonIcon?.classList.add("hidden");
+        } else {
+            html.classList.add("dark");
+            sunIcon?.classList.add("hidden");
+            moonIcon?.classList.remove("hidden");
+        }
+    }
+    updateThemeUI();
+
+    themeBtn?.addEventListener("click", () => {
+        body.classList.toggle("light-mode");
+        updateThemeUI();
+    });
+
+    // --- Export Logic ---
+    const exportBtn = document.getElementById("header-export-btn");
+    const durationInput = document.getElementById(
+        "header-duration",
+    ) as HTMLInputElement;
+    const formatSelect = document.getElementById(
+        "header-format",
+    ) as HTMLSelectElement;
+    const toast = document.getElementById("export-toast");
+    const toastBar = document.getElementById("toast-progress-bar");
+    const toastVal = document.getElementById("toast-progress-val");
+
+    durationInput?.addEventListener("change", () => {
+        if (engine)
+            engine.totalDuration = parseInt(durationInput.value || "5") * 1000;
+    });
+
+    exportBtn?.addEventListener("click", async () => {
+        if (!engine) return;
+
+        exportBtn.setAttribute("disabled", "true");
+        exportBtn.classList.add("opacity-50", "cursor-not-allowed");
+        toast?.classList.remove("hidden");
+
+        try {
+            const format = formatSelect ? formatSelect.value : "video/webm";
+
+            const url = await engine.exportVideo({
+                fps: 60,
+                mimeType: format,
+                onProgress: (p: number) => {
+                    if (toastBar && toastVal) {
+                        const pct = Math.round(p * 100);
+                        toastBar.style.width = `${pct}%`;
+                        toastVal.textContent = `${pct}%`;
+                    }
+                },
+            });
+
+            const a = document.createElement("a");
+            a.href = url;
+            const ext = format.includes("mp4") ? "mp4" : "webm";
+            a.download = `kinetix-compose-${Date.now()}.${ext}`;
+            a.click();
+        } catch (e) {
+            console.error(e);
+            alert("Export Failed");
+        } finally {
+            exportBtn.removeAttribute("disabled");
+            exportBtn.classList.remove("opacity-50", "cursor-not-allowed");
+            setTimeout(() => {
+                toast?.classList.add("hidden");
+                if (toastBar) toastBar.style.width = "0%";
+            }, 2000);
+        }
+    });
+
+    // --- Background Color Logic ---
+    const bgColorInput = document.getElementById(
+        "header-bgcolor",
+    ) as HTMLInputElement;
+    const bgColorPreview = document.getElementById("header-bgcolor-preview");
+
+    bgColorInput?.addEventListener("input", (e) => {
+        const color = (e.target as HTMLInputElement).value;
+        if (bgColorPreview) bgColorPreview.style.backgroundColor = color;
+        if (engine) engine.setBackgroundColor(color);
+    });
+
+    // --- Sidebar Tabs ---
+    const tabInspector = document.getElementById("tab-inspector");
+    const tabLayers = document.getElementById("tab-layers");
+    const viewInspector = document.getElementById("view-inspector");
+    const viewLayers = document.getElementById("view-layers");
+
+    if (tabInspector && tabLayers && viewInspector && viewLayers) {
+        function switchTab(tab: string) {
+            if (tab === "inspector") {
+                tabInspector?.classList.add(
+                    "text-blue-600",
+                    "border-blue-600",
+                    "bg-blue-50/50",
+                    "dark:bg-blue-900/10",
+                );
+                tabInspector?.classList.remove(
+                    "text-gray-500",
+                    "border-transparent",
+                    "hover:text-gray-700",
+                );
+                tabLayers?.classList.add(
+                    "text-gray-500",
+                    "border-transparent",
+                    "hover:text-gray-700",
+                );
+                tabLayers?.classList.remove(
+                    "text-blue-600",
+                    "border-blue-600",
+                    "bg-blue-50/50",
+                    "dark:bg-blue-900/10",
+                );
+                viewInspector?.classList.remove("hidden");
+                viewLayers?.classList.add("hidden");
+            } else {
+                tabLayers?.classList.add(
+                    "text-blue-600",
+                    "border-blue-600",
+                    "bg-blue-50/50",
+                    "dark:bg-blue-900/10",
+                );
+                tabLayers?.classList.remove(
+                    "text-gray-500",
+                    "border-transparent",
+                    "hover:text-gray-700",
+                );
+                tabInspector?.classList.add(
+                    "text-gray-500",
+                    "border-transparent",
+                    "hover:text-gray-700",
+                );
+                tabInspector?.classList.remove(
+                    "text-blue-600",
+                    "border-blue-600",
+                    "bg-blue-50/50",
+                    "dark:bg-blue-900/10",
+                );
+                viewLayers?.classList.remove("hidden");
+                viewInspector?.classList.add("hidden");
+            }
+        }
+        tabInspector.addEventListener("click", () => switchTab("inspector"));
+        tabLayers.addEventListener("click", () => switchTab("layers"));
+    }
+</script>

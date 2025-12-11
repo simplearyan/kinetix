@@ -1,0 +1,130 @@
+---
+import { ArrowRight } from "lucide-react";
+---
+
+<section class="py-32 bg-white relative overflow-hidden" id="cta-section">
+    <div class="container mx-auto px-6 text-center relative z-10">
+        {/* Animated Hand drawn arrow - Absolute positioned above the title */}
+        <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[80%] opacity-0 translate-y-8 transition-all duration-1000 delay-300 hidden md:block animate-on-scroll"
+        >
+            <svg
+                width="120"
+                height="120"
+                viewBox="0 0 100 100"
+                fill="none"
+                class="text-slate-800 transform -rotate-6"
+            >
+                {/* Looped Arrow Path */}
+                <path
+                    d="M40 10 C 20 10, 0 40, 20 60 C 35 75, 60 40, 50 20 C 45 10, 30 10, 30 30 C 30 60, 50 80, 50 90"
+                    stroke="currentColor"
+                    stroke-width="6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    fill="none"
+                    class="draw-path"></path>
+                <path
+                    d="M50 90 L 40 80"
+                    stroke="currentColor"
+                    stroke-width="6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="draw-path-arrow"></path>
+                <path
+                    d="M50 90 L 60 80"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="draw-path-arrow"></path>
+            </svg>
+        </div>
+
+        <h2
+            class="text-5xl md:text-7xl font-bold text-slate-900 mb-6 font-display tracking-tight opacity-0 translate-y-8 transition-all duration-700 animate-on-scroll"
+        >
+            Try Kinetix!
+        </h2>
+
+        <p
+            class="text-xl md:text-2xl text-slate-500 mb-10 max-w-2xl mx-auto opacity-0 translate-y-8 transition-all duration-700 delay-100 animate-on-scroll"
+        >
+            Get started instantly, no download required.
+        </p>
+
+        <div
+            class="opacity-0 translate-y-8 transition-all duration-700 delay-200 animate-on-scroll"
+        >
+            <a
+                href="/app"
+                class="inline-flex items-center gap-3 bg-slate-900 text-white px-10 py-5 rounded-xl text-xl font-bold hover:bg-slate-800 transition-all hover:scale-105 shadow-xl shadow-slate-900/20 group"
+            >
+                Get Kinetix Free
+                <ArrowRight
+                    class="w-6 h-6 group-hover:translate-x-1 transition-transform"
+                />
+            </a>
+        </div>
+    </div>
+
+    {/* Background Decorations */}
+    <div
+        class="absolute bottom-0 left-0 w-64 h-64 bg-slate-50 rounded-tr-full opacity-50 pointer-events-none"
+    >
+    </div>
+    <div
+        class="absolute top-1/2 right-0 w-96 h-96 bg-slate-50 rounded-l-full opacity-50 transform -translate-y-1/2 pointer-events-none"
+    >
+    </div>
+</section>
+
+<script>
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove("opacity-0", "translate-y-8");
+                    observer.unobserve(entry.target);
+                }
+            });
+        },
+        {
+            threshold: 0.1,
+        },
+    );
+
+    document.querySelectorAll(".animate-on-scroll").forEach((el) => {
+        observer.observe(el);
+    });
+</script>
+
+<style>
+    .font-display {
+        font-family: "Outfit", sans-serif;
+    }
+
+    /* Simulate a drawing effect for the arrow */
+    .draw-path {
+        stroke-dasharray: 1000;
+        stroke-dashoffset: 1000;
+        animation: draw 2s ease-out forwards;
+        animation-delay: 0.5s;
+    }
+    .draw-path-arrow {
+        opacity: 0;
+        animation: fadeIn 0.5s ease-out forwards;
+        animation-delay: 2s;
+    }
+
+    @keyframes draw {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+</style>
