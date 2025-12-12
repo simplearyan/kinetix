@@ -592,8 +592,7 @@ import LayersPanel from "../components/studio/LayersPanel.astro";
     if (stopBtn) {
         stopBtn.addEventListener("click", () => {
             if (!engine) return;
-            engine.pause();
-            engine.seek(0);
+            engine.stop();
         });
     }
 
@@ -623,7 +622,7 @@ import LayersPanel from "../components/studio/LayersPanel.astro";
 
         timelineContainer.addEventListener("mousedown", (e) => {
             isScrubbing = true;
-            if (engine) engine.pause(); // Pause while scrubbing
+            if (engine) engine.pause();
             updateScrub(e);
         });
 
@@ -637,8 +636,8 @@ import LayersPanel from "../components/studio/LayersPanel.astro";
         window.addEventListener("mouseup", () => {
             if (isScrubbing) {
                 isScrubbing = false;
-                // Optional: Resume play if it was playing? For now leave paused
-                updatePlayStateUI(false);
+                // Don't auto-resume, let user decide or leave paused.
+                // engine.play(); // Optional if we want auto-resume
             }
         });
     }
@@ -656,23 +655,19 @@ import LayersPanel from "../components/studio/LayersPanel.astro";
     }
 
     // Time Loop (UI Sync)
-    setInterval(() => {
-        if (engine && !isScrubbing) {
-            // Sync Play Button State if changed externally (e.g. auto-stop at end)
-            // We need a way to know if engine stopped itself.
-            // Usually we'd subscribe. For now, simple poll:
-            // But we don't expose isPlaying state easily without importing store.
-            // We can check if time stopped increasing? too complex.
-            // We'll trust manual clicks mostly, but for "Loop=False" stop, we need to update UI.
-            // Let's rely on the engine not auto-stopping unless we want it to.
+    // --- Event Listeners (UI Sync) ---
 
-            // Update Time
-            updateTimelineUI(engine.currentTime);
-
-            // Sync Play Button State
-            updatePlayStateUI(engine.isPlaying);
+    // Time Update
+    window.addEventListener("studio:timeupdate", ((e: CustomEvent) => {
+        if (!isScrubbing) {
+            updateTimelineUI(e.detail.time);
         }
-    }, 50);
+    }) as EventListener);
+
+    // Play State Update
+    window.addEventListener("studio:playstate", ((e: CustomEvent) => {
+        updatePlayStateUI(e.detail.isPlaying);
+    }) as EventListener);
 
     // --- Theme Toggle ---
     const themeBtn = document.getElementById("theme-toggle");

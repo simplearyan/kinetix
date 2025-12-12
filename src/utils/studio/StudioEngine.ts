@@ -22,6 +22,11 @@ export class StudioEngine {
     private animationId: number = 0;
     private lastFrameTime = 0;
 
+    // Event Helper
+    private emit(event: string, detail: any = {}) {
+        window.dispatchEvent(new CustomEvent(`studio:${event}`, { detail }));
+    }
+
     // Interaction State
     private isDragging = false;
     private isResizing = false;
@@ -192,18 +197,28 @@ export class StudioEngine {
         }
 
         isPlaying.set(true);
+        this.emit('playstate', { isPlaying: true });
         this.lastFrameTime = performance.now();
         this.loop();
     }
 
     pause() {
         isPlaying.set(false);
+        this.emit('playstate', { isPlaying: false });
         if (this.animationId) cancelAnimationFrame(this.animationId);
+    }
+
+    stop() {
+        this.pause();
+        this.seek(0);
+        // pause() emits playstate: false, seek() emits timeupdate: 0
     }
 
     seek(time: number) {
         const t = Math.max(0, Math.min(time, this.totalDuration));
+        currentTime.set(t); // Ensure store is updated
         this.draw(t);
+        this.emit('timeupdate', { time: t });
     }
 
     private loop = () => {
@@ -225,6 +240,7 @@ export class StudioEngine {
         }
 
         this.draw(nextTime);
+        this.emit('timeupdate', { time: nextTime });
         this.animationId = requestAnimationFrame(this.loop);
     }
 
