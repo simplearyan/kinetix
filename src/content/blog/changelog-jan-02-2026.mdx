@@ -1,0 +1,69 @@
+---
+title: "Changelog: January 2, 2026 - Kinetix Studio Overhaul"
+description: "A massive update introducing a new Engine Core, revamped UI, Layer Management, Animations, and more."
+pubDate: 2026-01-02
+tags: ["Changelog", "Update", "Kinetix Studio"]
+---
+
+# Kinetix Studio: A New Era for Web Animation
+
+We are thrilled to announce a comprehensive overhaul of the Kinetix platform. This update transitions us from a prototype to a robust, scalable video creation suite. Here is a detailed breakdown of everything we've shipped today.
+
+## 🚀 New Core Engine
+
+At the heart of this update is our new **Engine Core** (`src/engine/`). We've moved away from simple DOM manipulation to a performant, requestAnimationFrame-driven architecture.
+
+-   **Scene Graph**: A true object-oriented scene graph managing all renderable items.
+-   **Object System**: Modular support for **Rich Text**, **Charts**, **Code Blocks** (syntax highlighted), and **Images**.
+-   **Playback Control**: Precise time management with Play, Pause, Seek, and Loop capabilities.
+-   **Export System**: Native WebM video export (simulating 60FPS) and high-quality PNG/SVG snapshots.
+
+## 🎨 Studio UI Redesign
+
+We've completely reimagined the `/create` and `/studio` experience with a modern, "dark-first" interface that puts creativity front and center.
+
+### 1. Activity Bar & Drawer
+The sidebar has been refactored into a **Slim Activity Bar** for quick tab switching, paired with an expandable **Drawer** for browsing assets. This maximizes canvas space while keeping tools accessible.
+
+### 2. Properties Panel & Inspector
+A context-aware **Properties Panel** now lives on the right. Select an object to edit its specific attributes (Color, Font, Size, Data), or deselect everything to tweak **Scene Settings** like Resolution (480p to 4K) and Background Color.
+
+### 3. Layer Management
+We've introduced a full-featured **Layers Tab** to manage complex scenes:
+-   **Reorder**: Drag (or use arrows) to change Z-index.
+-   **Rename**: Keep your project organized with custom names.
+-   **Lock/Hide**: Prevent accidental edits or temporarily hide elements.
+-   **Duplicate/Delete**: Quick actions for rapid iteration.
+
+## ✨ New Creative Features
+
+### Animation Presets
+Bring your static designs to life! We've added an **Animations** tab to the Properties panel.
+-   **One-click Presets**: Fade In, Slide Up, Typewriter, and more.
+-   **Live Previews**: Hover over a preset card to see it in action before applying.
+
+### Canvas Guides
+Perfect your composition with our new overlay guides:
+-   **Center**: Standard crosshairs.
+-   **Rule of Thirds**: For cinematic framing.
+-   **Golden Ratio**: For balanced, aesthetically pleasing layouts.
+Toggle them instantly from the new Grid icon in the header.
+
+### Typography
+We now support a curated list of web-safe and Google Fonts, including **Inter, Arial, Times New Roman, Courier New, Georgia, Impact**, and **Comic Sans MS** (because why not?).
+
+### Enhanced Export
+The export flow is now smoother and more powerful:
+-   **Settings Dialog**: Choose your Filename, Format (WebM/MP4), and Duration.
+-   **Snapshots**: Grab a quick PNG of the current frame.
+-   **PWA Icon**: A sharply defined SVG icon for our Progressive Web App installation.
+
+## 🛠️ Technical Improvements
+
+-   **Refined Editor Layout**: Fixed scrollbars, layout shifts, and responsive behavior.
+-   **Performance**: Optimized rendering loop to only redraw when necessary.
+-   **Bug Fixes**: Resolved timeline synchronization issues and export timing glitches.
+
+---
+
+This update lays the foundation for even more advanced features coming soon, including multi-track timelines and cloud saving. Jump into **Kinetix Studio** and start creating!

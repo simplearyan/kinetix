@@ -1,0 +1,325 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import StudioHeader from "../../components/studio/StudioHeader.astro";
+import StudioSidebar from "../../components/studio/StudioSidebar.astro";
+import PropertiesPanel from "../../components/studio/PropertiesPanel.astro";
+import LayersPanel from "../../components/studio/LayersPanel.astro";
+---
+
+<Layout title="Kinetix Text Studio" showFooter={false}>
+    <style>
+        :global(body) {
+            background-color: #0f172a !important; /* slate-900 */
+            color: white !important;
+            overflow: hidden;
+        }
+        :global(body.light-mode) {
+            background-color: #f8fafc !important; /* slate-50 */
+            color: #1e293b !important; /* slate-800 */
+        }
+    </style>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@100..900&family=Lobster&family=Merriweather:wght@300;400;700;900&family=Montserrat:wght@100..900&family=Oswald:wght@200..700&family=Pacifico&family=Playfair+Display:wght@400..900&family=Poppins:wght@100..900&family=Roboto+Mono:wght@100..700&display=swap"
+        rel="stylesheet"
+    />
+
+    <div class="flex h-screen w-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside
+            class="w-20 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col z-20 shadow-xl relative"
+        >
+            <div
+                class="h-14 flex items-center justify-center border-b border-gray-200 dark:border-gray-800/50"
+            >
+                <a
+                    href="/animate"
+                    class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm hover:bg-blue-700 transition-colors"
+                >
+                    K
+                </a>
+            </div>
+            <!-- Tools: Only Text -->
+            <StudioSidebar allowedTools={["text"]} />
+        </aside>
+
+        <!-- Main Workspace -->
+        <main
+            class="flex-1 flex flex-col bg-slate-100 dark:bg-gray-950 relative min-w-0"
+        >
+            <StudioHeader />
+
+            <!-- Canvas Area -->
+            <div
+                class="flex-1 overflow-auto flex items-center justify-center p-8 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] relative"
+            >
+                <div
+                    class="relative shadow-2xl shadow-gray-200/50 dark:shadow-black/50 border border-gray-200 dark:border-gray-800 ring-1 ring-gray-200 dark:ring-gray-900/50 rounded-sm"
+                >
+                    <canvas
+                        id="studio-canvas"
+                        width="1920"
+                        height="1080"
+                        class="w-[800px] h-[450px] bg-white dark:bg-gray-900 block cursor-crosshair"
+                    ></canvas>
+                </div>
+
+                <!-- Timeline Controls -->
+                <div
+                    class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-[600px] max-w-[90%] flex flex-col gap-2"
+                >
+                    <div
+                        class="relative w-full h-8 flex items-center group cursor-pointer"
+                        id="timeline-container"
+                    >
+                        <div
+                            class="absolute w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden pointer-events-none"
+                        >
+                            <div
+                                id="timeline-progress"
+                                class="h-full bg-blue-600/80 dark:bg-blue-500/80 w-0"
+                            >
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 z-10"></div>
+                        <div
+                            id="timeline-handle"
+                            class="absolute h-4 w-4 bg-white border-2 border-blue-600 rounded-full shadow-md top-1/2 -translate-y-1/2 -translate-x-1/2 pointer-events-none transition-transform group-hover:scale-125 left-0"
+                        >
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between bg-white/90 dark:bg-gray-800/90 backdrop-blur border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-xl shadow-lg ring-1 ring-black/5"
+                    >
+                        <div class="flex items-center gap-2">
+                            <button
+                                id="play-pause-btn"
+                                class="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all active:scale-95"
+                            >
+                                <svg
+                                    id="icon-play"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    stroke="none"
+                                    ><polygon points="5 3 19 12 5 21 5 3"
+                                    ></polygon></svg
+                                >
+                                <svg
+                                    id="icon-pause"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    stroke="none"
+                                    class="hidden"
+                                    ><rect x="6" y="4" width="4" height="16"
+                                    ></rect><rect
+                                        x="14"
+                                        y="4"
+                                        width="4"
+                                        height="16"></rect></svg
+                                >
+                            </button>
+                            <button
+                                id="stop-btn"
+                                class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 flex items-center justify-center transition-all active:scale-95"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    stroke="none"
+                                    ><rect x="4" y="4" width="16" height="16"
+                                    ></rect></svg
+                                >
+                            </button>
+                        </div>
+                        <div
+                            class="font-mono text-xs font-semibold text-gray-700 dark:text-gray-300 select-none"
+                        >
+                            <span id="time-current">0.00</span>s <span
+                                class="text-gray-400">/</span
+                            >
+                            <span id="time-total">5.00</span>s
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button
+                                id="loop-btn"
+                                class="p-1.5 rounded-lg text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    ><path d="m7 10 5-6 5 6"></path><path
+                                        d="M21 12H7"></path><path
+                                        d="m17 14-5 6-5-6"></path><path
+                                        d="M3 12h14"></path></svg
+                                >
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside
+            class="w-80 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col z-40 shadow-xl shrink-0 h-full"
+        >
+            <div
+                class="flex items-center border-b border-gray-200 dark:border-gray-800 relative z-30"
+            >
+                <div
+                    class="flex-1 py-3 text-[10px] font-bold uppercase tracking-wider text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/10 text-center"
+                >
+                    Properties
+                </div>
+            </div>
+            <div class="flex-1 flex flex-col overflow-hidden relative">
+                <div
+                    class="absolute inset-0 flex flex-col overflow-hidden bg-white dark:bg-gray-900 z-10"
+                >
+                    <PropertiesPanel />
+                </div>
+            </div>
+        </aside>
+    </div>
+</Layout>
+
+<script>
+    import { StudioEngine } from "../../utils/studio/StudioEngine";
+    import { CanvasText } from "../../utils/studio/renderers/CanvasText";
+
+    let engine: StudioEngine;
+    const canvas = document.getElementById(
+        "studio-canvas",
+    ) as HTMLCanvasElement;
+
+    if (canvas) {
+        engine = new StudioEngine(canvas);
+        (window as any).studioEngine = engine;
+        window.dispatchEvent(new Event("studio:ready"));
+
+        // Initialize with Text
+        const text = new CanvasText("text-1", {
+            text: "Kinetix Text",
+            x: 600,
+            y: 400,
+            fontSize: 100,
+            color: "#60a5fa",
+            animationType: "typewriter",
+        });
+        engine.addObject(text);
+    }
+
+    // --- Glue Logic (Simplified for Text Studio) ---
+    // Only listening for text add
+    window.addEventListener("studio:add-object", ((e: CustomEvent) => {
+        if (!engine) return;
+        const { type } = e.detail;
+        if (type === "text") {
+            const id = `text-${Date.now()}`;
+            engine.addObject(new CanvasText(id, { x: 960 - 200, y: 540 }));
+        }
+    }) as EventListener);
+
+    // --- Timeline & Playback (Copied generic logic) ---
+    const playPauseBtn = document.getElementById("play-pause-btn");
+    const stopBtn = document.getElementById("stop-btn");
+    const iconPlay = document.getElementById("icon-play");
+    const iconPause = document.getElementById("icon-pause");
+    const timeCurrent = document.getElementById("time-current");
+    const timeTotal = document.getElementById("time-total");
+    const loopBtn = document.getElementById("loop-btn");
+    const timelineContainer = document.getElementById("timeline-container");
+    const timelineProgress = document.getElementById("timeline-progress");
+    const timelineHandle = document.getElementById("timeline-handle");
+    let isScrubbing = false;
+
+    function updatePlayStateUI(isPlaying: boolean) {
+        if (isPlaying) {
+            iconPlay?.classList.add("hidden");
+            iconPause?.classList.remove("hidden");
+        } else {
+            iconPlay?.classList.remove("hidden");
+            iconPause?.classList.add("hidden");
+        }
+    }
+    function updateTimelineUI(timeMs: number) {
+        if (!engine) return;
+        const total = engine.totalDuration;
+        const pct = Math.max(0, Math.min(1, timeMs / total)) * 100;
+        if (timelineProgress) timelineProgress.style.width = `${pct}%`;
+        if (timelineHandle) timelineHandle.style.left = `${pct}%`;
+        if (timeCurrent) timeCurrent.textContent = (timeMs / 1000).toFixed(2);
+        if (timeTotal) timeTotal.textContent = (total / 1000).toFixed(2);
+    }
+
+    // Event Listeners
+    window.addEventListener(
+        "studio:timeupdate",
+        ((e: CustomEvent) =>
+            !isScrubbing && updateTimelineUI(e.detail.time)) as EventListener,
+    );
+    window.addEventListener("studio:playstate", ((e: CustomEvent) =>
+        updatePlayStateUI(e.detail.isPlaying)) as EventListener);
+
+    playPauseBtn?.addEventListener("click", () => {
+        if (!engine) return;
+        iconPause?.classList.contains("hidden")
+            ? engine.play()
+            : engine.pause();
+    });
+    stopBtn?.addEventListener("click", () => engine?.stop());
+    loopBtn?.addEventListener("click", () => {
+        if (engine) {
+            engine.isLooping = !engine.isLooping;
+            loopBtn.classList.toggle("text-blue-600");
+            loopBtn.classList.toggle("text-gray-400");
+            loopBtn.classList.toggle("bg-blue-50");
+        }
+    });
+
+    if (timelineContainer) {
+        const updateScrub = (e: MouseEvent) => {
+            if (!engine) return;
+            const rect = timelineContainer.getBoundingClientRect();
+            const pct =
+                Math.max(0, Math.min(e.clientX - rect.left, rect.width)) /
+                rect.width;
+            const targetTime = pct * engine.totalDuration;
+            engine.seek(targetTime);
+            updateTimelineUI(targetTime);
+        };
+        timelineContainer.addEventListener("mousedown", (e) => {
+            isScrubbing = true;
+            engine?.pause();
+            updateScrub(e);
+        });
+        window.addEventListener("mousemove", (e) => {
+            if (isScrubbing) {
+                e.preventDefault();
+                updateScrub(e);
+            }
+        });
+        window.addEventListener("mouseup", () => {
+            isScrubbing = false;
+        });
+    }
+</script>

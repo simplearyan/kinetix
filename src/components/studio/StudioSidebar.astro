@@ -7,68 +7,103 @@ import {
     Code,
     Hash,
 } from "lucide-react";
+const { allowedTools } = Astro.props;
+
+const showAll = !allowedTools;
+const tools = {
+    text: showAll || allowedTools.includes("text"),
+    chart: showAll || allowedTools.includes("chart"),
+    image: showAll || allowedTools.includes("image"),
+    progress: showAll || allowedTools.includes("progress"),
+    code: showAll || allowedTools.includes("code"),
+    counter: showAll || allowedTools.includes("counter"),
+};
 ---
 
 <div class="flex flex-col items-center gap-4 py-4 w-full h-full">
     <!-- Tool: Text -->
-    <button
-        id="add-text-btn"
-        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
-        title="Add Text"
-    >
-        <Type size={20} />
-        <span class="text-[10px] font-medium">Text</span>
-    </button>
+    {
+        tools.text && (
+            <button
+                id="add-text-btn"
+                class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+                title="Add Text"
+            >
+                <Type size={20} />
+                <span class="text-[10px] font-medium">Text</span>
+            </button>
+        )
+    }
 
     <!-- Tool: Chart -->
-    <button
-        id="add-chart-btn"
-        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
-        title="Add Chart"
-    >
-        <BarChart3 size={20} />
-        <span class="text-[10px] font-medium">Data</span>
-    </button>
+    {
+        tools.chart && (
+            <button
+                id="add-chart-btn"
+                class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+                title="Add Chart"
+            >
+                <BarChart3 size={20} />
+                <span class="text-[10px] font-medium">Data</span>
+            </button>
+        )
+    }
 
     <!-- Tool: Image -->
-    <button
-        id="add-image-btn"
-        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
-        title="Add Image"
-    >
-        <ImageIcon size={20} />
-        <span class="text-[10px] font-medium">Image</span>
-    </button>
+    {
+        tools.image && (
+            <button
+                id="add-image-btn"
+                class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+                title="Add Image"
+            >
+                <ImageIcon size={20} />
+                <span class="text-[10px] font-medium">Image</span>
+            </button>
+        )
+    }
 
     <!-- Tool: Progress -->
-    <button
-        id="add-progress-btn"
-        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
-        title="Add Progress"
-    >
-        <Box size={20} />
-        <span class="text-[10px] font-medium">Prog</span>
-    </button>
+    {
+        tools.progress && (
+            <button
+                id="add-progress-btn"
+                class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+                title="Add Progress"
+            >
+                <Box size={20} />
+                <span class="text-[10px] font-medium">Prog</span>
+            </button>
+        )
+    }
 
     <!-- Tool: Code -->
-    <button
-        id="add-code-btn"
-        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
-        title="Add Code"
-    >
-        <Code size={20} />
-        <span class="text-[10px] font-medium">Code</span>
-    </button>
+    {
+        tools.code && (
+            <button
+                id="add-code-btn"
+                class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+                title="Add Code"
+            >
+                <Code size={20} />
+                <span class="text-[10px] font-medium">Code</span>
+            </button>
+        )
+    }
 
     <!-- Tool: Counter -->
-    <button
-        id="add-counter-btn"
-        class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
-        title="Add Counter"
-    >
-        <Hash size={20} />
-        <span class="text-[10px] font-medium">Count</span>
-    </button>
+    {
+        tools.counter && (
+            <button
+                id="add-counter-btn"
+                class="w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-all group"
+                title="Add Counter"
+            >
+                <Hash size={20} />
+                <span class="text-[10px] font-medium">Count</span>
+            </button>
+        )
+    }
 </div>
 
 <script>

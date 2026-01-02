@@ -2,10 +2,12 @@
 interface Props {
     title: string;
     showFooter?: boolean;
+    showAds?: boolean;
 }
 
-const { title, showFooter = true } = Astro.props;
+const { title, showFooter = true, showAds = true } = Astro.props;
 import Footer from "../components/Footer.astro";
+import VerticalAd from "../components/ads/VerticalAd.astro";
 ---
 
 <!doctype html>
@@ -52,6 +54,20 @@ import Footer from "../components/Footer.astro";
         />
     </head>
     <body class="font-sans antialiased text-slate-900 bg-white">
+        <!-- Ad Rails -->
+        {
+            showAds && (
+                <>
+                    <div class="ad-rail left-rail">
+                        <VerticalAd />
+                    </div>
+                    <div class="ad-rail right-rail">
+                        <VerticalAd />
+                    </div>
+                </>
+            )
+        }
+
         <script define:vars={{ base: import.meta.env.BASE_URL }}>
             if ("serviceWorker" in navigator) {
                 window.addEventListener("load", () => {
@@ -88,5 +104,29 @@ import Footer from "../components/Footer.astro";
     }
     ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+    }
+
+    /* Ad Rails */
+    .ad-rail {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 40; /* Behind some overlays but above basics */
+        display: none;
+    }
+
+    .left-rail {
+        left: 1rem;
+    }
+
+    .right-rail {
+        right: 1rem;
+    }
+
+    /* Show on very large screens */
+    @media (min-width: 1600px) {
+        .ad-rail {
+            display: block;
+        }
     }
 </style>
