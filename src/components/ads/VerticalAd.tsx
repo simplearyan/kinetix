@@ -19,22 +19,16 @@ export const VerticalAd = () => {
         <div style={{
             width: '160px',
             minHeight: '600px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'start',
-            alignItems: 'center',
             backgroundColor: 'aliceblue',
             borderRadius: '8px',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-            overflow: 'hidden',
-            backdropFilter: 'blur(8px)',
+            /* Removed flex and overflow:hidden to allow ad expansion */
         }}>
             <div style={{
-                fontSize: '8px',
+                fontSize: '10px',
                 textTransform: 'uppercase',
-                letterSpacing: '1px',
-                color: 'rgb(7, 7, 7)',
+                color: '#94a3b8',
                 margin: '4px 0',
+                textAlign: 'center',
                 fontFamily: 'sans-serif',
             }}>
                 Advertisement
