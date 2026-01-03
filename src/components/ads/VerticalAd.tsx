@@ -34,12 +34,24 @@ export const VerticalAd = () => {
                 Advertisement
             </div>
             {/* AdSense Script */}
-            <ins className="adsbygoogle"
+            {/* <ins className="adsbygoogle"
                  style={{ display: 'block' }}
                  data-ad-client="ca-pub-7993314093599705"
                  data-ad-slot="9544937585"
                  data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
+                 data-full-width-responsive="true"></ins> */}
+            {/* <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7993314093599705"
+     crossorigin="anonymous"></script> */}
+            {/* <!-- Kinetix_Vertical_Ad --> */}
+            <ins className="adsbygoogle"
+                style={{ display: 'block' }}
+                data-ad-client="ca-pub-7993314093599705"
+                data-ad-slot="4826677960"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            {/* <script>
+                (adsbygoogle = window.adsbygoogle || []).push({ });
+            </script> */}
         </div>
     );
 };

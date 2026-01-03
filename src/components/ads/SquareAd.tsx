@@ -19,38 +19,42 @@ export const SquareAd = () => {
         <div style={{
             width: '100%',
             aspectRatio: '1/1',
-            background: 'aliceblue',
+            minHeight: '250px',
+            backgroundColor: 'aliceblue',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '8px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative'
+            /* Removed flex/overflow/position relative */
         }}>
             <div style={{
-                fontSize: '8px',
+                fontSize: '10px',
                 textTransform: 'uppercase',
-                color: 'rgba(29, 29, 29, 0.925)',
-                marginBottom: '2px',
+                color: 'rgba(29, 29, 29, 0.5)',
+                marginBottom: '4px',
                 width: '100%',
                 textAlign: 'center',
-                background: 'rgba(0,0,0,0.02)',
-                // backgroundColor: 'rgba(0, 0, 0, 1)',
-                position: 'absolute',
-                top: 0,
-                left: 0
+                background: 'transparent',
             }}>
                 Advertisement
             </div>
             {/* Google AdSense */}
-            <ins className="adsbygoogle"
+            {/* <ins className="adsbygoogle"
                  style={{ display: 'block', width: '100%', height: '100%' }}
                  data-ad-client="ca-pub-7993314093599705"
                  data-ad-slot="1234567890"
                  data-ad-format="rectangle"
-                 data-full-width-responsive="true"></ins>
+                 data-full-width-responsive="true"></ins> */}
+            {/* <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7993314093599705"
+     crossorigin="anonymous"></script> */}
+            {/* <!-- Kinetix_Square_Ad --> */}
+            <ins className="adsbygoogle"
+                style={{ display: 'block' }}
+                data-ad-client="ca-pub-7993314093599705"
+                data-ad-slot="3150634211"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            {/* <script>
+                (adsbygoogle = window.adsbygoogle || []).push({ });
+            </script> */}
         </div>
     );
 };

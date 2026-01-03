@@ -224,9 +224,9 @@ export const EditorLayout = () => {
 
                 {/* Export Dialog / Native Window Design */}
                 {(showExportDialog || isExporting) && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center p-8 animate-in fade-in duration-200 pointer-events-none bg-black/40"> 
+                    <div className="absolute inset-0 z-50 flex items-center justify-center p-8 animate-in fade-in duration-200 pointer-events-none"> 
                         
-                        <div className="pointer-events-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden w-full max-w-6xl flex h-[650px] animate-in zoom-in-95 duration-300">
+                        <div className="pointer-events-auto bg-white dark:bg-slate-900 rounded-xl shadow-2xl shadow-black/20 border border-slate-200 dark:border-slate-800 overflow-hidden w-full max-w-6xl flex h-[650px] animate-in zoom-in-95 duration-300">
                             
                             {/* Left Ad Column */}
                             <div className="w-72 bg-slate-50 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 p-6 hidden lg:flex flex-col items-center justify-center">
