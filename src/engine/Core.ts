@@ -1,4 +1,5 @@
 import { Scene } from "./Scene";
+import { Muxer, ArrayBufferTarget } from "webm-muxer";
 
 export class Engine {
     canvas: HTMLCanvasElement;
@@ -276,97 +277,215 @@ export class Engine {
         signal?: AbortSignal
     ): Promise<Blob> {
         return new Promise(async (resolve, reject) => {
-            const stream = this.canvas.captureStream(mode === 'realtime' ? fps : 0);
-            const mimeType = MediaRecorder.isTypeSupported("video/webm; codecs=vp9")
-                ? "video/webm; codecs=vp9"
-                : "video/webm";
+            // Force even dimensions for encoder stability
+            const evenWidth = this.canvas.width % 2 === 0 ? this.canvas.width : this.canvas.width - 1;
+            const evenHeight = this.canvas.height % 2 === 0 ? this.canvas.height : this.canvas.height - 1;
 
-            const recorder = new MediaRecorder(stream, {
-                mimeType,
-                videoBitsPerSecond: 5000000 // 5 Mbps
-            });
-
-            const chunks: Blob[] = [];
-            recorder.ondataavailable = (e) => {
-                if (e.data.size > 0) chunks.push(e.data);
-            };
-
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: mimeType });
-                if (signal?.aborted) {
-                    reject(new Error("Export cancelled"));
-                } else {
-                    resolve(blob);
-                }
-                // Restore state
-                if (mode === 'offline') {
-                    this.currentTime = 0;
-                    this.render();
-                }
-            };
-
-            recorder.start();
+            // Save and disable looping
+            const wasLooping = this.isLooping;
+            this.isLooping = false;
 
             if (mode === 'realtime') {
-                // Realtime: Just play
-                this.currentTime = 0;
-                this.play();
+                try {
+                    const stream = this.canvas.captureStream(fps);
 
-                const checkInterval = setInterval(() => {
-                    if (signal?.aborted) {
-                        clearInterval(checkInterval);
-                        this.pause();
-                        recorder.stop();
-                        return;
-                    }
+                    // Use default codec for maximum compatibility
+                    // VP8/VP9 specific strings can fail on some systems/drivers
+                    const mimeType = "video/webm";
+                    console.log("Realtime Export MIME:", mimeType);
 
-                    const progress = (this.currentTime / duration) * 100;
-                    onProgress(Math.min(progress, 99));
+                    const recorder = new MediaRecorder(stream, {
+                        mimeType,
+                        videoBitsPerSecond: 5000000 // 5 Mbps
+                    });
 
-                    if (this.currentTime >= duration) {
-                        clearInterval(checkInterval);
-                        this.pause(); // Stop
-                        recorder.stop();
-                        onProgress(100);
-                    }
-                }, 100);
+                    const chunks: Blob[] = [];
+                    recorder.ondataavailable = (e) => {
+                        if (e.data.size > 0) chunks.push(e.data);
+                    };
 
-            } else {
-                // Offline: Frame-by-Frame
-                this.pause();
-                const totalFrames = Math.ceil(duration * fps);
-                const dt = 1000 / fps; // in ms
-                const track = stream.getVideoTracks()[0] as any;
+                    recorder.onerror = (e) => {
+                        console.error("MediaRecorder Error:", e);
+                        this.isLooping = wasLooping; // Restore
+                        reject(new Error("MediaRecorder Error: " + e.error.message));
+                    };
 
-                // We need to wait for recorder to be ready
-                await new Promise(r => setTimeout(r, 100));
+                    const stopPromise = new Promise<Blob>((resolveStop, rejectStop) => {
+                        recorder.onstop = () => {
+                            const blob = new Blob(chunks, { type: mimeType });
+                            console.log("Export Finished. Chunks:", chunks.length, "Total Size:", blob.size);
 
-                for (let i = 0; i <= totalFrames; i++) {
-                    if (signal?.aborted) {
-                        recorder.stop();
-                        return;
-                    }
+                            if (blob.size === 0) {
+                                rejectStop(new Error("Export failed: Resulting video is empty (0 bytes)."));
+                            } else {
+                                resolveStop(blob);
+                            }
+                        };
+                    });
 
-                    const time = i * dt;
-                    this.seek(time); // Sets currentTime and calls render()
+                    recorder.start(); // Standard recording (no timeslice)
 
-                    // Wait for render to effectively paint? 
-                    // Usually sync in canvas 2d, but just in case
-                    // await new Promise(r => requestAnimationFrame(r)); 
+                    // Realtime: Just play
+                    this.currentTime = 0;
+                    this.play();
 
-                    if (track.requestFrame) {
-                        track.requestFrame();
-                    }
+                    const checkInterval = setInterval(async () => {
+                        if (signal?.aborted) {
+                            clearInterval(checkInterval);
+                            this.pause();
+                            recorder.stop();
+                            this.isLooping = wasLooping; // Restore
+                            reject(new Error("Export cancelled"));
+                            return;
+                        }
 
-                    // Artificial delay to let MediaRecorder process? 
-                    // Usually requestFrame is enough, but sometimes tight loops choke it.
-                    await new Promise(r => setTimeout(r, 10)); // Tiny yield
+                        const progress = (this.currentTime / duration) * 100;
+                        onProgress(Math.min(progress, 99));
 
-                    onProgress((i / totalFrames) * 100);
+                        // Check if stopped or reached end
+                        if (!this.isPlaying && this.currentTime >= duration) {
+                            clearInterval(checkInterval);
+                            recorder.stop();
+                            onProgress(100);
+
+                            try {
+                                const blob = await stopPromise;
+                                this.isLooping = wasLooping; // Restore
+                                resolve(blob);
+                            } catch (e) {
+                                this.isLooping = wasLooping; // Restore
+                                reject(e);
+                            }
+                        }
+                    }, 100);
+                } catch (e) {
+                    this.isLooping = wasLooping; // Restore
+                    reject(e);
                 }
 
-                if (!signal?.aborted) {
-                    recorder.stop();
+            } else {
+                // Offline: Worker-based Frame-by-Frame
+                const startTime = performance.now();
+                console.log("Starting Offline Export...");
+
+                try {
+                    this.pause();
+                    const totalFrames = Math.ceil(duration * fps);
+                    const dt = 1000 / fps; // in ms
+                    const frameDurationUs = 1000000 / fps;
+
+                    // Initialize Worker
+                    const worker = new Worker(new URL('./workers/export.worker.ts', import.meta.url), { type: 'module' });
+
+                    worker.postMessage({
+                        type: 'CONFIG',
+                        data: {
+                            width: evenWidth,
+                            height: evenHeight,
+                            fps,
+                            bitrate: 5_000_000
+                        }
+                    });
+
+                    // Wait for worker ready
+                    await new Promise<void>((resolveW, rejectW) => {
+                        const initHandler = (e: MessageEvent) => {
+                            if (e.data.type === 'READY') {
+                                worker.removeEventListener('message', initHandler);
+                                resolveW();
+                            } else if (e.data.type === 'ERROR') {
+                                worker.removeEventListener('message', initHandler);
+                                rejectW(new Error(e.data.error));
+                            }
+                        };
+                        worker.addEventListener('message', initHandler);
+                    });
+
+                    let queueSize = 0;
+                    const progressHandler = (e: MessageEvent) => {
+                        if (e.data.type === 'PROGRESS') {
+                            queueSize = e.data.data.queueSize;
+                        }
+                    };
+                    worker.addEventListener('message', progressHandler);
+
+                    const BATCH_SIZE = 10; // Process 10 frames before yielding
+
+                    for (let i = 0; i <= totalFrames; i++) {
+                        if (signal?.aborted) {
+                            worker.terminate();
+                            this.isLooping = wasLooping;
+                            return reject(new Error("Export cancelled"));
+                        }
+
+                        // Backpressure: Check often to prevent OOM
+                        while (queueSize > 10) {
+                            await new Promise(r => setTimeout(r, 10));
+                        }
+
+                        const time = i * dt;
+                        this.seek(time); // Sets currentTime and calls render() synchronously
+
+                        // Create Bitmap (Efficient snapshot)
+                        // No need to wait for repaint/setTimeout(0) as render is synchronous
+                        const bitmap = await createImageBitmap(this.canvas, {
+                            resizeWidth: evenWidth,
+                            resizeHeight: evenHeight
+                        });
+
+                        // Transfer to worker
+                        worker.postMessage({
+                            type: 'ENCODE_FRAME',
+                            data: {
+                                bitmap,
+                                timestamp: i * frameDurationUs,
+                                keyFrame: i % fps === 0
+                            }
+                        }, [bitmap]);
+
+                        // Update progress periodically
+                        if (i % 5 === 0) onProgress((i / totalFrames) * 100);
+
+                        // Yield to UI loop only once per batch
+                        if (i % BATCH_SIZE === 0) {
+                            await new Promise(r => setTimeout(r, 0));
+                        }
+                    }
+
+                    // Finalize
+                    worker.postMessage({ type: 'FINALIZE' });
+
+                    const blob = await new Promise<Blob>((resolveB, rejectB) => {
+                        const finishHandler = (e: MessageEvent) => {
+                            if (e.data.type === 'COMPLETE') {
+                                const blob = new Blob([e.data.data], { type: 'video/webm' });
+                                worker.removeEventListener('message', finishHandler);
+                                worker.terminate();
+                                resolveB(blob);
+                            } else if (e.data.type === 'ERROR') {
+                                worker.removeEventListener('message', finishHandler);
+                                rejectB(new Error(e.data.error));
+                                worker.terminate();
+                            }
+                        };
+                        worker.addEventListener('message', finishHandler);
+                    });
+
+                    if (signal?.aborted) {
+                        this.isLooping = wasLooping;
+                        return reject(new Error("Export cancelled"));
+                    }
+
+                    console.log(`Export Finished. Total time: ${(performance.now() - startTime).toFixed(2)}ms`);
+                    this.isLooping = wasLooping;
+                    resolve(blob);
+
+                    // Restore state
+                    this.currentTime = 0;
+                    this.render();
+                } catch (e) {
+                    this.isLooping = wasLooping;
+                    reject(e);
                 }
             }
         });

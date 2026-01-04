@@ -408,6 +408,10 @@ export const EditorLayout = () => {
                                         <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Exporting Video...</h3>
                                         <p className="text-slate-500 dark:text-neutral-400 mb-8 max-w-xs mx-auto">Your animation is being rendered frame by frame. Please do not close this tab.</p>
 
+                                        <div className="flex justify-between w-full max-w-md mb-2">
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Rendering</span>
+                                            <span className="text-xs font-bold text-slate-900 dark:text-white">{Math.round(exportProgress)}%</span>
+                                        </div>
                                         <div className="w-full max-w-md bg-slate-100 dark:bg-neutral-800 rounded-full h-3 overflow-hidden mb-8">
                                             <div
                                                 className="bg-blue-500 h-full rounded-full transition-all duration-300 ease-out"
