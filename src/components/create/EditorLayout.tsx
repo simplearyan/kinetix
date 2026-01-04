@@ -20,6 +20,7 @@ export const EditorLayout = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
+    const [canvasAspectRatio, setCanvasAspectRatio] = useState(16 / 9);
 
     // FIX: Remove injected 'height: auto !important' style to restore layout.
     useLayoutEffect(() => {
@@ -56,6 +57,7 @@ export const EditorLayout = () => {
         newEngine.onTimeUpdate = (t) => setCurrentTime(t);
         newEngine.onPlayStateChange = (p) => setIsPlaying(p);
         newEngine.onSelectionChange = (id) => setSelectedId(id);
+        newEngine.onResize = (w, h) => setCanvasAspectRatio(w / h);
 
         setEngine(newEngine);
 
@@ -261,7 +263,7 @@ export const EditorLayout = () => {
 
                 {/* Center Canvas */}
                 <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-slate-100 dark:bg-black relative">
-                    <CanvasWorkspace ref={canvasRef} />
+                    <CanvasWorkspace ref={canvasRef} aspectRatio={canvasAspectRatio} />
 
                     {/* Timeline */}
                     <div className="shrink-0 p-2 lg:p-4 z-10">

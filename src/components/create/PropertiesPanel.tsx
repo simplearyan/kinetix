@@ -203,6 +203,29 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                                         </div>
                                     </ControlRow>
 
+                                    <ControlRow label="Aspect Ratio">
+                                        <div className="inspector-resolution-grid">
+                                            {[
+                                                { label: "16:9", w: 1920, h: 1080 },
+                                                { label: "9:16", w: 1080, h: 1920 },
+                                                { label: "1:1", w: 1080, h: 1080 },
+                                                { label: "4:3", w: 1440, h: 1080 },
+                                                { label: "3:4", w: 1080, h: 1440 },
+                                            ].map((ratio) => (
+                                                <button
+                                                    key={ratio.label}
+                                                    onClick={() => {
+                                                        engine.resize(ratio.w, ratio.h);
+                                                        setForceUpdate(n => n + 1);
+                                                    }}
+                                                    className={`inspector-resolution-btn ${Math.abs((engine.scene.width / engine.scene.height) - (ratio.w / ratio.h)) < 0.01 ? "active" : ""}`}
+                                                >
+                                                    {ratio.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </ControlRow>
+
                                     <ControlRow label="Resolution">
                                         <div className="inspector-resolution-grid">
                                             {[
@@ -210,18 +233,25 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                                                 { w: 1280, h: 720, label: "720p" },
                                                 { w: 1920, h: 1080, label: "1080p" },
                                                 { w: 3840, h: 2160, label: "4K" }
-                                            ].map((res) => (
-                                                <button
-                                                    key={res.label}
-                                                    onClick={() => {
-                                                        engine.resize(res.w, res.h);
-                                                        setForceUpdate(n => n + 1);
-                                                    }}
-                                                    className={`inspector-resolution-btn ${engine.scene.height === res.h ? "active" : ""}`}
-                                                >
-                                                    {res.label}
-                                                </button>
-                                            ))}
+                                            ].map((res) => {
+                                                // Adjust resolution based on current aspect ratio?
+                                                // For now, let's just keep standard 16:9 presets but maybe disable them if not 16:9?
+                                                // Or better: Let "Resolution" be just a quality selector scale?
+                                                // Current implementation is hardcoded 16:9 resolutions.
+                                                // Let's keep them but know they will reset to 16:9.
+                                                return (
+                                                    <button
+                                                        key={res.label}
+                                                        onClick={() => {
+                                                            engine.resize(res.w, res.h);
+                                                            setForceUpdate(n => n + 1);
+                                                        }}
+                                                        className={`inspector-resolution-btn ${engine.scene.height === res.h && engine.scene.width === res.w ? "active" : ""}`}
+                                                    >
+                                                        {res.label}
+                                                    </button>
+                                                )
+                                            })}
                                         </div>
                                         <div className="text-[10px] text-slate-400 mt-2 text-center">
                                             {engine.scene.width} x {engine.scene.height} px

@@ -13,11 +13,55 @@ export class Engine {
     playbackRate: number = 1;
 
     resize(width: number, height: number) {
+        if (this.scene.width === 0 || this.scene.height === 0) {
+            this.canvas.width = width;
+            this.canvas.height = height;
+            this.scene.width = width;
+            this.scene.height = height;
+            this.render();
+            // Call resize anyway to set initial aspect?
+            this.onResize?.(width, height);
+            return;
+        }
+
+        const scaleX = width / this.scene.width;
+        const scaleY = height / this.scene.height;
+
+        // Use the smaller scale to ensure obj fits in the new view without cropping/overflowing relatively?
+        // Or actually, we want layout to "stretch" positions, but "scale" sizes uniformly.
+        const sizeScale = Math.min(scaleX, scaleY);
+        // Special case: If mostly just resolution upgrade (both > 1), maybe use max? 
+        // Or just min is safest to avoid cropping.
+
         this.canvas.width = width;
         this.canvas.height = height;
         this.scene.width = width;
         this.scene.height = height;
+
+        // Scale all objects
+        this.scene.objects.forEach(obj => {
+            // Position: Relative to canvas size (Percentage based)
+            obj.x *= scaleX;
+            obj.y *= scaleY;
+
+            // Size: Uniform scaling to maintain aspect
+            obj.width *= sizeScale;
+            obj.height *= sizeScale;
+
+            // Props
+            if ('fontSize' in obj) {
+                (obj as any).fontSize *= sizeScale;
+            }
+            if ('padding' in obj) {
+                (obj as any).padding *= sizeScale;
+            }
+            if ('lineNumberMargin' in obj) {
+                (obj as any).lineNumberMargin *= sizeScale;
+            }
+        });
+
         this.render();
+        this.onResize?.(width, height);
     }
 
     // Loop
@@ -36,6 +80,7 @@ export class Engine {
     onPlayStateChange?: (isPlaying: boolean) => void;
     onSelectionChange?: (id: string | null) => void;
     onObjectChange?: () => void; // Generic update for props
+    onResize?: (width: number, height: number) => void;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
