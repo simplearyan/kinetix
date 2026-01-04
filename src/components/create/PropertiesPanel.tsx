@@ -655,17 +655,268 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
 
                                 {obj instanceof ChartObject && (
                                     <div className="space-y-4">
+                                        {/* Data Editor */}
                                         <div>
-                                            <label className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Color</label>
-                                            <input
-                                                type="color"
-                                                className="w-full h-8 cursor-pointer rounded"
-                                                value={obj.color}
-                                                onChange={(e) => handleChange("color", e.target.value)}
-                                            />
+                                            <div className="text-[10px] uppercase text-slate-500 font-bold mb-2">Data & Labels</div>
+                                            <div className="space-y-2">
+                                                <div>
+                                                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Labels (comma separated)</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full bg-slate-100 dark:bg-neutral-800 border-none rounded px-2 py-1 text-xs text-slate-700 dark:text-neutral-300 font-mono"
+                                                        value={obj.labels.join(", ")}
+                                                        onChange={(e) => {
+                                                            const labels = e.target.value.split(",").map(s => s.trim());
+                                                            handleChange("labels", labels);
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Values (comma separated)</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full bg-slate-100 dark:bg-neutral-800 border-none rounded px-2 py-1 text-xs text-slate-700 dark:text-neutral-300 font-mono"
+                                                        value={obj.data.join(", ")}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            const data = val.split(",").map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                                                            // Only update if we have valid data, or empty
+                                                            if (data.length > 0 || val === "") {
+                                                                handleChange("data", data);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="h-px bg-slate-200 dark:bg-slate-800 my-2" />
+
+                                        <div>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="text-[10px] uppercase text-slate-500 font-bold">Chart Appearance</label>
+                                                <div className="flex items-center gap-2">
+                                                    <label className="text-[10px] uppercase text-slate-400 font-bold cursor-pointer select-none" htmlFor="multicolor">Multi-color</label>
+                                                    <input
+                                                        type="checkbox"
+                                                        id="multicolor"
+                                                        className="rounded text-blue-600 focus:ring-blue-500"
+                                                        checked={obj.useMultiColor}
+                                                        onChange={(e) => handleChange("useMultiColor", e.target.checked)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            {!obj.useMultiColor ? (
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="color"
+                                                        className="w-10 h-10 p-0.5 rounded cursor-pointer bg-transparent border border-slate-200 dark:border-neutral-700"
+                                                        value={obj.color}
+                                                        onChange={(e) => handleChange("color", e.target.value)}
+                                                    />
+                                                    <div className="flex-1">
+                                                        <input
+                                                            type="text"
+                                                            className="w-full h-10 bg-slate-100 dark:bg-neutral-800 border-none rounded px-3 text-xs text-slate-700 dark:text-neutral-300 font-mono"
+                                                            value={obj.color}
+                                                            onChange={(e) => handleChange("color", e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <div className="grid grid-cols-5 gap-2">
+                                                        {obj.colorPalette.map((color: string, i: number) => (
+                                                            <div key={i} className="relative group">
+                                                                <input
+                                                                    type="color"
+                                                                    className="w-full h-8 rounded cursor-pointer p-0 border-none"
+                                                                    value={color}
+                                                                    onChange={(e) => {
+                                                                        const newPalette = [...obj.colorPalette];
+                                                                        newPalette[i] = e.target.value;
+                                                                        handleChange("colorPalette", newPalette);
+                                                                    }}
+                                                                />
+                                                                {obj.colorPalette.length > 1 && (
+                                                                    <button
+                                                                        className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px]"
+                                                                        onClick={() => {
+                                                                            const newPalette = obj.colorPalette.filter((_: any, idx: number) => idx !== i);
+                                                                            handleChange("colorPalette", newPalette);
+                                                                        }}
+                                                                    >
+                                                                        ×
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            className="w-full h-8 rounded border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 hover:text-blue-500 hover:border-blue-500 transition-colors"
+                                                            onClick={() => {
+                                                                const newPalette = [...obj.colorPalette, "#888888"];
+                                                                handleChange("colorPalette", newPalette);
+                                                            }}
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Axis Color</label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="color"
+                                                        className="w-8 h-8 p-0.5 rounded cursor-pointer bg-transparent border border-slate-200 dark:border-neutral-700"
+                                                        value={obj.axisColor}
+                                                        onChange={(e) => handleChange("axisColor", e.target.value)}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        className="flex-1 bg-slate-100 dark:bg-neutral-800 border-none rounded px-2 py-1 text-xs text-slate-700 dark:text-neutral-300 font-mono"
+                                                        value={obj.axisColor}
+                                                        onChange={(e) => handleChange("axisColor", e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Show Grid</label>
+                                                <div className="flex items-center h-8">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="rounded text-blue-600 focus:ring-blue-500 mr-2"
+                                                        checked={obj.showGrid}
+                                                        onChange={(e) => handleChange("showGrid", e.target.checked)}
+                                                    />
+                                                    <span className="text-xs text-slate-700 dark:text-neutral-300">Enabled</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="col-span-2">
+                                                <label className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Font Size</label>
+                                                <div className="flex gap-2 items-center">
+                                                    <input
+                                                        type="range"
+                                                        min="8"
+                                                        max="48"
+                                                        className="flex-1 accent-blue-600 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700"
+                                                        value={obj.fontSize}
+                                                        onChange={(e) => handleChange("fontSize", Number(e.target.value))}
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        className="w-16 bg-slate-100 dark:bg-neutral-800 border-none rounded px-2 py-1 text-xs text-slate-700 dark:text-neutral-300 text-right"
+                                                        value={obj.fontSize}
+                                                        onChange={(e) => handleChange("fontSize", Number(e.target.value))}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="col-span-2">
+                                                <label className="text-[10px] uppercase text-slate-500 font-bold block mb-1">Font Family</label>
+                                                <select
+                                                    className="w-full bg-slate-100 dark:bg-neutral-800 border-none rounded px-2 py-2 text-xs text-slate-700 dark:text-neutral-300"
+                                                    value={obj.fontFamily}
+                                                    onChange={(e) => handleChange("fontFamily", e.target.value)}
+                                                >
+                                                    <option value="Inter">Inter (Default)</option>
+                                                    <option value="Arial">Arial</option>
+                                                    <option value="Helvetica">Helvetica</option>
+                                                    <option value="Times New Roman">Times New Roman</option>
+                                                    <option value="Courier New">Courier New</option>
+                                                    <option value="Georgia">Georgia</option>
+                                                    <option value="Comic Sans MS">Comic Sans MS</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="h-px bg-slate-200 dark:bg-slate-800 my-4" />
+
+                                {/* Quick Animation Controls */}
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <div className="text-[10px] uppercase text-slate-500 font-bold">Animation</div>
+                                        {obj.animation.type !== "none" && (
+                                            <div className="text-[10px] text-slate-400 font-mono">{obj.animation.duration}ms</div>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {(() => {
+                                            const commonAnims = [
+                                                { id: "none", label: "None" },
+                                                { id: "fadeIn", label: "Fade In" },
+                                                { id: "slideUp", label: "Slide Up" },
+                                                { id: "scaleIn", label: "Scale In" },
+                                            ];
+
+                                            let displayAnims = commonAnims;
+
+                                            if (obj instanceof ChartObject) {
+                                                displayAnims = [
+                                                    { id: "none", label: "None" },
+                                                    { id: "grow", label: "Grow" },
+                                                    { id: "fadeIn", label: "Fade In" },
+                                                ];
+                                            } else if (obj instanceof TextObject) {
+                                                displayAnims = [
+                                                    ...commonAnims,
+                                                    { id: "typewriter", label: "Typewriter" },
+                                                ];
+                                            } else if (obj instanceof CodeBlockObject) {
+                                                displayAnims = [
+                                                    { id: "none", label: "None" },
+                                                    { id: "typewriter", label: "Typewriter" },
+                                                    { id: "fadeIn", label: "Fade In" },
+                                                ];
+                                            }
+
+                                            return displayAnims.map((anim) => (
+                                                <button
+                                                    key={anim.id}
+                                                    onClick={() => {
+                                                        if (obj.animation) {
+                                                            const isSame = obj.animation.type === anim.id;
+                                                            if (!isSame) {
+                                                                obj.animation.type = anim.id as any;
+                                                                engine.currentTime = 0;
+                                                                engine.play();
+                                                                setForceUpdate(n => n + 1);
+                                                            }
+                                                        }
+                                                    }}
+                                                    className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${obj.animation?.type === anim.id ? "bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900/20 dark:border-blue-500 dark:text-blue-400" : "bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-400 hover:border-blue-400"}`}
+                                                >
+                                                    {anim.label}
+                                                </button>
+                                            ));
+                                        })()}
+                                    </div>
+
+                                    {obj.animation.type !== "none" && (
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] text-slate-400 font-bold block">Duration</label>
+                                            <input
+                                                type="range"
+                                                min={100}
+                                                max={3000}
+                                                step={100}
+                                                value={obj.animation.duration}
+                                                onChange={(e) => {
+                                                    obj.animation.duration = Number(e.target.value);
+                                                    setForceUpdate(n => n + 1);
+                                                }}
+                                                className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-neutral-700 accent-blue-600"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="mt-8 pt-4 border-t border-slate-200 dark:border-slate-800">
                                     <button
@@ -703,31 +954,55 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
 
                                 <div className="text-[10px] uppercase text-slate-500 font-bold mt-4 mb-2">In Animation</div>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {[
-                                        { id: "none", label: "None", icon: <div className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-700" /> },
-                                        { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
-                                        { id: "slideUp", label: "Slide Up", className: "group-hover:animate-bounce" },
-                                        { id: "scaleIn", label: "Scale In", className: "group-hover:scale-75 transition-transform" },
-                                        { id: "typewriter", label: "Typewriter", className: "" },
-                                    ].map((anim) => (
-                                        <button
-                                            key={anim.id}
-                                            onClick={() => {
-                                                if (obj.animation) {
-                                                    obj.animation.type = anim.id as any;
-                                                    engine.currentTime = 0; // Reset to preview
-                                                    engine.play();
-                                                    setForceUpdate(n => n + 1);
-                                                }
-                                            }}
-                                            className={`p-3 rounded-xl border text-left group transition-all relative overflow-hidden ${obj.animation?.type === anim.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-300"}`}
-                                        >
-                                            <div className="mb-2 h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                                                {anim.id === "none" ? <div className="w-3 h-3 bg-current rounded-full" /> : <Play size={12} className={anim.className} />}
-                                            </div>
-                                            <div className="text-xs font-bold">{anim.label}</div>
-                                        </button>
-                                    ))}
+                                    {(() => {
+                                        const commonAnims = [
+                                            { id: "none", label: "None", icon: <div className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-700" /> },
+                                            { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
+                                            { id: "slideUp", label: "Slide Up", className: "group-hover:animate-bounce" },
+                                            { id: "scaleIn", label: "Scale In", className: "group-hover:scale-75 transition-transform" },
+                                        ];
+
+                                        let displayAnims = commonAnims;
+
+                                        if (obj instanceof ChartObject) {
+                                            displayAnims = [
+                                                { id: "none", label: "None", icon: <div className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-700" /> },
+                                                { id: "grow", label: "Grow", className: "group-hover:scale-y-110 transition-transform origin-bottom" },
+                                                { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
+                                            ];
+                                        } else if (obj instanceof TextObject) {
+                                            displayAnims = [
+                                                ...commonAnims,
+                                                { id: "typewriter", label: "Typewriter", className: "" },
+                                            ];
+                                        } else if (obj instanceof CodeBlockObject) {
+                                            displayAnims = [
+                                                { id: "none", label: "None", icon: <div className="w-8 h-8 rounded bg-slate-200 dark:bg-slate-700" /> },
+                                                { id: "typewriter", label: "Typewriter", className: "" },
+                                                { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
+                                            ];
+                                        }
+
+                                        return displayAnims.map((anim) => (
+                                            <button
+                                                key={anim.id}
+                                                onClick={() => {
+                                                    if (obj.animation) {
+                                                        obj.animation.type = anim.id as any;
+                                                        engine.currentTime = 0; // Reset to preview
+                                                        engine.play();
+                                                        setForceUpdate(n => n + 1);
+                                                    }
+                                                }}
+                                                className={`p-3 rounded-xl border text-left group transition-all relative overflow-hidden ${obj.animation?.type === anim.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-300"}`}
+                                            >
+                                                <div className="mb-2 h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                                    {anim.id === "none" ? <div className="w-3 h-3 bg-current rounded-full" /> : <Play size={12} className={anim.className} />}
+                                                </div>
+                                                <div className="text-xs font-bold">{anim.label}</div>
+                                            </button>
+                                        ));
+                                    })()}
                                 </div>
 
                                 {obj.animation?.type !== "none" && (
@@ -880,6 +1155,6 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     )
 }

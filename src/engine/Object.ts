@@ -19,7 +19,7 @@ export abstract class KinetixObject {
 
     // Animation
     animation: {
-        type: "none" | "fadeIn" | "slideUp" | "scaleIn" | "typewriter";
+        type: "none" | "fadeIn" | "slideUp" | "scaleIn" | "typewriter" | "grow";
         duration: number; // ms
         delay: number; // ms
     } = { type: "none", duration: 1000, delay: 0 };
