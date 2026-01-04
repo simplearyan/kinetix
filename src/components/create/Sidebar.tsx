@@ -201,7 +201,7 @@ export const Sidebar = ({ engine }: SidebarProps) => {
                             setIsMobileMenuOpen(false);
                         }}
                     />
-                    <aside className="w-80 bg-slate-50 dark:bg-neutral-950 border-r border-slate-200 dark:border-neutral-800 flex flex-col animate-in slide-in-from-left-4 duration-200 fixed left-16 top-14 bottom-0 lg:static lg:h-full z-50 shadow-2xl lg:shadow-none">
+                    <aside className="w-64 sm:w-80 bg-slate-50 dark:bg-neutral-950 border-r border-slate-200 dark:border-neutral-800 flex flex-col animate-in slide-in-from-left-4 duration-200 fixed left-16 top-14 bottom-0 lg:static lg:h-full z-50 shadow-2xl lg:shadow-none">
                         <div className="p-4 border-b border-slate-200 dark:border-neutral-800 flex justify-between items-center bg-white/50 dark:bg-neutral-900/50">
                             <span className="font-bold text-sm uppercase tracking-wider text-slate-500 dark:text-neutral-400">
                                 {activeTab === "text" && "Typography"}
@@ -234,7 +234,7 @@ export const Sidebar = ({ engine }: SidebarProps) => {
 
                             {activeTab === "media" && (
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <button onClick={() => handleAddChart("bar")} className="aspect-square bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-neutral-700 flex flex-col items-center justify-center hover:bg-blue-50 dark:hover:bg-neutral-700 hover:border-blue-200 transition-all gap-3 group">
                                             <div className="flex items-end gap-1 h-8 w-8 justify-center">
                                                 <div className="w-1.5 bg-blue-500/80 h-4 rounded-t-sm group-hover:h-5 transition-all"></div>

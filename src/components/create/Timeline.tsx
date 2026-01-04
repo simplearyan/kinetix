@@ -43,9 +43,9 @@ export const Timeline = ({
     const progress = (currentTime / totalDuration) * 100;
 
     return (
-        <div className="w-full h-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-800 flex flex-col p-4 relative">
+        <div className="w-full h-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur rounded-2xl shadow-xl border border-slate-200 dark:border-neutral-800 flex flex-col p-3 lg:p-4 relative">
             {/* Controls */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-2 lg:mb-4">
                 <div className="flex items-center gap-2">
                     <button
                         onClick={onPlayPause}
@@ -55,7 +55,7 @@ export const Timeline = ({
                     </button>
                     <button
                         onClick={() => onSeek(0)}
-                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-400 flex items-center justify-center transition-all"
+                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-600 dark:text-neutral-400 hidden lg:flex items-center justify-center transition-all"
                     >
                         <SkipBack size={14} />
                     </button>
@@ -67,7 +67,7 @@ export const Timeline = ({
             </div>
 
             {/* Tracks Area */}
-            <div className="flex-1 bg-slate-50 dark:bg-neutral-950 rounded border border-slate-200 dark:border-neutral-800 relative overflow-hidden group">
+            <div className="h-2 mt-1 lg:h-auto lg:mt-0 flex-1 bg-slate-100 lg:bg-slate-50 dark:bg-white/5 lg:dark:bg-neutral-950 rounded lg:border border-slate-200 dark:border-neutral-800 relative overflow-hidden group">
 
                 {/* Scrubber Area */}
                 <div
@@ -88,10 +88,10 @@ export const Timeline = ({
                 </div>
 
                 {/* Fake Tracks for visuals */}
-                <div className="absolute top-2 left-0 right-0 h-8 bg-blue-100/50 dark:bg-blue-900/20 border-b border-white/10 mx-2 rounded px-2 flex items-center text-[10px] text-blue-600 font-bold">
+                <div className="absolute top-2 left-0 right-0 h-8 bg-blue-100/50 dark:bg-blue-900/20 border-b border-white/10 mx-2 rounded px-2 hidden lg:flex items-center text-[10px] text-blue-600 font-bold">
                     Text Layer 1
                 </div>
-                <div className="absolute top-12 left-0 right-0 h-8 bg-purple-100/50 dark:bg-purple-900/20 border-b border-white/10 mx-2 rounded px-2 flex items-center text-[10px] text-purple-600 font-bold">
+                <div className="absolute top-12 left-0 right-0 h-8 bg-purple-100/50 dark:bg-purple-900/20 border-b border-white/10 mx-2 rounded px-2 hidden lg:flex items-center text-[10px] text-purple-600 font-bold">
                     Chart Animation
                 </div>
             </div>
