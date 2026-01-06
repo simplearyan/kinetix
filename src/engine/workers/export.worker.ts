@@ -21,17 +21,24 @@ self.onmessage = async (e) => {
     try {
         if (type === 'CONFIG') {
             config = data; // { width, height, fps, bitrate, duration? }
+            console.log("[Worker] Received Config:", config);
 
-            muxer = new Muxer({
+            const muxerOptions: any = {
                 target: new ArrayBufferTarget(),
                 video: {
                     codec: 'V_VP9',
                     width: config.width,
                     height: config.height,
                     frameRate: config.fps
-                },
-                ...(config.duration ? { duration: config.duration } : {})
-            });
+                }
+            };
+
+            if (config.duration) {
+                muxerOptions.duration = Math.round(config.duration);
+                console.log("[Worker] Setting Muxer Duration:", muxerOptions.duration);
+            }
+
+            muxer = new Muxer(muxerOptions);
 
             // ... (rest of simple setup) ...
 
@@ -45,7 +52,7 @@ self.onmessage = async (e) => {
                     const msTimestamp = Math.max(0, Math.round(chunk.timestamp / 1000));
 
                     if (chunkCount < 5) {
-                        console.log(`[Worker] Chunk ${chunkCount}: Raw=${chunk.timestamp}, Scaled=${msTimestamp}`);
+                        console.log(`[Worker] Chunk ${chunkCount}: Raw=${chunk.timestamp}us, Scaled=${msTimestamp}ms`);
                     }
                     chunkCount++;
 

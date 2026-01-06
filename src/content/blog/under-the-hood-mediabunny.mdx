@@ -1,0 +1,64 @@
+---
+title: "Under the Hood: Implementing Multi-Format Video Export with MediaBunny"
+description: "How we re-engineered our export pipeline to support MP4, MOV, and WebM using a dual-engine architecture."
+pubDate: 2026-01-06
+tags: ["Engineering", "MediaBunny", "MP4", "Dev Log"]
+---
+
+# Under the Hood: Implementing Multi-Format Video Export with MediaBunny
+
+Users have been asking for **MP4 export** since day one. While our original [WebM-based system](/blog/engineering-kinetix-export) was fast and efficient, limiting users to a single format was a major bottleneck for professional workflows.
+
+Today, we are unveiling our new **Dual-Engine Export System**, integrated seamlessly into Kinetix.
+
+## Why MediaBunny?
+
+We evaluated several options for bringing MP4 support to the browser:
+
+1.  **FFmpeg.wasm**: The standard choice, but it requires downloading ~25MB of code. Too slow for a nimble web editor.
+2.  **Server-Side Rendering**: Send the project data to a cloud server. Too expensive and breaks our "privacy-first, offline-capable" promise.
+3.  **MediaBunny**: A lightweight, pure-TypeScript library that utilizes the browser's built-in `WebCodecs` to write MP4 and MOV files natively.
+
+MediaBunny was the clear winner. It allows us to keep the app lightweight while unlocking professional container formats.
+
+## The "Dual-Engine" Architecture
+
+Instead of replacing our existing WebM engine (which is incredibly fast for quick previews), we decided to run both systems side-by-side.
+
+### 1. The Efficient Engine (WebM)
+*   **Library**: `webm-muxer`
+*   **Use Case**: Quick previews, Discord sharing, transparent videos.
+*   **Pros**: Ultra-fast, very low memory usage.
+
+### 2. The Universal Engine (MediaBunny)
+*   **Library**: `mediabunny`
+*   **Use Case**: Final production, YouTube, Client delivery.
+*   **Pros**: Supports **MP4**, **MOV**, and **MKV**. Fixes metadata issues like "missing duration" in some players.
+
+## Designing the UI
+
+We didn't want to overwhelm users with technical jargon. The new **Export Dialog** splits these engines into two simple Tabs:
+
+*   **Efficient**: Defaults to WebM. Simple controls.
+*   **Universal**: Defaults to MP4. Unlocks advanced codec options (H.264 vs H.265).
+
+## Non-Blocking Performance
+
+One critical requirement was **performance**. Encoding video is heavy work. If we ran MediaBunny on the main thread, the entire UI would freeze for seconds at a time.
+
+To solve this, we spawn a dedicated **Export Worker**.
+
+```typescript
+// Core.ts
+if (engine === 'mediabunny') {
+  this.worker = new Worker(new URL('./workers/mediabunny.worker.ts', import.meta.url));
+} else {
+  this.worker = new Worker(new URL('./workers/export.worker.ts', import.meta.url));
+}
+```
+
+This ensures that even while your 4K MP4 is rendering, the Kinetix interface remains responsive.
+
+## Conclusion
+
+With this update, Kinetix bridges the gap between web tools and desktop editors. You get the convenience of the cloud with the file compatibility of a native app.

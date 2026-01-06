@@ -1,0 +1,71 @@
+---
+title: "Next-Gen Video Export: Why We're Betting on MediaBunny"
+description: "We are overhauling our render engine to support MP4, MOV, and simplified audio muxing using the revolutionary MediaBunny library."
+pubDate: 2026-01-06
+tags: ["Engineering", "Roadmap", "MediaBunny", "WebCodecs"]
+---
+
+# Next-Gen Video Export: Why We're Betting on MediaBunny
+
+In our [last engineering post](/blog/engineering-kinetix-export), we detailed how Kinetix achieves 60FPS video export using `WebCodecs` and a custom frame-by-frame rendering engine. It works beautifully, but it has one major limitation: **It is strictly limited to WebM.**
+
+While WebM is a fantastic, open web standard, the reality of content creation is that **MP4 is king**. Social platforms, clients, and legacy video players predominantly favor MP4 (H.264).
+
+Historically, generating MP4s in the browser meant shipping 20MB+ of WASM binaries (like ffmpeg.wasm). But today, we are exploring a pure TypeScript solution that changes everything: **[MediaBunny](https://github.com/Vanilagy/mediabunny)**.
+
+## The Problem with "Native" Export
+
+Our current export pipeline looks like this:
+
+1.  **Capture**: `createImageBitmap` (Canvas)
+2.  **Encode**: `VideoEncoder` (WebCodecs) outputs raw VP9 chunks.
+3.  **Mux**: `webm-muxer` packages these chunks into a `.webm` file.
+
+The bottleneck is step 3. Writing a muxer (the software that packages video and audio streams into a file) is incredibly complex. `webm-muxer` is great, but it only does WebM. There has been no lightweight, pure-JS library for writing MP4s... until now.
+
+## Enter MediaBunny
+
+MediaBunny is a modern, dependency-free media toolkit built specifically for the WebCodecs era. It doesn't rely on heavy C++ ports. Instead, it implements the file container specifications (MP4, MOV, MKV) directly in TypeScript.
+
+### Why this is a Game Changer for Kinetix
+
+1.  **Native MP4 Support by Default**: We can finally offer an "Export to MP4" button without any server-side rendering or heavy WASM downloads.
+2.  **Professional Container Support**: Beyond MP4, MediaBunny supports **MOV (QuickTime)**, which is essential for creative professionals using ProRes workflows.
+3.  **Audio/Video Muxing**: One of the hardest parts of video engineering is "interleaving" audio samples with video frames correctly. MediaBunny handles this synchronization for us, allowing us to easily add soundtracks to Kinetix exports.
+
+## The "Pro Export" Integration Plan
+
+We are not just swapping libraries; we are redesigning the Export interaction. We plan to introduce a **Dual-Engine Architecture**.
+
+### The New Export Dialog
+
+The interface will evolve into a tabbed experience:
+
+*   **Standard (WebM)**: Powered by our existing, ultra-lightweight engine. Perfect for quick shares and discord.
+*   **Pro (MP4/MOV)**: Powered by MediaBunny. Unlocks advanced settings like generic MP4 export, variable bitrates, and distinct audio tracks.
+
+### Engineering The Adapter
+
+Under the hood, we are refactoring `Core.ts` to use an Adapter pattern.
+
+Currently, our engine speaks directly to the worker:
+```typescript
+// Current Architecture (Tightly Coupled)
+worker.postMessage({ type: 'ENCODE_FRAME', bitmap });
+```
+
+We are moving to a backend-agnostic interface:
+```typescript
+// New Architecture (Flexible)
+interface IExportBackend {
+  initialize(config: VideoConfig): Promise<void>;
+  processFrame(frame: VideoFrame): Promise<void>;
+  finalize(): Promise<Blob>;
+}
+```
+
+This ensures that we can plug in MediaBunny (or any future encoder) without touching the core animation logic.
+
+## What's Next?
+
+We are currently prototyping the `MediaBunnyBackend` and expect to roll out experimental MP4 support in the next minor release. The web is becoming a full-fledged video production platform, and tools like MediaBunny are the foundation of that future.

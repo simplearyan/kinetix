@@ -1,0 +1,94 @@
+---
+title: "Engineering Kinetix: 60FPS In-Browser Video Export"
+description: "A deep dive into how we use WebCodecs, Web Workers, and frame-perfect rendering to generate high-quality video entirely in the client."
+pubDate: 2026-01-05
+tags: ["Engineering", "Deep Dive", "WebCodecs"]
+---
+
+# Engineering Kinetix: 60FPS In-Browser Video Export
+
+Building a video editor for the web comes with a massive technical hurdle: **Export**. 
+
+Unlike a native desktop app, a browser tab is a constrained environment. It's single-threaded, resource-limited, and its performance varies wildly depending on whether you're on a high-end workstation or a fan-less laptop.
+
+If you simply "record the screen" using standard browser APIs like `MediaRecorder`, a dropped frame due to a UI stutter becomes a stutter in the final video. That's unacceptable for professional content.
+
+Here is how we solved this in Kinetix to guarantee smooth, 60FPS video export on *any* device.
+
+## The Secret: "Offline" Rendering
+
+The key to high-quality export is decoupling **playback speed** from **rendering speed**. 
+
+Instead of playing the video in real-time (1 second takes 1 second) and hoping the computer keeps up, we use an **Offline Rendering** strategy. We pause the game loop and step through the timeline frame-by-frame.
+
+If a single frame takes 200ms to render on a slow laptop, that's fine. We wait for it. Once finished, we tell the video file "this frame lasts for 1/60th of a second." 
+
+The result? The export process might be slow, but the final video is always silky smooth.
+
+## The Architecture
+
+Our export pipeline relies on three modern web technologies working in harmony:
+
+1.  **WebCodecs API (`VideoEncoder`)**: Gives us low-level access to the device's hardware video encoders.
+2.  **Web Workers**: Moves the heavy math of video encoding off the main thread so the UI doesn't completely freeze.
+3.  **Transferable Objects**: Allows us to move data between the main thread and the worker with zero memory copying overhead.
+
+### 1. The Orchestrator (`Core.ts`)
+
+The main engine acts as the conductor. When you click "Export," it stops the real-time playback loop and enters `Offline Mode`.
+
+```typescript
+// Simplified logic from our Core Engine
+for (let i = 0; i < totalFrames; i++) {
+    // 1. Move time to the exact frame
+    const time = i * (1000 / 60);
+    this.seek(time); 
+
+    // 2. Take a GPU-accelerated snapshot
+    // createImageBitmap is much faster than toDataURL
+    const bitmap = await createImageBitmap(this.canvas);
+
+    // 3. Send to worker (and transfer ownership to avoid copying)
+    worker.postMessage({ type: 'ENCODE', bitmap }, [bitmap]);
+}
+```
+
+### 2. The Muscle (Worker)
+
+We spawn a dedicated Web Worker to handle the encoding. This prevents the browser from showing the "Page Unresponsive" warning during long renders.
+
+Inside the worker, we use the `VideoEncoder` API.
+
+```typescript
+// export.worker.ts
+const videoEncoder = new VideoEncoder({
+    output: (chunk, meta) => {
+        // A piece of compressed video is ready!
+        muxer.addVideoChunk(chunk, meta);
+    },
+    error: (e) => console.error(e)
+});
+
+videoEncoder.configure({
+    codec: 'vp09.00.51.08', // VP9 Codec
+    width: 1920,
+    height: 1080,
+    bitrate: 5_000_000 // 5 Mbps
+});
+```
+
+### 3. Packaging the Container
+
+Raw video packets need to be put into a container file (like `.mp4` or `.webm`) so video players can read them. We use a library called `webm-muxer` to bundle these VP9 chunks into a standard `.webm` file directly in memory.
+
+## Why ImageBitmap?
+
+In older web apps, developers used `.toDataURL()` or `.toBlob()` to capture canvas frames. These methods are synchronus (or slow) and involve copying massive arrays of pixels from the GPU to the CPU memory.
+
+Kinetix uses `createImageBitmap()`. This keeps the image data on the GPU as an opaque handle. When we pass this handle to the `VideoEncoder` in the worker, the browser can often keep the entire pipeline directly on the graphics card, resulting in significantly faster encoding speeds.
+
+## Conclusion
+
+By treating the browser as a serious rendering platform and leveraging the latest APIs like WebCodecs, Kinetix delivers professional-grade video output that was previously impossible on the web.
+
+Whether you're on a Chromebook or a gaming PC, your export will always be pixel-perfect.

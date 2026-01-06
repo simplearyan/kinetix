@@ -46,7 +46,7 @@ import {
 
 interface ExportConfig {
     filename: string;
-    format: "webm" | "mp4";
+    format: "webm" | "mp4" | "mov";
     duration: number;
     useFullDuration: boolean;
     fps: number;
@@ -329,7 +329,8 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                                                 onChange={(val) => setExportConfig({ ...exportConfig, format: val as any })}
                                                 options={[
                                                     { value: "webm", label: "WebM" },
-                                                    { value: "mp4", label: "MP4" }
+                                                    { value: "mp4", label: "MP4" },
+                                                    { value: "mov", label: "MOV" }
                                                 ]}
                                             />
                                         </ControlRow>

@@ -274,7 +274,9 @@ export class Engine {
         fps: number = 30,
         mode: 'realtime' | 'offline' = 'offline',
         onProgress: (percent: number) => void,
-        signal?: AbortSignal
+        signal?: AbortSignal,
+        engine: 'legacy' | 'mediabunny' = 'legacy',
+        format: 'webm' | 'mp4' | 'mov' = 'webm'
     ): Promise<Blob> {
         return new Promise(async (resolve, reject) => {
             // Force even dimensions for encoder stability
@@ -377,7 +379,12 @@ export class Engine {
                     const frameDurationUs = 1000000 / fps;
 
                     // Initialize Worker
-                    const worker = new Worker(new URL('./workers/export.worker.ts', import.meta.url), { type: 'module' });
+                    let worker: Worker;
+                    if (engine === 'mediabunny') {
+                        worker = new Worker(new URL('./workers/mediabunny.worker.ts', import.meta.url), { type: 'module' });
+                    } else {
+                        worker = new Worker(new URL('./workers/export.worker.ts', import.meta.url), { type: 'module' });
+                    }
 
                     worker.postMessage({
                         type: 'CONFIG',
@@ -386,7 +393,8 @@ export class Engine {
                             height: evenHeight,
                             fps,
                             bitrate: 5_000_000,
-                            duration // in ms
+                            duration, // in ms
+                            format // 'webm' | 'mp4' | 'mov'
                         }
                     });
 
