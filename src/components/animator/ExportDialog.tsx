@@ -11,6 +11,8 @@ const ExportDialog: React.FC<{ playerRef: React.RefObject<PlayerRef | null>, wra
     const [progress, setProgress] = useState(0);
     const [status, setStatus] = useState<'idle' | 'rendering' | 'encoding' | 'complete' | 'error'>('idle');
     const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+    const [exportLogs, setExportLogs] = useState<string[]>([]);
+    const [isMp4, setIsMp4] = useState(true);
     const workerRef = useRef<Worker | null>(null);
 
     // Initial worker setup
@@ -22,23 +24,22 @@ const ExportDialog: React.FC<{ playerRef: React.RefObject<PlayerRef | null>, wra
                 { type: 'module' }
             );
             workerRef.current.onmessage = (e) => {
-                const { type, data, error } = e.data;
-                if (type === 'PROGRESS') {
-                    // Worker queue progress (encoding)
-                    // We handle main progress via the loop below, but this is good for debug
-                    console.log('Encoder queue:', data.queueSize);
+                const { type, data, error, message } = e.data;
+                if (type === 'LOG') {
+                    setExportLogs(prev => [...prev, `[Worker] ${message}`].slice(-20));
                 } else if (type === 'COMPLETE') {
-                    const blob = new Blob([data], { type: 'video/webm' });
+                    const blob = new Blob([data], { type: isMp4 ? 'video/mp4' : 'video/webm' });
                     setVideoBlob(blob);
                     setStatus('complete');
                     setProgress(100);
                 } else if (type === 'ERROR') {
                     console.error("Worker Error:", error);
+                    setExportLogs(prev => [...prev, `[Error] ${error}`]);
                     setStatus('error');
                 }
             };
         }
-    }, []);
+    }, [isMp4]);
 
     const startExport = async () => {
         if (!playerRef.current) return;
@@ -52,6 +53,9 @@ const ExportDialog: React.FC<{ playerRef: React.RefObject<PlayerRef | null>, wra
         const durationInMs = (durationInFrames / fps) * 1000;
 
         // 1. Configure Worker
+        setExportLogs(['Starting Export...']);
+
+        const format = isMp4 ? 'mp4' : 'webm';
         workerRef.current?.postMessage({
             type: 'CONFIG',
             data: {
@@ -59,73 +63,86 @@ const ExportDialog: React.FC<{ playerRef: React.RefObject<PlayerRef | null>, wra
                 height,
                 fps,
                 bitrate: 6_000_000,
-                duration: durationInMs
+                duration: durationInMs,
+                format // 'mp4' or 'webm'
             }
         });
 
+        // Semaphore System
+        let credits = 3;
+        const creditListener = (e: MessageEvent) => {
+            if (e.data.type === 'FRAME_DONE') {
+                credits++;
+            }
+        };
+        workerRef.current?.addEventListener('message', creditListener);
+
         // 2. Capture Loop
+        try {
+            for (let i = 0; i < durationInFrames; i++) {
+                if (status === 'error') break;
 
-        for (let i = 0; i < durationInFrames; i++) {
-            playerRef.current.seekTo(i);
-
-            // Wait for React to render frame (approx 1 frame time + buffer)
-            await new Promise(r => setTimeout(r, 80)); // Slightly increased buffer
-
-            // Use the wrapper ref passed from parent
-            const containerToCapture = wrapperRef.current;
-
-            if (containerToCapture) {
-                // Calculate scale to force 1080p output regardless of screen size
-                // Strategy: Force the cloned node to have 1920x1080 dimensions.
-                // Remotion Player (and our content) is responsive, so it should fill this new size.
-
-                const blob = await toBlob(containerToCapture, {
-                    width: 1920,
-                    height: 1080,
-                    skipFonts: true,
-                    // Remove pixelRatio - let's rely on native layout scaling
-                    style: {
-                        transform: 'none',
-                        borderRadius: '0px',
-                        border: 'none',
-                        boxShadow: 'none',
-                        width: '1920px',
-                        height: '1080px',
-                        maxWidth: 'none',
-                        maxHeight: 'none',
-                        margin: '0',
-                        padding: '0',
-                        top: '0',
-                        left: '0'
-                    }
-                });
-
-                if (blob) {
-                    const bitmap = await createImageBitmap(blob);
-
-                    // Send to worker
-                    workerRef.current?.postMessage({
-                        type: 'ENCODE_FRAME',
-                        data: {
-                            bitmap,
-                            timestamp: (i / fps) * 1_000_000, // Microseconds!
-                            keyFrame: i % 30 === 0,
-                            duration: (1 / fps) * 1_000_000 // Microseconds
-                        }
-                    }, [bitmap]); // Transferable
+                // Backpressure
+                while (credits <= 0) {
+                    await new Promise(r => setTimeout(r, 10));
                 }
+                credits--;
+
+                playerRef.current.seekTo(i);
+
+                // Wait for paint (Double RAF)
+                await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+                const containerToCapture = wrapperRef.current;
+                if (containerToCapture) {
+                    const blob = await toBlob(containerToCapture, {
+                        width: 1920,
+                        height: 1080,
+                        skipFonts: true,
+                        // Remove pixelRatio - let's rely on native layout scaling
+                        style: {
+                            transform: 'none',
+                            borderRadius: '0px',
+                            border: 'none',
+                            boxShadow: 'none',
+                            width: '1920px',
+                            height: '1080px',
+                            maxWidth: 'none',
+                            maxHeight: 'none',
+                            margin: '0',
+                            padding: '0'
+                        }
+                    });
+
+                    if (blob) {
+                        const bitmap = await createImageBitmap(blob);
+                        workerRef.current?.postMessage({
+                            type: 'ENCODE_FRAME',
+                            data: {
+                                bitmap,
+                                timestamp: (i * 1000000) / fps,
+                                keyFrame: i % 30 === 0,
+                                duration: 1000000 / fps
+                            }
+                        }, [bitmap]);
+                    }
+                }
+                setProgress(Math.round((i / durationInFrames) * 90));
             }
 
-            setProgress(Math.round((i / durationInFrames) * 90)); // 0-90% is rendering
+            setStatus('encoding'); // Finalizing
+            workerRef.current?.postMessage({ type: 'FINALIZE' });
+        } catch (e) {
+            console.error(e);
+            setStatus('error');
+        } finally {
+            workerRef.current?.removeEventListener('message', creditListener);
         }
-
-        setStatus('encoding'); // Finalizing
-        workerRef.current?.postMessage({ type: 'FINALIZE' });
     };
 
     const handleDownload = () => {
         if (videoBlob) {
-            download(videoBlob, 'kinetix-export.webm', 'video/webm');
+            download(videoBlob, `kinetix-export.${isMp4 ? 'mp4' : 'webm'}`, isMp4 ? 'video/mp4' : 'video/webm');
         }
     };
 
@@ -148,9 +165,19 @@ const ExportDialog: React.FC<{ playerRef: React.RefObject<PlayerRef | null>, wra
 
                 {status === 'idle' && (
                     <div className="space-y-4">
-                        <div className="flex justify-between text-sm text-slate-300 bg-slate-800 p-3 rounded">
-                            <span>Format</span>
-                            <span className="font-mono text-sky-400">WEBM (1080p)</span>
+                        <div className="flex gap-2 bg-slate-800 p-1 rounded-lg">
+                            <button
+                                onClick={() => setIsMp4(true)}
+                                className={`flex-1 py-2 rounded-md font-bold text-sm transition-all ${isMp4 ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                MP4 (Best)
+                            </button>
+                            <button
+                                onClick={() => setIsMp4(false)}
+                                className={`flex-1 py-2 rounded-md font-bold text-sm transition-all ${!isMp4 ? 'bg-sky-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                WebM (Web)
+                            </button>
                         </div>
                         <button
                             onClick={startExport}
@@ -165,13 +192,21 @@ const ExportDialog: React.FC<{ playerRef: React.RefObject<PlayerRef | null>, wra
                     <div className="space-y-4">
                         <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                             <div
-                                className="bg-sky-500 h-full transition-all duration-300"
+                                className="bg-sky-500 h-full transition-all duration-300 transform origin-left"
                                 style={{ width: `${progress}%` }}
                             />
                         </div>
-                        <p className="text-center text-sm text-sky-400 animate-pulse">
-                            {status === 'rendering' ? `Rendering Frame ${Math.round(progress * 1.2)}...` : 'Finalizing...'}
+                        <p className="text-center text-sm text-sky-400 animate-pulse font-mono">
+                            {status === 'rendering' ? `Processing Frame ${Math.round(progress * 1.2)}...` : 'Finalizing...'}
                         </p>
+
+                        {/* Log Terminal */}
+                        <div className="w-full bg-black/50 rounded-lg p-2 h-24 overflow-y-auto font-mono text-[10px] text-slate-400 border border-slate-700/50">
+                            {exportLogs.map((log, i) => (
+                                <div key={i} className="whitespace-nowrap">{log}</div>
+                            ))}
+                            <div ref={el => el?.scrollIntoView({ behavior: "smooth" })} />
+                        </div>
                     </div>
                 )}
 
