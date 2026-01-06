@@ -1,0 +1,71 @@
+---
+title: "Why Chrome is King for Web Video Export"
+pubDate: 2026-01-06
+description: "Why we recommend Chromium-based browsers for Kinetix, and how we added a warning for Firefox/Safari users."
+tags: ["engineering", "performance", "webcodecs", "browsers"]
+---
+
+If you use Kinetix to export a 4K video on **Google Chrome**, it takes about 10 seconds.
+If you try the same export on **Firefox**, it might take 2 minutes, or crash.
+
+Why the huge difference? And how do we handle it?
+
+## The Engine: WebCodecs
+
+Kinetix uses the modern **WebCodecs API** to encode video directly in the browser. This allows us to access the hardware video encoder (NVENC on Nvidia, VideoToolbox on Mac) without any server-side rendering.
+
+### Chromium (Chrome, Edge, Brave)
+Chromium has the most mature implementation of `VideoEncoder`.
+- **Hardware Acceleration:** Native support for H.264 and VP9.
+- **Speed:** Can process frames as fast as the GPU allows.
+- **Stability:** Handles large buffers (4K textures) gracefully.
+
+### Firefox (Gecko)
+Firefox supports WebCodecs (as of version 130+), but the implementation varies significantly by OS.
+- on many Windows machines, it falls back to **Software Encoding** (OpenH264), which eats CPU and freezes the main thread.
+- memory management for large `ImageBitmap` transfers is stricter, leading to frequent allocation failures during heavy exports.
+
+### Safari (WebKit)
+Safari's implementation is relatively new and often lacks support for specific container muxing features we rely on for standard MP4s.
+
+## The UX Solution: Smart Warnings
+
+We don't want to block Firefox users, but we owe them a heads-up. We implemented a `BrowserDetector` to check the environment before export.
+
+```typescript
+// utils/BrowserDetector.ts
+export class BrowserDetector {
+    static isChromium(): boolean {
+        // Feature detection + UA check for Chromium engine
+        return !!window.chrome && !navigator.userAgent.includes('Firefox');
+    }
+}
+```
+
+If a user tries to export on a non-Chromium browser, we inject a friendly warning into the UI:
+
+> **Recommended Browser**
+> You are using **Firefox**. Video export is experimental on this browser.
+> For 20x faster exports and better stability, please use **Google Chrome** or **Microsoft Edge**.
+
+## Implementation
+
+We added this check directly to our `ExportDialog` component.
+
+```tsx
+// EditorLayout.tsx
+{isBrowserWarning && (
+    <div className="bg-orange-50 text-orange-800 p-4 rounded-xl">
+        You are using {BrowserDetector.getBrowserName()}. 
+        Switch to Chrome for better performance.
+    </div>
+)}
+```
+
+This simple check saves our users from frustration and reduces "My export crashed" support tickets by explaining the limitation upfront.
+
+## Summary
+
+- **WebCodecs** is the future, but browser support is uneven.
+- **Chrome/Edge** are currently the only reliable options for heavy 4K encoding.
+- **User Education** via in-app warnings is better than silent failures.

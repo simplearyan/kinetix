@@ -7,6 +7,7 @@ import { Timeline } from "./Timeline";
 import { Engine } from "../../engine/Core";
 import { Exporter } from "../../engine/Export";
 import { HardwareDetector, type HardwareInfo } from "../../utils/HardwareDetector";
+import { BrowserDetector } from "../../utils/BrowserDetector";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 
@@ -116,6 +117,7 @@ export const EditorLayout = () => {
     }, [showExportDialog]);
 
     const isPerformanceWarning = hardwareInfo?.tier === 'low' && (exportConfig.fps > 30 || (engine?.canvas?.width ?? 0) > 1920);
+    const isBrowserWarning = showExportDialog && !BrowserDetector.isChromium();
 
 
     const abortController = useRef<AbortController | null>(null);
@@ -583,6 +585,20 @@ export const EditorLayout = () => {
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            {isBrowserWarning && (
+                                                <div className="flex items-start gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-700/50 mb-4">
+                                                    <div className="w-5 h-5 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5">⚠️</div>
+                                                    <div>
+                                                        <div className="font-bold text-orange-900 dark:text-orange-100 text-sm">Browser Recommendation</div>
+                                                        <div className="text-xs text-orange-700 dark:text-orange-300 mt-1 leading-relaxed">
+                                                            You are using <b>{BrowserDetector.getBrowserName()}</b>. Video export is experimental on this browser.
+                                                            <br />
+                                                            For 20x faster exports and better stability, please use <b>Google Chrome</b> or <b>Microsoft Edge</b>.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {exportMode === 'offline' && (
                                                 <div className="flex items-start gap-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-700/50">

@@ -1,0 +1,98 @@
+---
+title: "A Tale of Two Engines: HTML Canvas vs. Remotion"
+pubDate: 2024-01-06
+description: "Why Kinetix uses two completely different rendering architectures for its 'Create' and 'Animator' modes."
+tags: ["engineering", "architecture", "canvas", "remotion"]
+---
+
+Kinetix isn't just one video editor. It is actually two distinct applications living under the same roof, each powering a different user experience.
+
+If you navigate to `/create`, you are using our **Custom 2D Engine**.
+If you navigate to `/animator`, you are using **Remotion**.
+
+Here is why we maintain two engines, and how they differ under the hood.
+
+## The "Create" Engine: High-Performance Canvas
+
+The `/create` editor is built for **interactivity**. You can drag images, resize text, and scrubbing the timeline feels instant.
+
+### Architecture
+- **Core:** A custom TypeScript class `Engine`.
+- **Rendering:** `HTMLCanvasElement` (2D Context).
+- **Loop:** A highly optimized `requestAnimationFrame` loop (`Core.ts`).
+- **State:** Mutable objects (`x`, `y`, `scale`) updated 60 times a second.
+
+This engine is "Immediate Mode". We clear the canvas and redraw everything every frame. This gives us total control over performance.
+
+```typescript
+// Core.ts (Simplified)
+private _loop = (now: number) => {
+    // 1. Update Physics/Animation
+    this.scene.objects.forEach(obj => obj.update(dt));
+    
+    // 2. Draw
+    this.ctx.clearRect(0, 0, width, height);
+    this.scene.objects.forEach(obj => obj.draw(this.ctx));
+    
+    requestAnimationFrame(this._loop);
+}
+```
+
+**Pros:**
+- Extremely fast (millions of sprites if needed).
+- Granular control over "Hit Testing" (mouse interactions).
+- Lightweight (no React overhead in the render loop).
+
+**Cons:**
+- We have to re-invent the wheel (text wrapping, layout).
+- Harder to build complex UI-like animations (like charts).
+
+## The "Animator" Engine: Declarative React
+
+The `/animator` mode is designed for **Data Visualization** and **Code Snippets**. These are complex layouts that are painful to draw with raw Canvas commands.
+
+So, we use **Remotion**.
+
+### Architecture
+- **Core:** `@remotion/player`.
+- **Rendering:** DOM (HTML/CSS) or SVG.
+- **Loop:** Controlled by Remotion's internal frame clock.
+- **State:** Declarative React Props.
+
+Here, a "Video" is just a React component. We don't say `ctx.fillRect()`. We say `<motion.div />`.
+
+```tsx
+// BarChartRace.tsx
+export const BarChartRace = ({ data, frame }) => {
+    return (
+        <div className="flex flex-col gap-2">
+            {data.map(item => (
+                 <Bar value={interpolate(frame, item.values)} />
+            ))}
+        </div>
+    );
+};
+```
+
+**Pros:**
+- **CSS Layout:** We get Flexbox/Grid for free!
+- **React Ecosystem:** Use any React library (Recharts, Prism, Katex).
+- **Declarative:** "State A to State B" is easier than "Move pixel by 5".
+
+**Cons:**
+- **DOM Heavy:** Rendering 1000 DIVs is slower than 1000 Canvas rects.
+- **Less Interactive:** Drag-and-drop implementation is much harder when the timeline controls the DOM.
+
+## Unifying the Export
+
+Despite these differences, we recently **Unified the Export Pipeline**.
+
+Previously, the Animator used a weak, legacy exporter. Now, both engines feed into the same **MediaBunny Worker**:
+
+1.  **Capture:**
+    - Create: `createImageBitmap(canvas)`
+    - Animator: `html-to-image` -> `createImageBitmap(blob)`
+2.  **Process:** Both send bitmaps to `mediabunny.worker.ts`.
+3.  **Encode:** The worker sequentially encodes frames to MP4/WebM.
+
+This architecture gives us the best of both worlds: The raw speed of Canvas for the general editor, and the rich layout capabilities of React for specialized graphs, all outputting the same high-quality MP4s.
