@@ -9,7 +9,8 @@ import { useAnimatorStore } from '../../store/animatorStore';
 import ExportDialog from './ExportDialog';
 import CloudRenderingDialog from './CloudRenderingDialog';
 import { BannerAd, InterstitialAd } from './AdComponents';
-import { Cloud, Download } from 'lucide-react';
+import { Cloud, Download, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 const EditorLayout: React.FC = () => {
     // Mobile: We will just show PropertyPanel in the bottom section
@@ -25,6 +26,8 @@ const EditorLayout: React.FC = () => {
         currentCode,
         setIsInterstitialOpen
     } = useAnimatorStore();
+
+    const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
     const playerRef = useRef<PlayerRef>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -58,6 +61,14 @@ const EditorLayout: React.FC = () => {
             {/* Top Bar */}
             <header className="h-14 shrink-0 border-b border-slate-700/50 flex items-center px-4 justify-between bg-[#0F172A]/90 backdrop-blur z-20">
                 <div className="flex items-center gap-2">
+                    {/* Mobile Library Toggle */}
+                    <button
+                        onClick={() => setIsLibraryOpen(!isLibraryOpen)}
+                        className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                        {isLibraryOpen ? <X size={20} /> : <Menu size={20} />}
+                    </button>
+
                     <span className="font-bold text-xl tracking-tight text-sky-400">Kinetix</span>
                     <span className="text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1.5 py-0.5 rounded">BETA</span>
                 </div>
@@ -89,6 +100,43 @@ const EditorLayout: React.FC = () => {
             {/* Main Workspace */}
             <div className="flex flex-1 overflow-hidden relative">
                 <ExportDialog playerRef={playerRef} wrapperRef={wrapperRef} durationInFrames={activeDuration} />
+
+                {/* Mobile Library Drawer (Overlay) */}
+                {isLibraryOpen && (
+                    <div className="lg:hidden absolute inset-0 z-50 bg-[#0F172A]/95 backdrop-blur-md flex flex-col">
+                        <div className="p-4 border-b border-slate-700/50 flex items-center justify-between">
+                            <h3 className="font-bold text-slate-200">Library</h3>
+                            <button onClick={() => setIsLibraryOpen(false)} className="p-2 text-slate-400 hover:text-white">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="flex-1 p-4 overflow-y-auto">
+                            <div className="grid gap-3">
+                                <div
+                                    onClick={() => { setActiveCompositionId('BarChartRace'); useAnimatorStore.getState().setActiveTab('data'); setIsLibraryOpen(false); }}
+                                    className={`p-4 border rounded-xl transition-all cursor-pointer ${activeCompositionId === 'BarChartRace' ? 'bg-sky-500/20 border-sky-500/50' : 'bg-slate-800/60 border-slate-700/50'}`}
+                                >
+                                    <div className="font-bold text-slate-200 mb-1">Bar Chart Race</div>
+                                    <div className="text-sm text-slate-400">Visualize data ranking over time.</div>
+                                </div>
+                                <div
+                                    onClick={() => { setActiveCompositionId('CodeBlock'); useAnimatorStore.getState().setActiveTab('code'); setIsLibraryOpen(false); }}
+                                    className={`p-4 border rounded-xl transition-all cursor-pointer ${activeCompositionId === 'CodeBlock' ? 'bg-sky-500/20 border-sky-500/50' : 'bg-slate-800/60 border-slate-700/50'}`}
+                                >
+                                    <div className="font-bold text-slate-200 mb-1">Code Typewriter</div>
+                                    <div className="text-sm text-slate-400">Animate code snippets typing.</div>
+                                </div>
+                                <div
+                                    onClick={() => { setActiveCompositionId('MathFormula'); useAnimatorStore.getState().setActiveTab('math'); setIsLibraryOpen(false); }}
+                                    className={`p-4 border rounded-xl transition-all cursor-pointer ${activeCompositionId === 'MathFormula' ? 'bg-sky-500/20 border-sky-500/50' : 'bg-slate-800/60 border-slate-700/50'}`}
+                                >
+                                    <div className="font-bold text-slate-200 mb-1">Math Formula</div>
+                                    <div className="text-sm text-slate-400">KaTeX rendering with spring pop.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Left Sidebar (Desktop Only) */}
                 <div className="hidden lg:flex w-72 shrink-0 border-r border-slate-700/50 bg-[#0F172A] flex-col z-10">
