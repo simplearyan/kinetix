@@ -256,23 +256,25 @@ export const EditorLayout = () => {
                 </div >
 
                 {/* Center Content Area - Scrollable on Mobile */}
-                < div className="flex-1 flex flex-col min-w-0 lg:min-w-0 bg-slate-100 dark:bg-[#020617] relative overflow-y-auto lg:overflow-hidden pb-20 lg:pb-0" >
+                <div className="flex-1 flex flex-col min-w-0 lg:min-w-0 bg-slate-100 dark:bg-[#020617] relative overflow-y-auto lg:overflow-hidden pb-32 lg:pb-0">
 
                     {/* Sticky Canvas Container (Mobile) / Flex Item (Desktop) */}
                     <div
                         ref={mainCanvasContainerRef}
                         className="relative z-40 lg:relative flex flex-col w-full min-w-0 min-h-0 bg-slate-100 dark:bg-[#020617] border-b border-slate-200 dark:border-slate-800 lg:border-none"
                     >
-                        <CanvasWorkspace
-                            ref={canvasRef}
-                            aspectRatio={canvasAspectRatio}
-                            isPlaying={isPlaying}
-                            onPlayPause={handlePlayPause}
-                            onToggleFullscreen={toggleFullscreen}
-                            isFullscreen={isFullscreen}
-                            hideOverlayControls={true}
-                            activeGuide={activeGuide}
-                        />
+                        <div className="w-full h-auto max-h-[55vh] lg:max-h-none flex items-center justify-center bg-slate-900/5 dark:bg-black/20">
+                            <CanvasWorkspace
+                                ref={canvasRef}
+                                aspectRatio={canvasAspectRatio}
+                                isPlaying={isPlaying}
+                                onPlayPause={handlePlayPause}
+                                onToggleFullscreen={toggleFullscreen}
+                                isFullscreen={isFullscreen}
+                                hideOverlayControls={true}
+                                activeGuide={activeGuide}
+                            />
+                        </div>
 
                         {/* New Mobile Toolbar */}
                         <CanvasControls
