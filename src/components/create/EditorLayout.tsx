@@ -12,6 +12,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { BottomSheet } from "./BottomSheet";
 import { BottomDock, type BottomDockTab } from "./BottomDock";
+import { CanvasControls } from "./CanvasControls";
 
 // Use a simple local context or prop drilling for this "one-page app"
 // to keep it self-contained for now.
@@ -30,6 +31,7 @@ export const EditorLayout = () => {
     const [exportMode, setExportMode] = useState<'realtime' | 'offline'>('offline');
     const [exportProgress, setExportProgress] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [activeGuide, setActiveGuide] = useState("none");
 
     // Mobile Bottom Sheet State
     const [activeBottomTab, setActiveBottomTab] = useState<BottomDockTab>(null);
@@ -386,6 +388,29 @@ export const EditorLayout = () => {
                             onPlayPause={handlePlayPause}
                             onToggleFullscreen={toggleFullscreen}
                             isFullscreen={isFullscreen}
+                            hideOverlayControls={true}
+                            activeGuide={activeGuide}
+                        />
+
+                        {/* New Mobile Toolbar */}
+                        <CanvasControls
+                            isPlaying={isPlaying}
+                            onPlayPause={handlePlayPause}
+                            onToggleFullscreen={toggleFullscreen}
+                            aspectRatio={canvasAspectRatio}
+                            onChangeAspectRatio={(r) => {
+                                setCanvasAspectRatio(r);
+                                engine?.resize(1920, 1920 / r);
+                            }}
+                            onOpenCanvasSettings={() => {
+                                // Open "Edit" tab but deselect object to show Canvas properties
+                                setSelectedId(null);
+                                setActiveBottomTab("edit");
+                            }}
+                            currentTime={currentTime}
+                            totalDuration={engine?.totalDuration || 5000}
+                            activeGuide={activeGuide}
+                            onGuideChange={setActiveGuide}
                         />
 
                         {/* Timeline */}
