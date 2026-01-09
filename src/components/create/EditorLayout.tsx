@@ -395,8 +395,6 @@ export const EditorLayout = () => {
                     <PropertiesPanel
                         engine={engine}
                         selectedId={selectedId}
-                        exportConfig={exportConfig}
-                        setExportConfig={setExportConfig}
                     />
                 </div>
 

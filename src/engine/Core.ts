@@ -59,6 +59,18 @@ export class Engine {
             if ('lineNumberMargin' in obj) {
                 (obj as any).lineNumberMargin *= sizeScale;
             }
+            if ('barHeight' in obj) {
+                (obj as any).barHeight *= sizeScale;
+            }
+            if ('gap' in obj) {
+                (obj as any).gap *= sizeScale;
+            }
+            if ('radius' in obj) {
+                (obj as any).radius *= sizeScale;
+            }
+            if ('strokeWidth' in obj) {
+                (obj as any).strokeWidth *= sizeScale;
+            }
         });
 
         this.render();

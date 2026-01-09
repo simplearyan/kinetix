@@ -44,6 +44,12 @@ export class BarChartRaceObject extends KinetixObject {
     labelColor: string = "#333";
     valueColor: string = "#666";
     fontFamily: string = "Inter";
+    fontSize: number = 14; // Base font size
+    duration: number = 10000; // Total duration in ms
+
+    // State for smooth animation
+    private yPositions: Record<string, number> = {};
+    private lastDrawTime: number = 0;
 
     constructor(id: string) {
         super(id, "BarChartRace");
@@ -53,25 +59,18 @@ export class BarChartRaceObject extends KinetixObject {
 
     draw(ctx: CanvasRenderingContext2D, time: number) {
         // 1. Time Interpolation
-        // Map animation 'time' (ms) to 'Year' range
-        // Provide a default duration if not set in timeline?
-        // Let's assume the object spans the whole timeline or a fixed duration.
-        // For simplicity: Map object duration (this.movement.duration usually?) to data range.
-
-        // Actually this.animation.duration is usually entry animation.
-        // We'll use the scene time relative to object start?
-        // But KinetixObjects usually are property-state based...
-        // For this specific object, "content" is animated by time.
-        // Let's map 0 -> 10s (10000ms) to the data range for now.
-
-        const totalDuration = 10000; // 10 seconds for the full race
+        const totalDuration = this.duration || 10000;
         const progress = Math.min(Math.max(time / totalDuration, 0), 1);
 
         const startYear = this.data[0].year;
         const endYear = this.data[this.data.length - 1].year;
         const currentYear = startYear + (endYear - startYear) * progress;
 
-        // 2. Interpolate Values
+        // Check for seek/jump to reset animation state
+        const isSeek = Math.abs(time - this.lastDrawTime) > 500;
+        this.lastDrawTime = time;
+
+        // 2. Interpolate Values (same)
         // Find indices
         let prevIndex = 0;
         for (let i = 0; i < this.data.length - 1; i++) {
@@ -84,11 +83,8 @@ export class BarChartRaceObject extends KinetixObject {
 
         const prev = this.data[prevIndex];
         const next = this.data[prevIndex + 1];
-
-        // Linear interpolation factor between two data points
         const t = (currentYear - prev.year) / (next.year - prev.year);
 
-        // Collect all categories
         const currentValues: { label: string, value: number, color: string }[] = [];
         const allKeys = new Set([...Object.keys(prev.values), ...Object.keys(next.values)]);
 
@@ -108,61 +104,69 @@ export class BarChartRaceObject extends KinetixObject {
         // 3. Rank
         currentValues.sort((a, b) => b.value - a.value);
 
-        // Normalize for Width (Max value in visible set)
+        // Normalize for Width
         const maxValue = currentValues[0]?.value || 100;
 
         // 4. Draw
         ctx.save();
         ctx.translate(this.x, this.y);
-        // Clip?
-        // ctx.beginPath(); ctx.rect(0, 0, this.width, this.height); ctx.clip();
 
         // Title / Year
         ctx.fillStyle = this.labelColor;
-        ctx.font = `bold 60px ${this.fontFamily}`;
+        // Scale year font relative to base font size (e.g. 4x)
+        const yearFontSize = this.fontSize * 4.5;
+        ctx.font = `bold ${yearFontSize}px ${this.fontFamily}`;
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
         ctx.globalAlpha = 0.2;
+        // Adjust position based on size
         ctx.fillText(Math.floor(currentYear).toString(), this.width - 20, this.height - 20);
         ctx.globalAlpha = this.opacity;
 
         // Draw Bars
         const visibleBars = currentValues.slice(0, this.maxBars);
 
-        // Note: Smooth Rank Interpolation is hard without persistent state for "previous Y".
-        // For a simple "Race", strict sorting per frame causes jumping if values flip.
-        // To make it smooth, we usually simply interpolate the VALUE, but the Y-POSITION swaps instantly.
-        // However, with high FPS, it looks okay.
-        // Implementing smooth position swap requires storing state, which KinetixObject stateless-draw doesn't natively support easily 
-        // without an `update(dt)` method that persists.
-        // Since `draw` is stateless (pure function of Time), strict sorting is the "correct" stateless way.
-        // If we want smooth swap, we'd need to interpolate 'rank' which is discrete.
-        // We'll stick to instantaneous swap for this MVP. It's standard for basic bar races.
-
         visibleBars.forEach((item, i) => {
-            const y = i * (this.barHeight + this.gap) + 40; // Offset for header?
+            const targetY = i * (this.barHeight + this.gap) + 40;
+
+            // Smooth lerp for Y position
+            let currentY = this.yPositions[item.label];
+
+            // Initialize or Snap if seeking (large time jump)
+            if (currentY === undefined || isSeek) {
+                currentY = targetY;
+            } else {
+                // Lerp towards target (10% per frame approx)
+                currentY = currentY + (targetY - currentY) * 0.15;
+                // Snap if very close to avoid micro-jitters
+                if (Math.abs(currentY - targetY) < 0.5) currentY = targetY;
+            }
+
+            // Update state
+            this.yPositions[item.label] = currentY;
+
+            const y = currentY;
 
             // Width
-            const w = (item.value / maxValue) * (this.width - 150); // Reserve space for labels
+            const w = (item.value / maxValue) * (this.width - 150);
 
             // Draw Bar
             ctx.fillStyle = item.color;
-            // Rounded corners
             ctx.beginPath();
             ctx.roundRect(0, y, w, this.barHeight, 4);
             ctx.fill();
 
-            // Icon / Label inside or outside?
             // Label (Name)
             ctx.fillStyle = this.labelColor;
-            ctx.font = `bold 14px ${this.fontFamily}`;
+            ctx.font = `bold ${this.fontSize}px ${this.fontFamily}`;
             ctx.textAlign = "right";
             ctx.textBaseline = "middle";
             ctx.fillText(item.label, -10, y + this.barHeight / 2);
 
             // Value
             ctx.fillStyle = this.valueColor;
-            ctx.font = `12px ${this.fontFamily}`;
+            // Value slightly smaller? or same? Let's use same or 0.9x
+            ctx.font = `${this.fontSize * 0.9}px ${this.fontFamily}`;
             ctx.textAlign = "left";
             ctx.fillText(Math.round(item.value).toLocaleString(), w + 10, y + this.barHeight / 2);
         });

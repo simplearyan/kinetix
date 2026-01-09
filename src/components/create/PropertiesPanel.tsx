@@ -3,6 +3,7 @@ import { Engine } from "../../engine/Core";
 import { TextObject } from "../../engine/objects/TextObject";
 import { CodeBlockObject } from "../../engine/objects/CodeBlockObject";
 import { ChartObject } from "../../engine/objects/ChartObject";
+import { BarChartRaceObject } from "../../engine/objects/BarChartRaceObject";
 import { CharacterObject } from "../../engine/objects/CharacterObject";
 import { LogoCharacterObject } from "../../engine/objects/LogoCharacterObject";
 import { ParticleTextObject } from "../../engine/objects/ParticleTextObject";
@@ -47,71 +48,25 @@ import {
     Minimize,
     User,
     Sparkles,
-    Wand2
+    Wand2,
+    Link2,
+    Unlink2
 } from "lucide-react";
-
-interface ExportConfig {
-    filename: string;
-    format: "webm" | "mp4" | "mov";
-    duration: number;
-    useFullDuration: boolean;
-    fps: number;
-}
 
 interface PropertiesPanelProps {
     engine: Engine | null;
     selectedId: string | null;
-    exportConfig?: ExportConfig;
-    setExportConfig?: (config: ExportConfig) => void;
 }
 
 type Tab = "properties" | "layers" | "animations";
 
-export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportConfig }: PropertiesPanelProps) => {
+export const PropertiesPanel = ({ engine, selectedId }: PropertiesPanelProps) => {
     const [activeTab, setActiveTab] = useState<Tab>("properties");
     const [editingLayerId, setEditingLayerId] = useState<string | null>(null);
     const [editName, setEditName] = useState("");
     const [_, setForceUpdate] = useState(0);
+    const [isRatioLocked, setIsRatioLocked] = useState(true); // Added isRatioLocked state
 
-    // Export simulation state
-    const [isExporting, setIsExporting] = useState(false);
-    const [exportProgress, setExportProgress] = useState(0);
-    const [exportMode, setExportMode] = useState<'realtime' | 'offline'>('offline');
-
-    const handleExport = async () => {
-        if (isExporting || !engine) return;
-
-        setIsExporting(true);
-        setExportProgress(0);
-
-        try {
-            const duration = exportConfig?.useFullDuration ? engine.totalDuration : (exportConfig?.duration || 5) * 1000;
-
-            const blob = await engine.exportVideo(
-                duration,
-                30, // FPS
-                exportMode,
-                (progress) => setExportProgress(progress)
-            );
-
-            // Download
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${exportConfig?.filename || "video"}.${exportConfig?.format || "webm"}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-        } catch (e) {
-            console.error("Export failed", e);
-            alert("Export failed: " + e);
-        } finally {
-            setIsExporting(false);
-            setExportProgress(0);
-        }
-    };
 
     const editInputRef = useRef<HTMLInputElement>(null);
 
@@ -335,84 +290,7 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                                     </ControlRow>
                                 </PropertySection>
 
-                                {exportConfig && setExportConfig && (
-                                    <PropertySection title="Export Video" defaultOpen={false}>
-                                        <ControlRow label="Filename">
-                                            <input
-                                                type="text"
-                                                disabled={isExporting}
-                                                className="inspector-input-text"
-                                                value={exportConfig.filename}
-                                                onChange={(e) => setExportConfig({ ...exportConfig, filename: e.target.value })}
-                                            />
-                                        </ControlRow>
 
-                                        <ControlRow label="Format">
-                                            <SegmentedControl
-                                                value={exportConfig.format}
-                                                onChange={(val) => setExportConfig({ ...exportConfig, format: val as any })}
-                                                options={[
-                                                    { value: "webm", label: "WebM" },
-                                                    { value: "mp4", label: "MP4" },
-                                                    { value: "mov", label: "MOV" }
-                                                ]}
-                                            />
-                                        </ControlRow>
-
-                                        <ControlRow label="Duration" layout="horizontal">
-                                            <Toggle
-                                                value={exportConfig.useFullDuration}
-                                                onChange={(val) => setExportConfig({ ...exportConfig, useFullDuration: val })}
-                                                label="Full Timeline"
-                                            />
-                                        </ControlRow>
-
-                                        <ControlRow label="High Quality (Slow)" layout="horizontal">
-                                            <Toggle
-                                                value={exportMode === 'offline'}
-                                                onChange={(val) => setExportMode(val ? 'offline' : 'realtime')}
-                                                label="Offline Render"
-                                            />
-                                            <span className="text-[10px] text-slate-400 ml-2">Fixes lag/stutter</span>
-                                        </ControlRow>
-
-                                        {!exportConfig.useFullDuration && (
-                                            <ControlRow label="Custom Duration (s)">
-                                                <SliderInput
-                                                    min={1}
-                                                    max={60}
-                                                    value={exportConfig.duration}
-                                                    onChange={(val) => setExportConfig({ ...exportConfig, duration: val })}
-                                                />
-                                            </ControlRow>
-                                        )}
-
-                                        <div className="pt-2">
-                                            {!isExporting ? (
-                                                <button
-                                                    onClick={handleExport}
-                                                    className="inspector-btn-primary"
-                                                >
-                                                    <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse shadow-[0_0_10px_rgba(248,113,113,0.5)]" />
-                                                    Export Video
-                                                </button>
-                                            ) : (
-                                                <div className="space-y-2 p-3 bg-slate-50 dark:bg-neutral-800/50 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                                                    <div className="flex justify-between items-end">
-                                                        <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase animate-pulse">Rendering...</span>
-                                                        <span className="text-[10px] text-slate-500 font-mono">{Math.round(exportProgress)}%</span>
-                                                    </div>
-                                                    <div className="h-1.5 w-full bg-slate-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-blue-500 transition-all duration-300 ease-out"
-                                                            style={{ width: `${exportProgress}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </PropertySection>
-                                )}
                             </div>
                         ) : (
                             <div className="p-1 space-y-1">
@@ -485,24 +363,56 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                                             </div>
                                         </div>
                                     </ControlRow>
-                                    <ControlRow label="Width">
-                                        <SliderInput
-                                            value={Math.round(obj.width)}
-                                            min={10}
-                                            max={1920}
-                                            onChange={(v) => handleChange("width", v)}
-                                            formatValue={(v) => `${v}px`}
-                                        />
-                                    </ControlRow>
-                                    <ControlRow label="Height">
-                                        <SliderInput
-                                            value={Math.round(obj.height)}
-                                            min={10}
-                                            max={1080}
-                                            onChange={(v) => handleChange("height", v)}
-                                            formatValue={(v) => `${v}px`}
-                                        />
-                                    </ControlRow>
+
+                                    <div className="space-y-3 relative">
+                                        {/* Link Line Visual */}
+                                        {isRatioLocked && (
+                                            <div className="absolute left-[3px] top-[14px] bottom-[14px] w-1.5 border-l border-t border-b border-slate-300 dark:border-slate-600 rounded-l-md pointer-events-none" />
+                                        )}
+
+                                        {/* Lock Button */}
+                                        <button
+                                            className={`absolute left-[-12px] top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full z-10 transition-colors ${isRatioLocked ? "text-blue-500 border-blue-200 dark:border-blue-900" : "text-slate-400"}`}
+                                            onClick={() => setIsRatioLocked(!isRatioLocked)}
+                                            title={isRatioLocked ? "Unlock Ratio" : "Lock Ratio"}
+                                        >
+                                            {isRatioLocked ? <Link2 size={10} /> : <Unlink2 size={10} />}
+                                        </button>
+
+                                        <ControlRow label="Width">
+                                            <SliderInput
+                                                value={Math.round(obj.width)}
+                                                min={10}
+                                                max={1920}
+                                                onChange={(v) => {
+                                                    const oldW = obj.width;
+                                                    handleChange("width", v);
+                                                    if (isRatioLocked && oldW > 0) {
+                                                        const ratio = obj.height / oldW;
+                                                        handleChange("height", Math.round(v * ratio));
+                                                    }
+                                                }}
+                                                formatValue={(v) => `${v}px`}
+                                            />
+                                        </ControlRow>
+                                        <ControlRow label="Height">
+                                            <SliderInput
+                                                value={Math.round(obj.height)}
+                                                min={10}
+                                                max={1080}
+                                                onChange={(v) => {
+                                                    const oldH = obj.height;
+                                                    handleChange("height", v);
+                                                    if (isRatioLocked && oldH > 0) {
+                                                        const ratio = obj.width / oldH;
+                                                        handleChange("width", Math.round(v * ratio));
+                                                    }
+                                                }}
+                                                formatValue={(v) => `${v}px`}
+                                            />
+                                        </ControlRow>
+                                    </div>
+
                                     <ControlRow label="Scale" layout="horizontal">
                                         <div className="flex-1">
                                             <SliderInput
@@ -1123,46 +1033,85 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                                     </>
                                 )}
 
-                                <PropertySection title="Animation">
-                                    <ControlRow label="Effect">
-                                        <IconGrid
-                                            value={obj.animation.type}
-                                            onChange={(v) => {
-                                                obj.animation.type = v as any;
-                                                engine.currentTime = 0;
-                                                engine.play();
-                                                setForceUpdate(n => n + 1);
-                                            }}
-                                            size="sm"
-                                            cols={2}
-                                            layout="horizontal"
-                                            options={[
-                                                { value: "none", label: "None", icon: <div className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-600" /> },
-                                                ...(obj instanceof TextObject ? [{ value: "typewriter", label: "Typewriter", icon: <Type size={14} /> }] : []),
-                                                { value: "fadeIn", label: "Fade", icon: <Activity size={14} className="opacity-50" /> },
-                                                { value: "slideUp", label: "Slide", icon: <ChevronUp size={14} /> },
-                                                { value: "scaleIn", label: "Scale", icon: <Minimize size={14} /> },
-                                                ...(obj instanceof ChartObject ? [{ value: "grow", label: "Grow", icon: <BarChart size={14} /> }] : [])
-                                            ]}
-                                        />
-                                    </ControlRow>
-
-                                    {obj.animation.type !== "none" && (
-                                        <ControlRow label="Duration">
+                                {obj instanceof BarChartRaceObject && (
+                                    <PropertySection title="Race Configuration">
+                                        <ControlRow label="Duration (Speed)">
                                             <SliderInput
-                                                value={obj.animation.duration}
-                                                min={100}
-                                                max={3000}
-                                                step={100}
-                                                onChange={(v) => {
-                                                    obj.animation.duration = v;
-                                                    setForceUpdate(n => n + 1);
-                                                }}
-                                                formatValue={(v) => `${v}ms`}
+                                                value={obj.duration}
+                                                min={1000}
+                                                max={30000}
+                                                step={500}
+                                                onChange={(v) => handleChange("duration", v)}
+                                                formatValue={(v) => `${(v / 1000).toFixed(1)}s`}
+                                            />
+                                            <div className="flex justify-between px-1 mt-1">
+                                                <span className="text-[10px] text-slate-400">Fast (1s)</span>
+                                                <span className="text-[10px] text-slate-400">Slow (30s)</span>
+                                            </div>
+                                        </ControlRow>
+                                        <ControlRow label="Bar Height">
+                                            <SliderInput
+                                                value={obj.barHeight}
+                                                min={20}
+                                                max={100}
+                                                onChange={(v) => handleChange("barHeight", v)}
+                                                formatValue={(v) => `${v}px`}
                                             />
                                         </ControlRow>
-                                    )}
-                                </PropertySection>
+                                        <ControlRow label="Gap">
+                                            <SliderInput
+                                                value={obj.gap}
+                                                min={0}
+                                                max={50}
+                                                onChange={(v) => handleChange("gap", v)}
+                                                formatValue={(v) => `${v}px`}
+                                            />
+                                        </ControlRow>
+                                    </PropertySection>
+                                )}
+
+                                {!(obj instanceof BarChartRaceObject) && (
+                                    <PropertySection title="Animation">
+                                        <ControlRow label="Effect">
+                                            <IconGrid
+                                                value={obj.animation.type}
+                                                onChange={(v) => {
+                                                    obj.animation.type = v as any;
+                                                    engine.currentTime = 0;
+                                                    engine.play();
+                                                    setForceUpdate(n => n + 1);
+                                                }}
+                                                size="sm"
+                                                cols={2}
+                                                layout="horizontal"
+                                                options={[
+                                                    { value: "none", label: "None", icon: <div className="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-600" /> },
+                                                    ...(obj instanceof TextObject ? [{ value: "typewriter", label: "Typewriter", icon: <Type size={14} /> }] : []),
+                                                    { value: "fadeIn", label: "Fade", icon: <Activity size={14} className="opacity-50" /> },
+                                                    { value: "slideUp", label: "Slide", icon: <ChevronUp size={14} /> },
+                                                    { value: "scaleIn", label: "Scale", icon: <Minimize size={14} /> },
+                                                    ...(obj instanceof ChartObject ? [{ value: "grow", label: "Grow", icon: <BarChart size={14} /> }] : [])
+                                                ]}
+                                            />
+                                        </ControlRow>
+
+                                        {obj.animation.type !== "none" && (
+                                            <ControlRow label="Duration">
+                                                <SliderInput
+                                                    value={obj.animation.duration}
+                                                    min={100}
+                                                    max={3000}
+                                                    step={100}
+                                                    onChange={(v) => {
+                                                        obj.animation.duration = v;
+                                                        setForceUpdate(n => n + 1);
+                                                    }}
+                                                    formatValue={(v) => `${v}ms`}
+                                                />
+                                            </ControlRow>
+                                        )}
+                                    </PropertySection>
+                                )}
 
                                 <div className="pt-4 px-1">
                                     <button
@@ -1198,80 +1147,89 @@ export const PropertiesPanel = ({ engine, selectedId, exportConfig, setExportCon
                                     </div>
                                 </div>
 
-                                <div className="text-[10px] uppercase text-slate-500 font-bold mt-4 mb-2">In Animation</div>
-                                {(() => {
-                                    const commonAnims = [
-                                        { id: "none", label: "None", className: "" },
-                                        { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
-                                        { id: "slideUp", label: "Slide Up", className: "group-hover:animate-bounce" },
-                                        { id: "scaleIn", label: "Scale In", className: "group-hover:scale-75 transition-transform" },
-                                    ];
-
-                                    let displayAnims = commonAnims;
-
-                                    if (obj instanceof ChartObject) {
-                                        displayAnims = [
-                                            { id: "none", label: "None", className: "" },
-                                            { id: "grow", label: "Grow", className: "group-hover:scale-y-110 transition-transform origin-bottom" },
-                                            { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
-                                        ];
-                                    } else if (obj instanceof TextObject) {
-                                        displayAnims = [
-                                            ...commonAnims,
-                                            { id: "typewriter", label: "Typewriter", className: "" },
-                                        ];
-                                    } else if (obj instanceof CodeBlockObject) {
-                                        displayAnims = [
-                                            { id: "none", label: "None", className: "" },
-                                            { id: "typewriter", label: "Typewriter", className: "" },
-                                            { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
-                                        ];
-                                    }
-
-                                    return (
-                                        <IconGrid
-                                            value={obj.animation?.type || "none"}
-                                            onChange={(v) => {
-                                                if (obj.animation) {
-                                                    obj.animation.type = v as any;
-                                                    engine.currentTime = 0;
-                                                    engine.play();
-                                                    setForceUpdate(n => n + 1);
-                                                }
-                                            }}
-                                            cols={2}
-                                            layout="horizontal"
-                                            size="sm"
-                                            options={displayAnims.map(anim => ({
-                                                value: anim.id,
-                                                label: anim.label,
-                                                icon: anim.id === "none" ? <div className="w-1.5 h-1.5 bg-current rounded-full" /> : <Play size={14} className={anim.className} />
-                                            }))}
-                                        />
-                                    );
-                                })()}
-
-                                {obj.animation?.type !== "none" && (
-                                    <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                                        <div>
-                                            <div className="flex justify-between mb-1">
-                                                <label className="text-[10px] uppercase text-slate-500 font-bold">Duration</label>
-                                                <span className="text-[10px] font-mono text-slate-500">{obj.animation.duration}ms</span>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min={100}
-                                                max={3000}
-                                                step={100}
-                                                value={obj.animation.duration}
-                                                onChange={(e) => {
-                                                    obj.animation.duration = Number(e.target.value);
-                                                    setForceUpdate(n => n + 1);
-                                                }}
-                                                className="w-full"
-                                            />
-                                        </div>
+                                {obj instanceof BarChartRaceObject ? (
+                                    <div className="text-center text-slate-400 py-8 text-sm">
+                                        Motion animations are disabled for this object type.
+                                        Use the "Race Configuration" in properties to adjust the animation.
                                     </div>
+                                ) : (
+                                    <>
+                                        <div className="text-[10px] uppercase text-slate-500 font-bold mt-4 mb-2">In Animation</div>
+                                        {(() => {
+                                            const commonAnims = [
+                                                { id: "none", label: "None", className: "" },
+                                                { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
+                                                { id: "slideUp", label: "Slide Up", className: "group-hover:animate-bounce" },
+                                                { id: "scaleIn", label: "Scale In", className: "group-hover:scale-75 transition-transform" },
+                                            ];
+
+                                            let displayAnims = commonAnims;
+
+                                            if (obj instanceof ChartObject) {
+                                                displayAnims = [
+                                                    { id: "none", label: "None", className: "" },
+                                                    { id: "grow", label: "Grow", className: "group-hover:scale-y-110 transition-transform origin-bottom" },
+                                                    { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
+                                                ];
+                                            } else if (obj instanceof TextObject) {
+                                                displayAnims = [
+                                                    ...commonAnims,
+                                                    { id: "typewriter", label: "Typewriter", className: "" },
+                                                ];
+                                            } else if (obj instanceof CodeBlockObject) {
+                                                displayAnims = [
+                                                    { id: "none", label: "None", className: "" },
+                                                    { id: "typewriter", label: "Typewriter", className: "" },
+                                                    { id: "fadeIn", label: "Fade In", className: "group-hover:animate-pulse" },
+                                                ];
+                                            }
+
+                                            return (
+                                                <IconGrid
+                                                    value={obj.animation?.type || "none"}
+                                                    onChange={(v) => {
+                                                        if (obj.animation) {
+                                                            obj.animation.type = v as any;
+                                                            engine.currentTime = 0;
+                                                            engine.play();
+                                                            setForceUpdate(n => n + 1);
+                                                        }
+                                                    }}
+                                                    cols={2}
+                                                    layout="horizontal"
+                                                    size="sm"
+                                                    options={displayAnims.map(anim => ({
+                                                        value: anim.id,
+                                                        label: anim.label,
+                                                        icon: anim.id === "none" ? <div className="w-1.5 h-1.5 bg-current rounded-full" /> : <Play size={14} className={anim.className} />
+                                                    }))}
+                                                />
+                                            );
+                                        })()}
+
+                                        {obj.animation?.type !== "none" && (
+                                            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                                                <div>
+                                                    <div className="flex justify-between mb-1">
+                                                        <label className="text-[10px] uppercase text-slate-500 font-bold">Duration</label>
+                                                        <span className="text-[10px] font-mono text-slate-500">{obj.animation.duration}ms</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min={100}
+                                                        max={3000}
+                                                        step={100}
+                                                        value={obj.animation.duration}
+                                                        onChange={(e) => {
+                                                            obj.animation.duration = Number(e.target.value);
+                                                            setForceUpdate(n => n + 1);
+                                                        }}
+                                                        className="w-full"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}

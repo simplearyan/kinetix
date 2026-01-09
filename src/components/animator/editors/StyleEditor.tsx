@@ -112,6 +112,26 @@ const StyleEditor: React.FC = () => {
                             className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
                         />
                     </div>
+
+                    {/* Animation Speed (Duration per Round) */}
+                    <div className="space-y-2">
+                        <div className="flex justify-between text-xs text-slate-400">
+                            <span>Speed (Frames per Year)</span>
+                            <span>{barChartStyle.roundDuration}</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="10"
+                            max="120"
+                            value={barChartStyle.roundDuration || 60}
+                            onChange={(e) => setBarChartStyle({ roundDuration: Number(e.target.value) })}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                        />
+                        <div className="flex justify-between text-[10px] text-slate-500 px-1">
+                            <span>Fast</span>
+                            <span>Slow</span>
+                        </div>
+                    </div>
                 </div>
             )}
 

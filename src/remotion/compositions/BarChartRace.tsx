@@ -21,6 +21,7 @@ interface BarChartStyle {
     fontSize: number;
     labelColor: string;
     containerPadding: number;
+    roundDuration: number;
 }
 
 interface BarChartRaceProps {
@@ -41,21 +42,22 @@ export const BarChartRace: React.FC<BarChartRaceProps> = ({ data, maxItems = 5, 
         gap: 20,
         fontSize: 24,
         labelColor: '#cbd5e1',
-        containerPadding: 80
+        containerPadding: 80,
+        roundDuration: 60
     };
 
-    const { barHeight, gap, fontSize, labelColor, containerPadding } = chartStyle;
+    const { barHeight, gap, fontSize, labelColor, containerPadding, roundDuration } = chartStyle;
 
     // 1. Determine "Time"
-    // Assume 1 year = 60 frames (2 seconds)
-    const FRAMES_PER_YEAR = 60;
+    // Use dynamic round duration (frames per year)
+    const framesPerYear = roundDuration || 60;
     const safeData = data || [];
     const totalYears = safeData.length;
 
     if (totalYears === 0) return <div className="flex h-full w-full justify-center items-center text-white text-4xl font-bold">No Data</div>;
 
     // Which year index are we at?
-    const progressTotal = frame / FRAMES_PER_YEAR;
+    const progressTotal = frame / framesPerYear;
     const currentIndex = Math.min(Math.floor(progressTotal), totalYears - 2);
     const progressInYear = progressTotal - currentIndex; // 0 to 1
 

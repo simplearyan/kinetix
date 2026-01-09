@@ -23,6 +23,7 @@ export interface BarChartStyle {
     fontSize: number;
     labelColor: string;
     containerPadding: number;
+    roundDuration: number;
 }
 
 interface AnimatorState {
@@ -98,7 +99,8 @@ export const useAnimatorStore = create<AnimatorState>((set) => ({
         gap: 20,
         fontSize: 24, // Value font size
         labelColor: '#cbd5e1', // slate-300
-        containerPadding: 80
+        containerPadding: 80,
+        roundDuration: 60 // Frames per "year"
     },
     setBarChartStyle: (style) => set((state) => ({ barChartStyle: { ...state.barChartStyle, ...style } })),
 
