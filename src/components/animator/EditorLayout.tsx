@@ -25,7 +25,8 @@ const EditorLayout: React.FC = () => {
         barChartData,
         currentCode,
         setIsInterstitialOpen,
-        backgroundColor // Get background color
+        backgroundColor, // Get background color
+        canvasSize // Get canvas size
     } = useAnimatorStore();
 
     const [isLibraryOpen, setIsLibraryOpen] = useState(false);
@@ -107,6 +108,8 @@ const EditorLayout: React.FC = () => {
                     durationInFrames={activeDuration}
                     component={activeComponent}
                     inputProps={inputProps}
+                    width={canvasSize.width}
+                    height={canvasSize.height}
                 />
 
                 {/* Mobile Library Drawer (Overlay) */}
@@ -181,15 +184,15 @@ const EditorLayout: React.FC = () => {
                 {/* Center Canvas (Responsive) */}
                 <div className="flex-1 flex flex-col bg-[#020617] relative overflow-hidden">
                     {/* Player Container */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8">
-                        <div ref={wrapperRef} className="w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl border border-slate-800 ring-1 ring-slate-700/50 bg-black relative z-10">
+                    <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-8 overflow-hidden">
+                        <div ref={wrapperRef} style={{ aspectRatio: `${canvasSize.width}/${canvasSize.height}` }} className="w-full max-w-5xl max-h-[70vh] rounded-xl overflow-hidden shadow-2xl border border-slate-800 ring-1 ring-slate-700/50 bg-black relative z-10 transition-all duration-300">
                             <Player
                                 ref={playerRef}
                                 component={activeComponent}
                                 durationInFrames={activeDuration}
                                 fps={30}
-                                compositionWidth={1920}
-                                compositionHeight={1080}
+                                compositionWidth={canvasSize.width}
+                                compositionHeight={canvasSize.height}
                                 style={{ width: '100%', height: '100%' }}
                                 controls
                                 inputProps={inputProps}

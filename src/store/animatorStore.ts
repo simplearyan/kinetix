@@ -52,6 +52,11 @@ interface AnimatorState {
     // Style State
     backgroundColor: string;
     setBackgroundColor: (color: string) => void;
+
+    // Video Settings
+    aspectRatio: '16:9' | '9:16' | '1:1' | '3:4' | '4:3' | '4:5';
+    canvasSize: { width: number; height: number };
+    setAspectRatio: (ratio: '16:9' | '9:16' | '1:1' | '3:4' | '4:3' | '4:5') => void;
 }
 
 export const useAnimatorStore = create<AnimatorState>((set) => ({
@@ -96,4 +101,23 @@ export const useAnimatorStore = create<AnimatorState>((set) => ({
     // Style State
     backgroundColor: '#1E1E1E',
     setBackgroundColor: (color: string) => set({ backgroundColor: color }),
+
+    // Video Settings
+    aspectRatio: '16:9',
+    canvasSize: { width: 1920, height: 1080 },
+    setAspectRatio: (ratio: '16:9' | '9:16' | '1:1' | '3:4' | '4:3' | '4:5') => {
+        let width = 1920;
+        let height = 1080;
+
+        switch (ratio) {
+            case '16:9': width = 1920; height = 1080; break;
+            case '9:16': width = 1080; height = 1920; break;
+            case '1:1': width = 1080; height = 1080; break;
+            case '3:4': width = 1080; height = 1440; break;
+            case '4:3': width = 1440; height = 1080; break;
+            case '4:5': width = 1080; height = 1350; break;
+        }
+
+        set({ aspectRatio: ratio, canvasSize: { width, height } });
+    },
 }));

@@ -2,7 +2,7 @@ import React from 'react';
 import { useAnimatorStore } from '../../../store/animatorStore';
 
 const StyleEditor: React.FC = () => {
-    const { backgroundColor, setBackgroundColor } = useAnimatorStore();
+    const { backgroundColor, setBackgroundColor, aspectRatio, setAspectRatio } = useAnimatorStore();
 
     const presets = [
         '#1E1E1E', // Default Dark
@@ -16,7 +16,30 @@ const StyleEditor: React.FC = () => {
     ];
 
     return (
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-8">
+            {/* Aspect Ratio Section */}
+            <div className="space-y-3">
+                <label className="text-sm font-medium text-slate-300">Aspect Ratio</label>
+                <div className="grid grid-cols-3 gap-2">
+                    {(['16:9', '9:16', '1:1', '3:4', '4:3', '4:5'] as const).map((ratio) => (
+                        <button
+                            key={ratio}
+                            onClick={() => setAspectRatio(ratio)}
+                            className={`
+                                py-2 px-3 rounded-lg text-sm font-medium transition-all border
+                                ${aspectRatio === ratio
+                                    ? 'bg-sky-500/20 border-sky-500 text-sky-400 shadow-[0_0_15px_-3px_rgba(14,165,233,0.3)]'
+                                    : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                                }
+                            `}
+                        >
+                            {ratio}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Background Color Section */}
             <div className="space-y-3">
                 <label className="text-sm font-medium text-slate-300">Background Color</label>
 
@@ -54,7 +77,7 @@ const StyleEditor: React.FC = () => {
 
             <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                 <p className="text-xs text-slate-400 leading-relaxed">
-                    Set the global background color for your animation. This color will be included in the exported video.
+                    Set the global style for your animation. Aspect ratio determines the dimensions of the exported video.
                 </p>
             </div>
         </div>

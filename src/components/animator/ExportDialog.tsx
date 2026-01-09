@@ -10,9 +10,11 @@ interface ExportDialogProps {
     durationInFrames: number;
     component: React.ComponentType<any>;
     inputProps: any;
+    width: number;
+    height: number;
 }
 
-const ExportDialog: React.FC<ExportDialogProps> = ({ durationInFrames, component, inputProps }) => {
+const ExportDialog: React.FC<ExportDialogProps> = ({ durationInFrames, component, inputProps, width, height }) => {
     const { isExportOpen, setIsExportOpen } = useAnimatorStore();
     const [progress, setProgress] = useState(0);
     const [status, setStatus] = useState<'idle' | 'rendering' | 'encoding' | 'complete' | 'error'>('idle');
@@ -60,14 +62,11 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ durationInFrames, component
         setStatus('rendering');
         setProgress(0);
 
-        const width = 1920;
-        const height = 1080;
         const fps = 30;
-
         const durationInMs = (durationInFrames / fps) * 1000;
 
         // 1. Configure Worker
-        setExportLogs(['Starting Export...']);
+        setExportLogs(['Starting Export...', `Resolution: ${width}x${height}`]);
 
         const format = isMp4 ? 'mp4' : 'webm';
         workerRef.current?.postMessage({
@@ -113,8 +112,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ durationInFrames, component
 
                 if (containerToCapture) {
                     const blob = await toBlob(containerToCapture, {
-                        width: 1920,
-                        height: 1080,
+                        width: width,
+                        height: height,
                         skipFonts: true,
                         style: {
                             visibility: 'visible',
@@ -166,8 +165,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ durationInFrames, component
                     position: 'fixed',
                     top: 0,
                     left: '200vw', // Move WAY off-screen, right? Or just 100vw.
-                    width: '1920px',
-                    height: '1080px',
+                    width: `${width}px`,
+                    height: `${height}px`,
                     zIndex: -9999,
                     visibility: 'visible', // Must be visible for html-to-image
                     background: 'black',
@@ -180,8 +179,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ durationInFrames, component
                         component={component}
                         durationInFrames={durationInFrames}
                         fps={30}
-                        compositionWidth={1920}
-                        compositionHeight={1080}
+                        compositionWidth={width}
+                        compositionHeight={height}
                         style={{ width: '100%', height: '100%' }}
                         inputProps={inputProps}
                         controls={false}
@@ -201,6 +200,8 @@ const ExportDialog: React.FC<ExportDialogProps> = ({ durationInFrames, component
                 <h2 className="text-xl font-bold text-white mb-2">Export Video</h2>
                 <p className="text-slate-400 text-sm mb-6">
                     Rendering locally using your device power.
+                    <br />
+                    <span className="text-xs text-slate-500 font-mono">Output: {width}x{height} @ 30fps</span>
                 </p>
 
                 {status === 'idle' && (

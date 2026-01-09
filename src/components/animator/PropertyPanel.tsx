@@ -7,15 +7,27 @@ import CodeEditor from './editors/CodeEditor';
 import StyleEditor from './editors/StyleEditor';
 
 const PropertyPanel: React.FC = () => {
-    const { activeTab, setActiveTab } = useAnimatorStore();
+    const { activeTab, setActiveTab, activeCompositionId } = useAnimatorStore();
 
-    const tabs: { id: AnimatorTab; label: string; icon: React.ElementType }[] = [
+    const allTabs: { id: AnimatorTab; label: string; icon: React.ElementType }[] = [
         { id: 'data', label: 'Data', icon: LayoutGrid },
         { id: 'math', label: 'Math', icon: Calculator },
         { id: 'code', label: 'Code', icon: Code2 },
         { id: 'style', label: 'Style', icon: Palette },
         { id: 'motion', label: 'Motion', icon: Activity },
     ];
+
+    const tabs = allTabs.filter(tab => {
+        // Global tabs always visible
+        if (tab.id === 'style' || tab.id === 'motion') return true;
+
+        // Contextual tabs
+        if (activeCompositionId === 'BarChartRace' && tab.id === 'data') return true;
+        if (activeCompositionId === 'MathFormula' && tab.id === 'math') return true;
+        if (activeCompositionId === 'CodeBlock' && tab.id === 'code') return true;
+
+        return false;
+    });
 
     const renderContent = () => {
         switch (activeTab) {
