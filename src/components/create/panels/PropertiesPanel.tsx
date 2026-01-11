@@ -32,6 +32,7 @@ import {
     Settings,
     ArrowUp,
     ArrowDown,
+    RotateCcw,
     Copy,
     Trash2,
     MonitorPlay,
@@ -647,7 +648,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                                         className="w-full bg-transparent text-xs font-mono outline-none"
                                                     />
                                                 </div>
-                                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg px-2 py-1">
+                                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg px-2 py-1 flex-1">
                                                     <span className="text-[10px] text-slate-400">H</span>
                                                     <input
                                                         type="number"
@@ -656,6 +657,13 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                                         className="w-full bg-transparent text-xs font-mono outline-none"
                                                     />
                                                 </div>
+                                                <button
+                                                    onClick={() => { handleChange("width", 200); handleChange("height", 200); }}
+                                                    className="p-1.5 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
+                                                    title="Reset Dimensions"
+                                                >
+                                                    <RotateCcw size={12} />
+                                                </button>
                                             </div>
                                             <div className="flex items-center gap-2 mt-2 cursor-pointer" onClick={() => setIsRatioLocked(!isRatioLocked)}>
                                                 {isRatioLocked ? <Link2 size={12} className="text-indigo-500" /> : <Unlink2 size={12} className="text-slate-400" />}
@@ -663,11 +671,20 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                             </div>
                                         </ControlRow>
                                         <ControlRow label="Rotation">
-                                            <Slider
-                                                value={Math.round(obj.rotation || 0)}
-                                                min={-180} max={180}
-                                                onChange={(v) => handleChange("rotation", v)}
-                                            />
+                                            <div className="flex items-center gap-2">
+                                                <Slider
+                                                    value={Math.round(obj.rotation || 0)}
+                                                    min={-180} max={180}
+                                                    onChange={(v) => handleChange("rotation", v)}
+                                                />
+                                                <button
+                                                    onClick={() => handleChange("rotation", 0)}
+                                                    className="p-1.5 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
+                                                    title="Reset Rotation"
+                                                >
+                                                    <RotateCcw size={12} />
+                                                </button>
+                                            </div>
                                         </ControlRow>
                                         <ControlRow label="Opacity">
                                             <Slider

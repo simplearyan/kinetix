@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Engine } from "../../../engine/Core";
 import { Slider } from "../ui/InspectorUI";
 import { BottomSheet } from "../panels/BottomSheet";
-import { MoveHorizontal, MoveVertical, RotateCw } from "lucide-react";
+import { MoveHorizontal, MoveVertical, RotateCw, RotateCcw } from "lucide-react";
 
 interface AdjustDrawerProps {
     engine: Engine | null;
@@ -61,9 +61,20 @@ export const AdjustDrawer: React.FC<AdjustDrawerProps> = ({ engine, selectedId, 
                             <activeConfig.icon size={14} />
                             <span>{activeConfig.label}</span>
                         </div>
-                        <span className="text-slate-900 dark:text-white">
-                            {Math.round(currentValue)}{activeConfig.unit}
-                        </span>
+                        <div className="flex items-center gap-3">
+                            <span className="text-slate-900 dark:text-white">
+                                {Math.round(currentValue)}{activeConfig.unit}
+                            </span>
+                            <button
+                                onClick={() => {
+                                    const defaults: Record<string, number> = { width: 200, height: 200, rotation: 0 };
+                                    handleChange(activeProperty, defaults[activeProperty]);
+                                }}
+                                className="p-1 rounded-full text-slate-400 hover:text-indigo-600 dark:hover:text-white bg-slate-200 dark:bg-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 transition-colors"
+                            >
+                                <RotateCcw size={12} />
+                            </button>
+                        </div>
                     </div>
                     <div className="py-2">
                         <Slider
@@ -83,8 +94,8 @@ export const AdjustDrawer: React.FC<AdjustDrawerProps> = ({ engine, selectedId, 
                             key={prop.id}
                             onClick={() => setActiveProperty(prop.id as AdjustProperty)}
                             className={`flex flex-col items-center justify-center gap-1 min-w-[72px] h-[72px] rounded-xl border transition-all shrink-0 ${activeProperty === prop.id
-                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-md scale-105"
-                                    : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                ? "bg-indigo-600 border-indigo-600 text-white shadow-md scale-105"
+                                : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"
                                 }`}
                         >
                             <prop.icon size={22} strokeWidth={2} />
