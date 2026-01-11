@@ -24,33 +24,7 @@ export const CodeBlockSettings: React.FC<CodeBlockSettingsProps> = ({ object: ob
     if (variant === "mobile") {
         return (
             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4">
-                {activeTab === "theme" && (
-                    <>
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Editor Theme</span>
-                        <ControlRow label="Theme">
-                            <select
-                                className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
-                                value={obj.theme}
-                                onChange={(e) => handleChange("theme", e.target.value)}
-                            >
-                                <option value="vscode-dark">VS Code Dark</option>
-                                <option value="light">Light</option>
-                                <option value="monokai">Monokai</option>
-                                <option value="github-dark">GitHub Dark</option>
-                                <option value="dracula">Dracula</option>
-                            </select>
-                        </ControlRow>
-                        <div className="space-y-1">
-                            <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Font Size</span><span>{obj.fontSize}px</span></div>
-                            <Slider
-                                value={obj.fontSize}
-                                min={8} max={100}
-                                onChange={(v) => handleChange("fontSize", v)}
-                                compact={false}
-                            />
-                        </div>
-                    </>
-                )}
+
 
                 {activeTab === "settings" && (
                     <>

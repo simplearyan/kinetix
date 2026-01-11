@@ -167,14 +167,21 @@ export const Toggle: React.FC<ToggleProps> = ({ value, onChange, label, size = "
 
 export const Slider: React.FC<SliderProps> = ({ value, min, max, step = 1, onChange, formatValue, compact }) => {
     const percentage = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+    const isBipolar = min < 0 && max > 0;
+    const centerPercentage = isBipolar ? ((0 - min) / (max - min)) * 100 : 0;
 
     return (
         <div className={`relative flex w-full items-center cursor-pointer touch-none select-none group ${compact ? 'h-6' : 'h-8'}`}>
             {/* Track Background */}
-            <div className={`w-full rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 ${compact ? 'h-1' : 'h-1.5'}`}>
+            <div className={`relative w-full rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 ${compact ? 'h-1' : 'h-1.5'}`}>
+                {/* Center Tick for Bipolar Sliders */}
+                {isBipolar && (
+                    <div className="absolute top-0 bottom-0 w-0.5 bg-slate-400/50 dark:bg-slate-600 z-10" style={{ left: `${centerPercentage}%` }} />
+                )}
+
                 {/* Fill */}
                 <div
-                    className="h-full bg-indigo-500 rounded-full"
+                    className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full"
                     style={{ width: `${percentage}%` }}
                 />
             </div>
@@ -196,8 +203,8 @@ export const Slider: React.FC<SliderProps> = ({ value, min, max, step = 1, onCha
                 style={{ left: `calc(${percentage}% - ${compact ? 6 : 8}px)` }}
             />
 
-            {/* Hover Tooltip (if needed) */}
-            <div className="absolute right-0 -top-6 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-slate-100 dark:border-slate-700 z-10">
+            {/* Hover Tooltip */}
+            <div className="absolute right-0 -top-8 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-slate-100 dark:border-slate-700 z-10 translate-y-2">
                 {formatValue ? formatValue(value) : value}
             </div>
         </div>

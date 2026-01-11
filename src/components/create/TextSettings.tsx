@@ -86,6 +86,17 @@ export const TextSettings: React.FC<TextSettingsProps> = ({
                             <option value="Verdana">Verdana</option>
                         </select>
                     </ControlRow>
+                    <ControlRow label="Size" layout={isMobile ? "vertical" : "horizontal"}>
+                        <div className="space-y-1 w-full">
+                            {isMobile && <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Size</span><span>{obj.fontSize}px</span></div>}
+                            <Slider
+                                value={obj.fontSize || 40}
+                                min={8} max={400}
+                                onChange={(v) => handleChange("fontSize", v)}
+                                compact={!isMobile}
+                            />
+                        </div>
+                    </ControlRow>
                 </div>
             )}
 

@@ -21,6 +21,12 @@ import { CharacterObject } from "../../engine/objects/CharacterObject";
 import { CodeBlockObject } from "../../engine/objects/CodeBlockObject";
 import { ParticleTextObject } from "../../engine/objects/ParticleTextObject";
 import { BarChartRaceObject } from "../../engine/objects/BarChartRaceObject";
+import { MotionDrawer } from "./MotionDrawer";
+import { ThemeDrawer } from "./ThemeDrawer";
+import { AdjustDrawer } from "./AdjustDrawer";
+import { SettingsDrawer } from "./SettingsDrawer";
+import { FontDrawer } from "./FontDrawer";
+import { StyleDrawer } from "./StyleDrawer";
 
 // Use a simple local context or prop drilling for this "one-page app"
 // to keep it self-contained for now.
@@ -60,7 +66,7 @@ export const EditorLayout = () => {
         } else {
             setSelectedObjectType(null);
             // Close any object-specific sheets when deselected
-            if (['edit', 'font', 'style', 'motion', 'adjust'].includes(activeBottomTab || '')) {
+            if (['edit', 'font', 'style', 'motion', 'adjust', 'settings'].includes(activeBottomTab || '')) {
                 setActiveBottomTab(null);
             }
         }
@@ -278,7 +284,7 @@ export const EditorLayout = () => {
                         ref={mainCanvasContainerRef}
                         className="relative z-40 lg:relative flex flex-col w-full min-w-0 min-h-0 bg-slate-100 dark:bg-[#020617] border-b border-slate-200 dark:border-slate-800 lg:border-none lg:flex-1"
                     >
-                        <div className="w-full h-auto max-h-[55vh] lg:max-h-none lg:flex-1 lg:min-h-0 flex items-center justify-center bg-slate-900/5 dark:bg-black/20 p-8">
+                        <div className="w-full h-auto max-h-[55vh] lg:max-h-none lg:flex-1 lg:min-h-0 flex items-center justify-center bg-slate-900/5 dark:bg-black/20 p-0 mt-8 mb-4">
                             <CanvasWorkspace
                                 ref={canvasRef}
                                 aspectRatio={canvasAspectRatio}
@@ -346,6 +352,7 @@ export const EditorLayout = () => {
                             hasSelection={!!selectedId}
                             selectedObjectType={selectedObjectType}
                             isFullscreen={isFullscreen}
+                            onCloseContext={() => setSelectedId(null)}
                         />
 
                         {/* Mobile Bottom Sheets */}
@@ -378,9 +385,8 @@ export const EditorLayout = () => {
                             </div>
                         </BottomSheet>
 
-                        {/* 2. EDIT SHEET (Context Aware) */}
                         <BottomSheet
-                            isOpen={['edit', 'font', 'style', 'motion', 'adjust', 'theme', 'settings'].includes(activeBottomTab || '')}
+                            isOpen={['edit'].includes(activeBottomTab || '')}
                             onClose={() => setActiveBottomTab(null)}
                             title="Edit Properties"
                             initialSnap={0.5}
@@ -392,7 +398,7 @@ export const EditorLayout = () => {
                                 selectedId={selectedId}
                                 isMobileSheet
                                 // Pass the active tab as the category to show
-                                externalMobileCategory={['font', 'style', 'motion', 'adjust', 'theme', 'settings'].includes(activeBottomTab || '') ? activeBottomTab as string : undefined}
+                                externalMobileCategory={['font', 'style'].includes(activeBottomTab || '') ? activeBottomTab as string : undefined}
                             />
                         </BottomSheet>
 
@@ -411,6 +417,54 @@ export const EditorLayout = () => {
                                 initialTab="layers"
                             />
                         </BottomSheet>
+
+                        {/* 4. MOTION DRAWER */}
+                        <MotionDrawer
+                            engine={engine}
+                            selectedId={selectedId}
+                            isOpen={activeBottomTab === 'motion'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
+
+                        {/* 5. THEME DRAWER */}
+                        <ThemeDrawer
+                            engine={engine}
+                            selectedId={selectedId}
+                            isOpen={activeBottomTab === 'theme'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
+
+                        {/* 6. ADJUST DRAWER */}
+                        <AdjustDrawer
+                            engine={engine}
+                            selectedId={selectedId}
+                            isOpen={activeBottomTab === 'adjust'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
+
+                        {/* 7. SETTINGS DRAWER */}
+                        <SettingsDrawer
+                            engine={engine}
+                            selectedId={selectedId}
+                            isOpen={activeBottomTab === 'settings'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
+
+                        {/* 8. FONT DRAWER */}
+                        <FontDrawer
+                            engine={engine}
+                            selectedId={selectedId}
+                            isOpen={activeBottomTab === 'font'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
+
+                        {/* 9. STYLE DRAWER */}
+                        <StyleDrawer
+                            engine={engine}
+                            selectedId={selectedId}
+                            isOpen={activeBottomTab === 'style'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
 
                     </div>
                 </div>

@@ -38,6 +38,10 @@ import {
     Type,
     Sparkles,
     Keyboard,
+    Maximize,
+    Ban,
+    ArrowRight,
+    Zap,
     Palette,
     User,
     Link2,
@@ -49,8 +53,7 @@ import {
     EyeOff,
     X,
     Maximize2,
-    ArrowLeft,
-    ArrowRight
+    ArrowLeft
 } from "lucide-react";
 
 import { FontPicker } from "./FontPicker";
@@ -210,17 +213,10 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
         if (obj instanceof TextObject) {
             categories = [
                 { id: "keyboard", label: "Edit", icon: <Keyboard size={20} /> }, // Action
-                { id: "font", label: "Font", icon: <Type size={20} /> },
-                { id: "style", label: "Style", icon: <Palette size={20} /> },
-                { id: "motion", label: "Motion", icon: <Sparkles size={20} /> },
-                { id: "adjust", label: "Adjust", icon: <SlidersHorizontal size={20} /> },
             ];
         } else {
             categories = [
-                { id: "layout", label: "Adjust", icon: <SlidersHorizontal size={20} /> },
-                { id: "style", label: "Style", icon: <Palette size={20} /> },
                 ...(obj instanceof CharacterObject ? [{ id: "character", label: "Character", icon: <User size={20} /> }] : []),
-                { id: "motion", label: "Motion", icon: <Sparkles size={20} /> },
             ];
         }
 
@@ -261,230 +257,132 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                 )}
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {/* FONT Tab */}
-                    {activeMobileCategory === "font" && obj instanceof TextObject && (
-                        <div className="p-4">
-                            <TextSettings
-                                object={obj}
-                                engine={engine}
-                                variant="mobile"
-                                section="font"
-                                onUpdate={() => setForceUpdate(n => n + 1)}
-                            />
+
+
+
+
+                    {/* Mobile: Character Properties */}
+                    {obj instanceof CharacterObject && (
+                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4">
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Character</span>
+                            <ControlRow label="Animation">
+                                <select
+                                    className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
+                                    value={obj.currentAnimation}
+                                    onChange={(e) => handleChange("currentAnimation", e.target.value)}
+                                >
+                                    <option value="idle">Idle</option>
+                                    <option value="wave">Wave</option>
+                                    <option value="think">Thinking</option>
+                                    <option value="walk">Walking</option>
+                                    <option value="explain">Explain</option>
+                                </select>
+                            </ControlRow>
+                            <ControlRow label="Costume">
+                                <select
+                                    className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
+                                    value={obj.costume}
+                                    onChange={(e) => handleChange("costume", e.target.value)}
+                                >
+                                    <option value="casual">Casual</option>
+                                    <option value="suit">Suit</option>
+                                    <option value="superhero">Superhero</option>
+                                </select>
+                            </ControlRow>
+                            <ControlRow label="Colors" layout="vertical">
+                                <div className="flex gap-4">
+                                    <div className="flex flex-col gap-1 items-center">
+                                        <span className="text-[9px] text-slate-400">Skin</span>
+                                        <ColorPicker value={obj.skinColor} onChange={(v) => handleChange("skinColor", v)} size="sm" />
+                                    </div>
+                                    <div className="flex flex-col gap-1 items-center">
+                                        <span className="text-[9px] text-slate-400">Hair</span>
+                                        <ColorPicker value={obj.hairColor} onChange={(v) => handleChange("hairColor", v)} size="sm" />
+                                    </div>
+                                    <div className="flex flex-col gap-1 items-center">
+                                        <span className="text-[9px] text-slate-400">Costume</span>
+                                        <ColorPicker value={obj.costumeColor} onChange={(v) => handleChange("costumeColor", v)} size="sm" />
+                                    </div>
+                                </div>
+                            </ControlRow>
                         </div>
                     )}
 
-                    {/* LAYOUT / ADJUST / THEME / SETTINGS (Shared Container) */}
-                    {(activeMobileCategory === "layout" || activeMobileCategory === "adjust" || activeMobileCategory === "theme" || activeMobileCategory === "settings") && (
-                        <div className="p-4 space-y-6">
+                    {/* Mobile: CodeBlock Properties */}
+                    {obj instanceof CodeBlockObject && (
+                        <CodeBlockSettings
+                            object={obj}
+                            engine={engine}
+                            variant="mobile"
+                            activeTab={activeMobileCategory}
+                            onUpdate={() => setForceUpdate(n => n + 1)}
+                        />
+                    )}
 
-                            {/* Position & Size Card (Hide for Theme/Settings tabs for cleaner focus, or keep? Plan said Layout/Adjust) */}
-                            {/* Only show Position & Size if tab is adjust/layout */}
-                            {(activeMobileCategory === "layout" || activeMobileCategory === "adjust") && (
-                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Position & Size</span>
+                    {/* Mobile: Chart Properties */}
+                    {obj instanceof ChartObject && (
+                        <ChartSettings
+                            object={obj}
+                            engine={engine}
+                            variant="mobile"
+                            onUpdate={() => setForceUpdate(n => n + 1)}
+                        />
+                    )}
 
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Width</span><span>{Math.round(obj.width)}</span></div>
-                                        <Slider
-                                            value={Math.round(obj.width)}
-                                            min={10} max={1000}
-                                            onChange={(v: number) => {
-                                                const oldW = obj.width;
-                                                const ratio = obj.height / oldW;
-                                                handleChange("width", v);
-                                                if (isRatioLocked) handleChange("height", Math.round(v * ratio));
-                                            }}
-                                            compact={false}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Rotation</span><span>{Math.round(obj.rotation || 0)}°</span></div>
-                                        <Slider
-                                            value={Math.round(obj.rotation || 0)}
-                                            min={-180} max={180}
-                                            onChange={(v: number) => handleChange("rotation", v)}
-                                            compact={false}
-                                        />
-                                    </div>
-                                    {obj instanceof TextObject && (
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Font Size</span><span>{obj.fontSize}px</span></div>
-                                            <Slider
-                                                value={obj.fontSize || 16}
-                                                min={8} max={200}
-                                                onChange={(v: number) => handleChange("fontSize", v)}
-                                                compact={false}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                    {/* Mobile: BarChartRace Properties */}
+                    {obj instanceof BarChartRaceObject && (
+                        <BarChartRaceSettings
+                            object={obj}
+                            engine={engine}
+                            variant="mobile"
+                            onUpdate={() => setForceUpdate(n => n + 1)}
+                        />
+                    )}
 
-                            {/* Mobile: Character Properties */}
-                            {obj instanceof CharacterObject && (
-                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Character</span>
-                                    <ControlRow label="Animation">
-                                        <select
-                                            className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
-                                            value={obj.currentAnimation}
-                                            onChange={(e) => handleChange("currentAnimation", e.target.value)}
-                                        >
-                                            <option value="idle">Idle</option>
-                                            <option value="wave">Wave</option>
-                                            <option value="think">Thinking</option>
-                                            <option value="walk">Walking</option>
-                                            <option value="explain">Explain</option>
-                                        </select>
-                                    </ControlRow>
-                                    <ControlRow label="Costume">
-                                        <select
-                                            className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
-                                            value={obj.costume}
-                                            onChange={(e) => handleChange("costume", e.target.value)}
-                                        >
-                                            <option value="casual">Casual</option>
-                                            <option value="suit">Suit</option>
-                                            <option value="superhero">Superhero</option>
-                                        </select>
-                                    </ControlRow>
-                                    <ControlRow label="Colors" layout="vertical">
-                                        <div className="flex gap-4">
-                                            <div className="flex flex-col gap-1 items-center">
-                                                <span className="text-[9px] text-slate-400">Skin</span>
-                                                <ColorPicker value={obj.skinColor} onChange={(v) => handleChange("skinColor", v)} size="sm" />
-                                            </div>
-                                            <div className="flex flex-col gap-1 items-center">
-                                                <span className="text-[9px] text-slate-400">Hair</span>
-                                                <ColorPicker value={obj.hairColor} onChange={(v) => handleChange("hairColor", v)} size="sm" />
-                                            </div>
-                                            <div className="flex flex-col gap-1 items-center">
-                                                <span className="text-[9px] text-slate-400">Costume</span>
-                                                <ColorPicker value={obj.costumeColor} onChange={(v) => handleChange("costumeColor", v)} size="sm" />
-                                            </div>
-                                        </div>
-                                    </ControlRow>
-                                </div>
-                            )}
-
-                            {/* Mobile: CodeBlock Properties */}
-                            {obj instanceof CodeBlockObject && (
-                                <CodeBlockSettings
-                                    object={obj}
-                                    engine={engine}
-                                    variant="mobile"
-                                    activeTab={activeMobileCategory}
-                                    onUpdate={() => setForceUpdate(n => n + 1)}
+                    {/* Mobile: ParticleText Properties */}
+                    {obj instanceof ParticleTextObject && (
+                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4">
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Particle Text</span>
+                            <ControlRow label="Animation">
+                                <select
+                                    className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
+                                    value={obj.animType}
+                                    onChange={(e) => handleChange("animType", e.target.value)}
+                                >
+                                    <option value="none">Static</option>
+                                    <option value="explode">Explode</option>
+                                    <option value="vortex">Vortex</option>
+                                </select>
+                            </ControlRow>
+                            <div className="space-y-1">
+                                <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Gap</span><span>{obj.gap}</span></div>
+                                <Slider
+                                    value={obj.gap}
+                                    min={1} max={10}
+                                    onChange={(v) => handleChange("gap", v)}
+                                    compact={false}
                                 />
-                            )}
-
-                            {/* Mobile: Chart Properties */}
-                            {obj instanceof ChartObject && (
-                                <ChartSettings
-                                    object={obj}
-                                    engine={engine}
-                                    variant="mobile"
-                                    onUpdate={() => setForceUpdate(n => n + 1)}
-                                />
-                            )}
-
-                            {/* Mobile: BarChartRace Properties */}
-                            {obj instanceof BarChartRaceObject && (
-                                <BarChartRaceSettings
-                                    object={obj}
-                                    engine={engine}
-                                    variant="mobile"
-                                    onUpdate={() => setForceUpdate(n => n + 1)}
-                                />
-                            )}
-
-                            {/* Mobile: ParticleText Properties */}
-                            {obj instanceof ParticleTextObject && (
-                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-4">
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Particle Text</span>
-                                    <ControlRow label="Animation">
-                                        <select
-                                            className="w-full bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
-                                            value={obj.animType}
-                                            onChange={(e) => handleChange("animType", e.target.value)}
-                                        >
-                                            <option value="none">Static</option>
-                                            <option value="explode">Explode</option>
-                                            <option value="vortex">Vortex</option>
-                                        </select>
-                                    </ControlRow>
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Gap</span><span>{obj.gap}</span></div>
-                                        <Slider
-                                            value={obj.gap}
-                                            min={1} max={10}
-                                            onChange={(v) => handleChange("gap", v)}
-                                            compact={false}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Layering Card */}
-                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4">
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Layering</span>
-                                <div className="flex justify-between p-2">
-                                    <button onClick={() => engine.scene.moveUp(obj.id)} className="flex-1 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-white flex flex-col items-center gap-1">
-                                        <ArrowUp size={20} /> <span className="text-[10px] font-medium">Forward</span>
-                                    </button>
-                                    <button onClick={() => engine.scene.moveDown(obj.id)} className="flex-1 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-white flex flex-col items-center gap-1">
-                                        <ArrowDown size={20} /> <span className="text-[10px] font-medium">Backward</span>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* STYLE Tab */}
-                    {activeMobileCategory === "style" && (
-                        <>
-                            {obj instanceof TextObject ? (
-                                <div className="p-4">
-                                    <TextSettings
-                                        object={obj}
-                                        engine={engine}
-                                        variant="mobile"
-                                        section="style"
-                                        onUpdate={() => setForceUpdate(n => n + 1)}
-                                    />
-                                </div>
-                            ) : (
-                                <MobileControlGroup title="Appearance">
-                                    <div className="p-3 space-y-4">
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-[10px] text-slate-500 font-bold uppercase"><span>Opacity</span><span>{Math.round((obj.opacity ?? 1) * 100)}%</span></div>
-                                            <Slider
-                                                value={obj.opacity ?? 1}
-                                                min={0} max={1} step={0.01}
-                                                onChange={(v: number) => handleChange("opacity", v)}
-                                                compact={false}
-                                            />
-                                        </div>
-
-                                        {/* Generic Color Picker */}
-                                        {'color' in obj && (
-                                            <div className="space-y-2 pt-2 border-t border-white/5">
-                                                <span className="text-[10px] text-slate-500 font-bold uppercase">Color</span>
-                                                <ColorPicker
-                                                    value={(obj as any).color}
-                                                    onChange={(v: string) => handleChange("color", v)}
-                                                    size="md"
-                                                />
-                                            </div>
-                                        )}
-                                    </div>
-                                </MobileControlGroup>
-                            )}
-                        </>
+                    {/* Layering Card */}
+                    {!['theme', 'settings'].includes(activeMobileCategory) && (
+                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4">
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Layering</span>
+                            <div className="flex justify-between p-2">
+                                <button onClick={() => engine.scene.moveUp(obj.id)} className="flex-1 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-white flex flex-col items-center gap-1">
+                                    <ArrowUp size={20} /> <span className="text-[10px] font-medium">Forward</span>
+                                </button>
+                                <button onClick={() => engine.scene.moveDown(obj.id)} className="flex-1 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-white flex flex-col items-center gap-1">
+                                    <ArrowDown size={20} /> <span className="text-[10px] font-medium">Backward</span>
+                                </button>
+                            </div>
+                        </div>
                     )}
+
                 </div>
-            </MobilePropertyContainer>
+            </MobilePropertyContainer >
         );
     }
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, SlidersHorizontal, Layers, Download, Type, Square, BarChart3, Terminal, Sparkles, Keyboard, Palette, User, Settings2 } from "lucide-react";
+import { Plus, SlidersHorizontal, Layers, Download, Type, Square, BarChart3, Terminal, Sparkles, Keyboard, Palette, User, Settings2, ChevronLeft } from "lucide-react";
 
 export type BottomDockTab = "assets" | "text" | "shapes" | "code" | "charts" | "edit" | "font" | "style" | "motion" | "adjust" | "layers" | "export" | "theme" | "settings" | null;
 
@@ -11,9 +11,10 @@ interface BottomDockProps {
     hasSelection: boolean;
     selectedObjectType: ObjectType;
     isFullscreen?: boolean;
+    onCloseContext?: () => void;
 }
 
-export const BottomDock: React.FC<BottomDockProps> = ({ activeTab, onTabChange, hasSelection, selectedObjectType, isFullscreen }) => {
+export const BottomDock: React.FC<BottomDockProps> = ({ activeTab, onTabChange, hasSelection, selectedObjectType, isFullscreen, onCloseContext }) => {
 
     const Button = ({ id, icon: Icon, label, disabled = false, highlight = false }: { id: BottomDockTab, icon: any, label: string, disabled?: boolean, highlight?: boolean }) => (
         <button
@@ -46,6 +47,19 @@ export const BottomDock: React.FC<BottomDockProps> = ({ activeTab, onTabChange, 
                 `}
             </style>
             <div className={`${!isFullscreen ? 'lg:hidden fixed' : 'absolute'} bottom-0 left-0 right-0 w-full h-16 bg-white/95 dark:bg-slate-900/95 border-t border-slate-200 dark:border-slate-800 flex items-center px-2 z-[100] overflow-x-auto no-scrollbar gap-1 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-none pb-safe`}>
+
+                {/* Back Arrow for Context Mode */}
+                {hasSelection && (
+                    <>
+                        <button
+                            onClick={onCloseContext}
+                            className={`flex flex-col items-center justify-center w-12 h-12 rounded-full shrink-0 ${activeTab === null ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}
+                        >
+                            <ChevronLeft size={24} />
+                        </button>
+                        <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 shrink-0 mx-1" />
+                    </>
+                )}
 
                 {/* CONTEXT: TEXT SELECTED */}
                 {selectedObjectType === 'text' && (
@@ -101,7 +115,13 @@ export const BottomDock: React.FC<BottomDockProps> = ({ activeTab, onTabChange, 
                         <Separator />
 
                         {/* Layers */}
+                        {/* Layers */}
                         <Button id="layers" icon={Layers} label="Layers" />
+
+                        <Separator />
+
+                        {/* Export */}
+                        <Button id="export" icon={Download} label="Export" />
                     </>
                 )}
 
