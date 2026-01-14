@@ -27,10 +27,7 @@ import { AdjustDrawer } from "./drawers/AdjustDrawer";
 import { SettingsDrawer } from "./drawers/SettingsDrawer";
 import { FontDrawer } from "./drawers/FontDrawer";
 import { StyleDrawer } from "./drawers/StyleDrawer";
-import { ChartsDrawer } from "./drawers/ChartsDrawer";
-import { TextDrawer } from "./drawers/TextDrawer";
-import { ShapesDrawer } from "./drawers/ShapesDrawer";
-import { CodeDrawer } from "./drawers/CodeDrawer";
+import { AssetsDrawer } from "./drawers/AssetsDrawer";
 import { DataDrawer } from "./drawers/DataDrawer";
 import { LayersDrawer } from "./drawers/LayersDrawer";
 
@@ -452,31 +449,10 @@ export const EditorLayout = () => {
                             onClose={() => setActiveBottomTab(null)}
                         />
 
-                        {/* 10. CHARTS DRAWER */}
-                        <ChartsDrawer
+                        {/* 10. UNIFIED ASSETS DRAWER */}
+                        <AssetsDrawer
                             engine={engine}
-                            isOpen={activeBottomTab === 'charts'}
-                            onClose={() => setActiveBottomTab(null)}
-                        />
-
-                        {/* 11. TEXT DRAWER */}
-                        <TextDrawer
-                            engine={engine}
-                            isOpen={activeBottomTab === 'text'}
-                            onClose={() => setActiveBottomTab(null)}
-                        />
-
-                        {/* 12. SHAPES DRAWER */}
-                        <ShapesDrawer
-                            engine={engine}
-                            isOpen={activeBottomTab === 'shapes'}
-                            onClose={() => setActiveBottomTab(null)}
-                        />
-
-                        {/* 13. CODE DRAWER */}
-                        <CodeDrawer
-                            engine={engine}
-                            isOpen={activeBottomTab === 'code'}
+                            activeTab={activeBottomTab}
                             onClose={() => setActiveBottomTab(null)}
                         />
 
