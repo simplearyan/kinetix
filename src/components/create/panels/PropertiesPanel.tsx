@@ -170,13 +170,13 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
         if (activeMobileCategory === "edit" && obj instanceof CodeBlockObject) {
             return (
                 <MobilePropertyContainer>
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-app-border bg-white dark:bg-app-surface shadow-sm z-10">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-app-light-border dark:border-app-border bg-white dark:bg-app-surface shadow-sm z-10">
                         <span className="text-sm font-bold text-slate-900 dark:text-white">Edit Code</span>
                         {/* No explicit Done button needed if we use bottom sheet close, but good for UX */}
                     </div>
-                    <div className="flex-1 p-4 bg-slate-50 dark:bg-app-bg relative">
+                    <div className="flex-1 p-4 bg-app-light-surface dark:bg-app-bg relative">
                         <textarea
-                            className="w-full h-full bg-white dark:bg-app-surface border border-slate-200 dark:border-app-border rounded-xl p-4 text-slate-900 dark:text-white text-xs font-mono focus:border-indigo-500 outline-none resize-none"
+                            className="w-full h-full bg-white dark:bg-app-surface border border-app-light-border dark:border-app-border rounded-xl p-4 text-slate-900 dark:text-white text-xs font-mono focus:border-accent outline-none resize-none"
                             value={obj.code}
                             onChange={(e) => handleChange("code", e.target.value)}
                             spellCheck={false}
@@ -190,9 +190,9 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
         // Special Layout for TEXT EDITING (YT Create Style)
         if (isEditingText && obj instanceof TextObject) {
             return (
-                <div className="fixed inset-0 z-[100] flex flex-col bg-slate-100 dark:bg-app-bg">
+                <div className="fixed inset-0 z-[100] flex flex-col bg-app-light-surface dark:bg-app-bg">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-app-surface border-b border-slate-200 dark:border-app-border shrink-0">
+                    <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-app-surface border-b border-app-light-border dark:border-app-border shrink-0">
                         <button
                             onClick={() => {
                                 // Cancel: Revert text and close
@@ -253,7 +253,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                         {obj.name || String((obj as any).type)}
                     </span>
                     <div className="flex items-center gap-1">
-                        <button onClick={() => handleDuplicate(obj.id)} className="p-2 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-400 dark:hover:bg-app-surface-hover transition-colors"><Copy size={16} /></button>
+                        <button onClick={() => handleDuplicate(obj.id)} className="p-2 rounded-full text-slate-400 hover:text-accent hover:bg-indigo-50 dark:hover:text-accent-light dark:hover:bg-app-surface-hover transition-colors"><Copy size={16} /></button>
                         <button onClick={() => { engine.scene.remove(obj.id); engine.render(); setForceUpdate(n => n + 1); }} className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-app-surface-hover transition-colors"><Trash2 size={16} /></button>
                     </div>
                 </div>
@@ -291,11 +291,11 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
 
                     {/* Mobile: Character Properties */}
                     {obj instanceof CharacterObject && (
-                        <div className="bg-slate-50 dark:bg-app-surface/50 rounded-2xl p-4 space-y-4">
+                        <div className="bg-app-light-surface dark:bg-app-surface/50 rounded-2xl p-4 space-y-4">
                             <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Character</span>
                             <ControlRow label="Animation">
                                 <select
-                                    className="w-full bg-slate-100 dark:bg-app-surface text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
+                                    className="w-full bg-app-light-surface-hover dark:bg-app-surface text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
                                     value={obj.currentAnimation}
                                     onChange={(e) => handleChange("currentAnimation", e.target.value)}
                                 >
@@ -308,7 +308,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                             </ControlRow>
                             <ControlRow label="Costume">
                                 <select
-                                    className="w-full bg-slate-100 dark:bg-app-surface text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
+                                    className="w-full bg-app-light-surface-hover dark:bg-app-surface text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
                                     value={obj.costume}
                                     onChange={(e) => handleChange("costume", e.target.value)}
                                 >
@@ -351,11 +351,11 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
 
                     {/* Mobile: ParticleText Properties */}
                     {obj instanceof ParticleTextObject && (
-                        <div className="bg-slate-50 dark:bg-app-surface/50 rounded-2xl p-4 space-y-4">
+                        <div className="bg-app-light-surface dark:bg-app-surface/50 rounded-2xl p-4 space-y-4">
                             <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Particle Text</span>
                             <ControlRow label="Animation">
                                 <select
-                                    className="w-full bg-slate-100 dark:bg-app-surface text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
+                                    className="w-full bg-app-light-surface-hover dark:bg-app-surface text-slate-900 dark:text-white rounded-lg p-3 text-sm outline-none"
                                     value={obj.animType}
                                     onChange={(e) => handleChange("animType", e.target.value)}
                                 >
@@ -378,10 +378,10 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
 
                     {/* Layering Card */}
                     {!['theme', 'settings'].includes(activeMobileCategory) && (
-                        <div className="bg-slate-50 dark:bg-app-surface/50 rounded-2xl p-4">
+                        <div className="bg-app-light-surface dark:bg-app-surface/50 rounded-2xl p-4">
                             <span className="text-sm font-bold text-slate-700 dark:text-slate-200 block mb-2">Layering</span>
                             <div className="flex justify-between p-2">
-                                <button onClick={() => engine.scene.moveUp(obj.id)} className="flex-1 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-white flex flex-col items-center gap-1">
+                                <button onClick={() => engine.scene.moveUp(obj.id)} className="flex-1 p-2 text-slate-400 hover:text-accent dark:hover:text-white flex flex-col items-center gap-1">
                                     <ArrowUp size={20} /> <span className="text-[10px] font-medium">Forward</span>
                                 </button>
                                 <button onClick={() => engine.scene.moveDown(obj.id)} className="flex-1 p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-white flex flex-col items-center gap-1">
@@ -399,13 +399,13 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
     return (
         <div className="flex flex-col h-full bg-white dark:bg-app-bg text-slate-900 dark:text-slate-200">
             {/* Tabs */}
-            <div className="flex items-center p-1 mx-4 mt-4 bg-slate-100 dark:bg-app-surface rounded-xl mb-4 shrink-0">
+            <div className="flex items-center p-1 mx-4 mt-4 bg-app-light-surface dark:bg-app-surface rounded-xl mb-4 shrink-0">
                 {(["properties", "layers", "animations"] as Tab[]).map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={`flex-1 py-1.5 text-xs font-bold rounded-lg capitalize transition-all ${activeTab === tab
-                            ? "bg-white dark:bg-app-bg text-indigo-600 dark:text-indigo-400 shadow-sm"
+                            ? "bg-white dark:bg-app-bg text-accent dark:text-accent-light shadow-sm"
                             : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                             }`}
                     >
@@ -430,17 +430,17 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                         ) : (
                             <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                 {/* Header */}
-                                <div className="space-y-1 pb-4 border-b border-slate-100 dark:border-app-border">
+                                <div className="space-y-1 pb-4 border-b border-app-light-border dark:border-app-border">
                                     <label className="text-[10px] font-bold uppercase text-slate-400">Layer Name</label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             value={obj.name}
                                             onChange={(e) => { obj.name = e.target.value; setForceUpdate(n => n + 1); }}
-                                            className="flex-1 bg-slate-100 dark:bg-app-surface rounded-lg px-2 py-1 text-xs font-bold border border-transparent focus:border-indigo-500 outline-none"
+                                            className="flex-1 bg-app-light-surface dark:bg-app-surface rounded-lg px-2 py-1 text-xs font-bold border border-transparent focus:border-accent outline-none"
                                         />
-                                        <button onClick={() => handleDuplicate(obj.id)} className="p-1.5 text-slate-400 hover:text-indigo-500 bg-slate-100 dark:bg-app-surface rounded-lg"><Copy size={14} /></button>
-                                        <button onClick={() => { engine.scene.remove(obj.id); engine.render(); setForceUpdate(n => n + 1); }} className="p-1.5 text-slate-400 hover:text-red-500 bg-slate-100 dark:bg-app-surface rounded-lg"><Trash2 size={14} /></button>
+                                        <button onClick={() => handleDuplicate(obj.id)} className="p-1.5 text-slate-400 hover:text-accent bg-app-light-surface dark:bg-app-surface rounded-lg"><Copy size={14} /></button>
+                                        <button onClick={() => { engine.scene.remove(obj.id); engine.render(); setForceUpdate(n => n + 1); }} className="p-1.5 text-slate-400 hover:text-red-500 bg-app-light-surface dark:bg-app-surface rounded-lg"><Trash2 size={14} /></button>
                                     </div>
                                 </div>
 
@@ -450,7 +450,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                     <>
                                         <PropertySection title="Text Content">
                                             <textarea
-                                                className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs border-transparent focus:border-indigo-500 outline-none resize-y min-h-[80px]"
+                                                className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs border-transparent focus:border-accent outline-none resize-y min-h-[80px]"
                                                 value={obj.text}
                                                 onChange={(e) => handleChange("text", e.target.value)}
                                                 placeholder="Type your text here..."
@@ -459,7 +459,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                         <PropertySection title="Particle Effects">
                                             <ControlRow label="Animation Mode">
                                                 <select
-                                                    className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
+                                                    className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
                                                     value={obj.animType}
                                                     onChange={(e) => handleChange("animType", e.target.value)}
                                                 >
@@ -508,7 +508,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                             </ControlRow>
                                             <ControlRow label="Font Family">
                                                 <select
-                                                    className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
+                                                    className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
                                                     value={obj.fontFamily}
                                                     onChange={(e) => handleChange("fontFamily", e.target.value)}
                                                 >
@@ -524,7 +524,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                     <PropertySection title="Character">
                                         <ControlRow label="Animation">
                                             <select
-                                                className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
+                                                className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
                                                 value={obj.currentAnimation}
                                                 onChange={(e) => handleChange("currentAnimation", e.target.value)}
                                             >
@@ -537,7 +537,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                         </ControlRow>
                                         <ControlRow label="Costume">
                                             <select
-                                                className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
+                                                className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
                                                 value={obj.costume}
                                                 onChange={(e) => handleChange("costume", e.target.value)}
                                             >
@@ -549,7 +549,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                         </ControlRow>
                                         <ControlRow label="Hair Style">
                                             <select
-                                                className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
+                                                className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
                                                 value={obj.hairStyle}
                                                 onChange={(e) => handleChange("hairStyle", e.target.value)}
                                             >
@@ -561,7 +561,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                         </ControlRow>
                                         <ControlRow label="Accessory">
                                             <select
-                                                className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
+                                                className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
                                                 value={obj.accessory}
                                                 onChange={(e) => handleChange("accessory", e.target.value)}
                                             >
@@ -571,7 +571,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                             </select>
                                         </ControlRow>
 
-                                        <div className="h-px bg-slate-200 dark:bg-app-border my-2" />
+                                        <div className="h-px bg-app-light-border dark:bg-app-border my-2" />
 
                                         <ControlRow label="Colors" layout="vertical">
                                             <div className="flex gap-4">
@@ -607,7 +607,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                         <ControlRow label="Name / Text">
                                             <input
                                                 type="text"
-                                                className="w-full bg-slate-100 dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
+                                                className="w-full bg-app-light-surface dark:bg-app-surface rounded-lg p-2 text-xs outline-none"
                                                 value={obj.text}
                                                 onChange={(e) => handleChange("text", e.target.value)}
                                             />
@@ -637,7 +637,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                     <div className="space-y-4">
                                         <ControlRow label="Position">
                                             <div className="grid grid-cols-2 gap-2">
-                                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-app-surface rounded-lg px-2 py-1">
+                                                <div className="flex items-center gap-2 bg-app-light-surface dark:bg-app-surface rounded-lg px-2 py-1">
                                                     <span className="text-[10px] text-slate-400">X</span>
                                                     <input
                                                         type="number"
@@ -646,7 +646,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                                         className="w-full bg-transparent text-xs font-mono outline-none"
                                                     />
                                                 </div>
-                                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-app-surface rounded-lg px-2 py-1">
+                                                <div className="flex items-center gap-2 bg-app-light-surface dark:bg-app-surface rounded-lg px-2 py-1">
                                                     <span className="text-[10px] text-slate-400">Y</span>
                                                     <input
                                                         type="number"
@@ -659,7 +659,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                         </ControlRow>
                                         <ControlRow label="Dimensions">
                                             <div className="grid grid-cols-2 gap-2">
-                                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-app-surface rounded-lg px-2 py-1">
+                                                <div className="flex items-center gap-2 bg-app-light-surface dark:bg-app-surface rounded-lg px-2 py-1">
                                                     <span className="text-[10px] text-slate-400">W</span>
                                                     <input
                                                         type="number"
@@ -674,7 +674,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                                         className="w-full bg-transparent text-xs font-mono outline-none"
                                                     />
                                                 </div>
-                                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-app-surface rounded-lg px-2 py-1 flex-1">
+                                                <div className="flex items-center gap-2 bg-app-light-surface dark:bg-app-surface rounded-lg px-2 py-1 flex-1">
                                                     <span className="text-[10px] text-slate-400">H</span>
                                                     <input
                                                         type="number"
@@ -685,7 +685,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                                 </div>
                                                 <button
                                                     onClick={() => { handleChange("width", 200); handleChange("height", 200); }}
-                                                    className="p-1.5 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-app-surface rounded-lg transition-colors"
+                                                    className="p-1.5 text-slate-400 hover:text-accent bg-app-light-surface dark:bg-app-surface rounded-lg transition-colors"
                                                     title="Reset Dimensions"
                                                 >
                                                     <RotateCcw size={12} />
@@ -705,7 +705,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                                                 />
                                                 <button
                                                     onClick={() => handleChange("rotation", 0)}
-                                                    className="p-1.5 text-slate-400 hover:text-indigo-600 bg-slate-100 dark:bg-app-surface rounded-lg transition-colors"
+                                                    className="p-1.5 text-slate-400 hover:text-accent bg-app-light-surface dark:bg-app-surface rounded-lg transition-colors"
                                                     title="Reset Rotation"
                                                 >
                                                     <RotateCcw size={12} />
@@ -722,7 +722,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
 
                                         {/* Text Object Specific */}
                                         {obj instanceof TextObject && (
-                                            <div className="pt-4 border-t border-slate-100 dark:border-app-border">
+                                            <div className="pt-4 border-t border-app-light-border dark:border-app-border">
                                                 <TextSettings
                                                     object={obj}
                                                     engine={engine}
@@ -753,7 +753,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
 
                                         {/* Generic Color for generic objects */}
                                         {'color' in obj && !(obj instanceof TextObject) && !(obj instanceof ChartObject) && !(obj instanceof ParticleTextObject) && (
-                                            <div className="pt-4 border-t border-slate-100 dark:border-app-border space-y-4">
+                                            <div className="pt-4 border-t border-app-light-border dark:border-app-border space-y-4">
                                                 <ControlRow label="Color">
                                                     <ColorPicker value={(obj as any).color} onChange={(v) => handleChange("color", v)} />
                                                 </ControlRow>
@@ -778,7 +778,7 @@ export const PropertiesPanel = ({ engine, selectedId, isMobileSheet = false, ini
                         <div className="p-4 space-y-4">
                             {!obj ? (
                                 <div className="text-center py-8">
-                                    <div className="inline-flex p-3 rounded-full bg-slate-100 dark:bg-app-surface mb-3 text-slate-400">
+                                    <div className="inline-flex p-3 rounded-full bg-app-light-surface dark:bg-app-surface mb-3 text-slate-400">
                                         <Sparkles size={24} />
                                     </div>
                                     <p className="text-xs text-slate-500">Select an object to add animations.</p>

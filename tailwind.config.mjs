@@ -14,7 +14,21 @@ export default {
                     bg: '#141414',
                     surface: '#1C1C1C',
                     border: '#2C2C2C',
-                    'surface-hover': '#252525'
+                    'surface-hover': '#252525',
+                    // Light Mode (Neutral Gray)
+                    light: {
+                        bg: '#FFFFFF',
+                        surface: '#F9FAFB', // Gray-50
+                        border: '#E5E7EB',  // Gray-200
+                        'surface-hover': '#F3F4F6', // Gray-100
+                    }
+                },
+                // Unified Accent System (Indigo)
+                accent: {
+                    DEFAULT: '#4F46E5', // Indigo-600
+                    hover: '#4338CA',   // Indigo-700
+                    light: '#6366F1',   // Indigo-500
+                    subtle: '#818CF8',  // Indigo-400
                 },
             },
             animation: {

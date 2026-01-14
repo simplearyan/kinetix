@@ -68,9 +68,9 @@ export const PropertySection: React.FC<PropertySectionProps> = ({ title, childre
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className={`mb-3 border border-slate-200 dark:border-app-border rounded-xl overflow-hidden bg-white dark:bg-app-surface/50 shadow-sm transition-all ${compact ? 'py-0' : ''}`}>
+        <div className={`mb-3 border border-app-light-border dark:border-app-border rounded-xl overflow-hidden bg-app-light-surface/50 dark:bg-app-surface/50 shadow-sm transition-all ${compact ? 'py-0' : ''}`}>
             <div
-                className={`flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-app-surface-hover transition-colors select-none px-3 bg-slate-50/50 dark:bg-app-surface/60 border-b border-slate-100 dark:border-app-border ${compact ? 'py-2' : 'py-2.5'}`}
+                className={`flex items-center justify-between cursor-pointer hover:bg-app-light-surface-hover dark:hover:bg-app-surface-hover transition-colors select-none px-3 bg-app-light-surface/60 dark:bg-app-surface/60 border-b border-app-light-border dark:border-app-border ${compact ? 'py-2' : 'py-2.5'}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="flex items-center gap-2">
@@ -134,7 +134,7 @@ export const ControlRow: React.FC<ControlRowProps> = ({ label, icon, children, d
 
 export const CompactControlRow: React.FC<CompactControlRowProps> = ({ label, icon, children, className = "" }) => {
     return (
-        <div className={`flex items-center gap-2 bg-slate-100 dark:bg-app-surface rounded-lg p-1.5 ${className}`}>
+        <div className={`flex items-center gap-2 bg-app-light-surface dark:bg-app-surface rounded-lg p-1.5 ${className}`}>
             {icon ? (
                 <span className="text-slate-400 shrink-0" title={label}>{icon}</span>
             ) : (
@@ -154,7 +154,7 @@ export const Toggle: React.FC<ToggleProps> = ({ value, onChange, label, size = "
 
     return (
         <button
-            className={`relative inline-flex ${h} items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 dark:focus:ring-offset-app-bg ${value ? "bg-indigo-600" : "bg-slate-200 dark:bg-app-border"}`}
+            className={`relative inline-flex ${h} items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 dark:focus:ring-offset-app-bg ${value ? "bg-accent" : "bg-app-light-border dark:bg-app-border"}`}
             onClick={() => onChange(!value)}
         >
             <span className="sr-only">{label || "Toggle"}</span>
@@ -173,7 +173,7 @@ export const Slider: React.FC<SliderProps> = ({ value, min, max, step = 1, onCha
     return (
         <div className={`relative flex w-full items-center cursor-pointer touch-none select-none group ${compact ? 'h-6' : 'h-8'}`}>
             {/* Track Background */}
-            <div className={`relative w-full rounded-full overflow-hidden bg-slate-200 dark:bg-app-surface-hover ${compact ? 'h-1' : 'h-1.5'}`}>
+            <div className={`relative w-full rounded-full overflow-hidden bg-app-light-border dark:bg-app-surface-hover ${compact ? 'h-1' : 'h-1.5'}`}>
                 {/* Center Tick for Bipolar Sliders */}
                 {isBipolar && (
                     <div className="absolute top-0 bottom-0 w-0.5 bg-slate-400/50 dark:bg-slate-500 z-10" style={{ left: `${centerPercentage}%` }} />
@@ -199,12 +199,12 @@ export const Slider: React.FC<SliderProps> = ({ value, min, max, step = 1, onCha
 
             {/* Thumb Visual */}
             <div
-                className={`absolute bg-white border border-slate-300 dark:border-slate-500 rounded-full shadow-sm pointer-events-none transition-transform group-hover:scale-110 group-active:scale-95 ${compact ? 'h-3 w-3 top-1.5' : 'h-4 w-4 top-2'}`}
+                className={`absolute bg-white border border-app-light-border dark:border-slate-500 rounded-full shadow-sm pointer-events-none transition-transform group-hover:scale-110 group-active:scale-95 ${compact ? 'h-3 w-3 top-1.5' : 'h-4 w-4 top-2'}`}
                 style={{ left: `calc(${percentage}% - ${compact ? 6 : 8}px)` }}
             />
 
             {/* Hover Tooltip */}
-            <div className="absolute right-0 -top-8 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-app-surface px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-slate-100 dark:border-app-border z-10 translate-y-2">
+            <div className="absolute right-0 -top-8 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-white dark:bg-app-surface px-2 py-1 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-app-light-border dark:border-app-border z-10 translate-y-2">
                 {formatValue ? formatValue(value) : value}
             </div>
         </div>
@@ -221,7 +221,7 @@ export const SliderInput: React.FC<SliderProps> = (props) => {
                 type="number"
                 value={props.value}
                 onChange={(e) => props.onChange(Number(e.target.value))}
-                className="w-14 bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-500 text-xs text-right font-mono text-slate-700 dark:text-slate-200 outline-none p-0 transition-colors"
+                className="w-14 bg-transparent border-b border-transparent hover:border-app-light-border dark:hover:border-slate-600 focus:border-accent dark:focus:border-accent text-xs text-right font-mono text-slate-700 dark:text-slate-200 outline-none p-0 transition-colors"
             />
         </div>
     )
@@ -229,14 +229,14 @@ export const SliderInput: React.FC<SliderProps> = (props) => {
 
 export const SegmentedControl: React.FC<SegmentedControlProps> = ({ options, value, onChange, size = "md" }) => {
     return (
-        <div className="flex bg-slate-100 dark:bg-app-bg p-0.5 rounded-lg w-full">
+        <div className="flex bg-app-light-surface dark:bg-app-bg p-0.5 rounded-lg w-full">
             {options.map((option) => {
                 const isSelected = value === option.value;
                 return (
                     <button
                         key={option.value}
                         onClick={() => onChange(option.value)}
-                        className={`flex-1 flex items-center justify-center gap-2 rounded-md text-xs font-medium transition-all ${size === 'sm' ? 'py-1' : 'py-1.5'} ${isSelected ? "bg-white dark:bg-app-surface text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+                        className={`flex-1 flex items-center justify-center gap-2 rounded-md text-xs font-medium transition-all ${size === 'sm' ? 'py-1' : 'py-1.5'} ${isSelected ? "bg-white dark:bg-app-surface text-accent dark:text-accent-light shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
                         title={option.label}
                     >
                         {option.icon}
@@ -257,7 +257,7 @@ export const IconGrid: React.FC<IconGridProps> = ({ options, value, onChange, co
                     <button
                         key={option.value}
                         onClick={() => onChange(option.value)}
-                        className={`flex flex-col items-center justify-center rounded-xl border transition-all relative overflow-hidden ${isSelected ? "bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500" : "bg-white dark:bg-app-surface border-slate-200 dark:border-app-border text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-app-surface-hover"} ${size === 'sm' ? 'p-1.5 aspect-[4/3] gap-1' : 'p-2 aspect-square gap-1.5'} ${layout === 'horizontal' ? '!flex-row !aspect-auto !justify-start px-3 py-2 text-left' : ''}`}
+                        className={`flex flex-col items-center justify-center rounded-xl border transition-all relative overflow-hidden ${isSelected ? "bg-indigo-50 dark:bg-indigo-900/20 border-accent text-accent dark:text-accent-light ring-1 ring-accent" : "bg-white dark:bg-app-surface border-app-light-border dark:border-app-border text-slate-500 dark:text-slate-400 hover:border-app-light-border dark:hover:border-slate-500 hover:bg-app-light-surface dark:hover:bg-app-surface-hover"} ${size === 'sm' ? 'p-1.5 aspect-[4/3] gap-1' : 'p-2 aspect-square gap-1.5'} ${layout === 'horizontal' ? '!flex-row !aspect-auto !justify-start px-3 py-2 text-left' : ''}`}
                     >
                         <div className={`${size === 'sm' ? 'scale-75 origin-bottom' : ''}`}>{option.icon}</div>
                         {layout !== 'horizontal' && <span className={`font-bold uppercase truncate max-w-full ${size === 'sm' ? 'text-[8px] leading-tight' : 'text-[9px]'}`}>{option.label}</span>}
@@ -289,7 +289,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ value, onChange, label
                     className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
                 />
                 <div
-                    className={`rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-app-border overflow-hidden transition-transform group-hover:scale-110 ${size === 'sm' ? 'w-6 h-6' : 'w-8 h-8'}`}
+                    className={`rounded-full shadow-sm ring-1 ring-app-light-border dark:ring-app-border overflow-hidden transition-transform group-hover:scale-110 ${size === 'sm' ? 'w-6 h-6' : 'w-8 h-8'}`}
                     style={{ backgroundColor: value }}
                 />
             </div>
