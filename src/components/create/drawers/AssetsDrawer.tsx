@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Engine } from "../../../engine/Core";
 import { BottomSheet } from "../panels/BottomSheet";
-import { TextDrawerContent } from "./TextDrawer";
+
 import { ElementsDrawerContent } from "./ElementsDrawer";
 
 
@@ -20,12 +20,11 @@ export const AssetsDrawer: React.FC<AssetsDrawerProps> = ({ engine, activeTab, o
     }, [activeTab]);
 
     const isOpen = useMemo(() => {
-        return ['text', 'elements'].includes(activeTab || '');
+        return ['elements'].includes(activeTab || '');
     }, [activeTab]);
 
     const title = useMemo(() => {
         switch (activeTab) {
-            case 'text': return 'Typography';
             case 'elements': return 'Elements';
 
             default: return 'Assets';
@@ -34,7 +33,6 @@ export const AssetsDrawer: React.FC<AssetsDrawerProps> = ({ engine, activeTab, o
 
     const content = useMemo(() => {
         switch (activeTab) {
-            case 'text': return <TextDrawerContent engine={engine} onClose={onClose} isExpanded={isExpanded} />;
             case 'elements': return <ElementsDrawerContent engine={engine} onClose={onClose} />;
 
             default: return null;

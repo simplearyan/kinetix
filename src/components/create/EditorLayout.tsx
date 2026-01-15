@@ -28,6 +28,7 @@ import { AssetsDrawer } from "./drawers/AssetsDrawer";
 import { DataDrawer } from "./drawers/DataDrawer";
 import { LayersDrawer } from "./drawers/LayersDrawer";
 import { ChartsDrawer } from "./drawers/ChartsDrawer";
+import { TextDrawer } from "./drawers/TextDrawer";
 
 // Use a simple local context or prop drilling for this "one-page app"
 // to keep it self-contained for now.
@@ -398,6 +399,13 @@ export const EditorLayout = () => {
                         <ChartsDrawer
                             engine={engine}
                             isOpen={activeBottomTab === 'charts'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
+
+                        {/* TEXT DRAWER (New Deck) */}
+                        <TextDrawer
+                            engine={engine}
+                            isOpen={activeBottomTab === 'text'}
                             onClose={() => setActiveBottomTab(null)}
                         />
 
