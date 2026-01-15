@@ -9,6 +9,23 @@ interface ElementsDrawerContentProps {
     onClose: () => void;
 }
 
+import { BottomSheet } from "../panels/BottomSheet";
+
+export const ElementsDrawer: React.FC<ElementsDrawerContentProps & { isOpen: boolean }> = ({ engine, onClose, isOpen }) => {
+    return (
+        <BottomSheet
+            isOpen={isOpen}
+            onClose={onClose}
+            title={undefined}
+            initialSnap={0.5}
+            snaps={[0.5, 0.95]}
+            variant="dock"
+        >
+            <ElementsDrawerContent engine={engine} onClose={onClose} />
+        </BottomSheet>
+    );
+};
+
 export const ElementsDrawerContent: React.FC<ElementsDrawerContentProps> = ({ engine, onClose }) => {
     const [activeSubTab, setActiveSubTab] = useState<'shapes' | 'code'>('shapes');
 
@@ -20,8 +37,8 @@ export const ElementsDrawerContent: React.FC<ElementsDrawerContentProps> = ({ en
                     <button
                         onClick={() => setActiveSubTab('shapes')}
                         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'shapes'
-                                ? 'bg-white dark:bg-app-surface text-slate-900 dark:text-white shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            ? 'bg-white dark:bg-app-surface text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                     >
                         <Square size={16} />
@@ -30,8 +47,8 @@ export const ElementsDrawerContent: React.FC<ElementsDrawerContentProps> = ({ en
                     <button
                         onClick={() => setActiveSubTab('code')}
                         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'code'
-                                ? 'bg-white dark:bg-app-surface text-slate-900 dark:text-white shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                            ? 'bg-white dark:bg-app-surface text-slate-900 dark:text-white shadow-sm'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                             }`}
                     >
                         <Terminal size={16} />

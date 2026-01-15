@@ -20,21 +20,17 @@ export const AssetsDrawer: React.FC<AssetsDrawerProps> = ({ engine, activeTab, o
     }, [activeTab]);
 
     const isOpen = useMemo(() => {
-        return ['elements'].includes(activeTab || '');
+        return false;
     }, [activeTab]);
 
     const title = useMemo(() => {
         switch (activeTab) {
-            case 'elements': return 'Elements';
-
             default: return 'Assets';
         }
     }, [activeTab]);
 
     const content = useMemo(() => {
         switch (activeTab) {
-            case 'elements': return <ElementsDrawerContent engine={engine} onClose={onClose} />;
-
             default: return null;
         }
     }, [activeTab, engine, onClose, isExpanded]);

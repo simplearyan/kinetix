@@ -26,9 +26,12 @@ import { ToolsDrawer } from "./drawers/ToolsDrawer";
 import { ThemeDrawer } from "./drawers/ThemeDrawer";
 import { AssetsDrawer } from "./drawers/AssetsDrawer";
 import { DataDrawer } from "./drawers/DataDrawer";
+import { ChartDataDrawer } from "./drawers/ChartDataDrawer";
+import { ChartStyleDrawer } from "./drawers/ChartStyleDrawer";
 import { LayersDrawer } from "./drawers/LayersDrawer";
 import { ChartsDrawer } from "./drawers/ChartsDrawer";
 import { TextDrawer } from "./drawers/TextDrawer";
+import { ElementsDrawer } from "./drawers/ElementsDrawer"; // Assuming ElementsDrawer is also needed based on the instruction's JSX
 
 // Use a simple local context or prop drilling for this "one-page app"
 // to keep it self-contained for now.
@@ -395,25 +398,19 @@ export const EditorLayout = () => {
                             onClose={() => setActiveBottomTab(null)}
                         />
 
-                        {/* CHARTS DRAWER (New Deck) */}
-                        <ChartsDrawer
-                            engine={engine}
-                            isOpen={activeBottomTab === 'charts'}
-                            onClose={() => setActiveBottomTab(null)}
-                        />
+                        {/* Drawers */}
+                        <TextDrawer engine={engine} isOpen={activeBottomTab === 'text'} onClose={() => setActiveBottomTab(null)} />
+                        <ChartsDrawer engine={engine} isOpen={activeBottomTab === 'charts'} onClose={() => setActiveBottomTab(null)} />
+                        <ElementsDrawer engine={engine} isOpen={activeBottomTab === 'elements'} onClose={() => setActiveBottomTab(null)} />
 
-                        {/* TEXT DRAWER (New Deck) */}
-                        <TextDrawer
-                            engine={engine}
-                            isOpen={activeBottomTab === 'text'}
-                            onClose={() => setActiveBottomTab(null)}
-                        />
+                        <DataDrawer engine={engine} selectedId={selectedId} isOpen={activeBottomTab === 'config'} onClose={() => setActiveBottomTab(null)} />
+                        <ChartDataDrawer engine={engine} selectedId={selectedId} isOpen={activeBottomTab === 'data'} onClose={() => setActiveBottomTab(null)} />
+                        <ChartStyleDrawer engine={engine} selectedId={selectedId} isOpen={activeBottomTab === 'style' && (selectedObjectType === 'chart')} onClose={() => setActiveBottomTab(null)} />
 
-                        {/* 4. UNIFIED TOOLS DRAWER */}
                         <ToolsDrawer
                             engine={engine}
                             selectedId={selectedId}
-                            activeTab={activeBottomTab}
+                            activeTab={(selectedObjectType === 'chart' && activeBottomTab === 'style') ? null : activeBottomTab}
                             onClose={() => setActiveBottomTab(null)}
                         />
 

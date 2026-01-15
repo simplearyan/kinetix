@@ -11,6 +11,7 @@ export class ChartObject extends KinetixObject {
     color: string = "#3b82f6"; // Base color
     useMultiColor: boolean = false;
     colorPalette: string[] = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#8B5CF6"];
+    customColors: string[] = []; // Individual overrides
 
     fontFamily: string = "Inter";
     fontSize: number = 12;
@@ -122,7 +123,15 @@ export class ChartObject extends KinetixObject {
                 const bx = startX + i * step + gap;
                 const by = startY + chartHeight - h;
 
-                ctx.fillStyle = this.useMultiColor ? this.colorPalette[i % this.colorPalette.length] : this.color;
+                // Color Logic: Custom > Multi/Palette > Single
+                let barColor = this.color;
+                if (this.customColors[i]) {
+                    barColor = this.customColors[i];
+                } else if (this.useMultiColor) {
+                    barColor = this.colorPalette[i % this.colorPalette.length];
+                }
+
+                ctx.fillStyle = barColor;
                 ctx.fillRect(bx, by, barWidth, h);
 
                 // Labels
@@ -210,7 +219,11 @@ export class ChartObject extends KinetixObject {
                 points.forEach((p, i) => {
                     if (p.x <= maxDrawX) {
                         ctx.beginPath();
-                        ctx.fillStyle = this.useMultiColor ? this.colorPalette[i % this.colorPalette.length] : "white";
+
+                        let dotColor = this.useMultiColor ? this.colorPalette[i % this.colorPalette.length] : "white";
+                        if (this.customColors[i]) dotColor = this.customColors[i];
+
+                        ctx.fillStyle = dotColor;
                         ctx.strokeStyle = this.color;
                         ctx.lineWidth = 2;
                         ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
@@ -246,7 +259,12 @@ export class ChartObject extends KinetixObject {
                 const y = startY + chartHeight - (val / maxVal) * chartHeight;
 
                 ctx.beginPath();
-                ctx.fillStyle = this.useMultiColor ? this.colorPalette[i % this.colorPalette.length] : this.color;
+
+                let dotColor = this.color;
+                if (this.customColors[i]) dotColor = this.customColors[i];
+                else if (this.useMultiColor) dotColor = this.colorPalette[i % this.colorPalette.length];
+
+                ctx.fillStyle = dotColor;
                 ctx.arc(x, y, 6 * localT, 0, Math.PI * 2);
                 ctx.fill();
 
@@ -294,30 +312,25 @@ export class ChartObject extends KinetixObject {
 
                 if (visibleSliceAngle > 0) {
                     ctx.beginPath();
-                    ctx.moveTo(centerX, centerY); // Needed for correct fill
-
-                    // Arc
-                    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + visibleSliceAngle);
-
-                    // If donut, we cut out the middle later or use path diff? 
-                    // Canvas doesn't easily subtraction fill.
-                    // Instead, draw arc with lineTo center.
-                    // For Donut: Draw outer arc, then inner arc in reverse?
+                    // If donut, we draw outer arc, then inner arc in reverse
                     if (this.chartType === "donut") {
-                        ctx.beginPath();
                         ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + visibleSliceAngle, false);
                         ctx.arc(centerX, centerY, innerR, currentAngle + visibleSliceAngle, currentAngle, true); // Reverse
                         ctx.closePath();
-                    } else {
-                        ctx.lineTo(centerX, centerY);
+                    } else { // Pie chart
+                        ctx.moveTo(centerX, centerY); // Needed for correct fill
+                        ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + visibleSliceAngle);
                         ctx.closePath();
                     }
 
-                    ctx.fillStyle = this.useMultiColor
-                        ? this.colorPalette[i % this.colorPalette.length]
-                        : (i === 0 ? this.color : "#eeeeee"); // Fallback if single color pie? usually multi
+                    let sliceColor = (i === 0 ? this.color : "#eeeeee");
+                    if (this.useMultiColor) sliceColor = this.colorPalette[i % this.colorPalette.length];
+                    if (this.customColors[i]) sliceColor = this.customColors[i];
+
+                    ctx.fillStyle = sliceColor;
+
                     // Pie usually needs multi color. If useMultiColor false, maybe vary opacity?
-                    if (!this.useMultiColor) {
+                    if (!this.useMultiColor && !this.customColors[i]) {
                         ctx.globalAlpha = (1 - i * 0.1) * this.opacity;
                         ctx.fill();
                         ctx.globalAlpha = this.opacity;
@@ -362,6 +375,7 @@ export class ChartObject extends KinetixObject {
         clone.fontSize = this.fontSize;
         clone.axisColor = this.axisColor;
         clone.showGrid = this.showGrid;
+        clone.customColors = [...this.customColors];
 
         // Clone animation settings
         clone.animation = { ...this.animation };

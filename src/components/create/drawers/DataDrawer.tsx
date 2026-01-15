@@ -96,6 +96,15 @@ export const DataDrawer: React.FC<DataDrawerProps> = ({ engine, selectedId, isOp
                             <span className="text-[10px]">{selectedObject.showGrid ? "ON" : "OFF"}</span>
                         </button>
 
+                        {/* Multi-Color Toggle */}
+                        <div className="flex flex-col gap-1 min-w-[64px] shrink-0 items-center">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase">Multi</span>
+                            <Toggle
+                                value={selectedObject.useMultiColor}
+                                onChange={(v) => handleChange("useMultiColor", v)}
+                            />
+                        </div>
+
                         {/* Color Picker (Simplified) */}
                         <div className="shrink-0">
                             <ColorPicker

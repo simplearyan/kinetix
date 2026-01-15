@@ -1,7 +1,7 @@
 import React from "react";
 import { Plus, SlidersHorizontal, Layers, Download, Type, Square, BarChart3, Terminal, Sparkles, Keyboard, Palette, User, Settings2, ChevronLeft, Database, Scaling, Move, Crop } from "lucide-react";
 
-export type BottomDockTab = "assets" | "text" | "elements" | "shapes" | "code" | "charts" | "config" | "edit" | "font" | "style" | "motion" | "adjust" | "dimensions" | "position" | "layers" | "export" | "theme" | "settings" | "canvas" | null;
+export type BottomDockTab = "assets" | "text" | "elements" | "shapes" | "code" | "charts" | "config" | "data" | "edit" | "font" | "style" | "motion" | "adjust" | "dimensions" | "position" | "layers" | "export" | "theme" | "settings" | "canvas" | null;
 
 export type ObjectType = "text" | "shape" | "image" | "chart" | "bar-race" | "character" | "code" | "particle" | null;
 
@@ -93,6 +93,8 @@ export const BottomDock: React.FC<BottomDockProps> = ({ activeTab, onTabChange, 
                 {(selectedObjectType === 'chart' || selectedObjectType === 'bar-race') && (
                     <>
                         <Button id="config" icon={SlidersHorizontal} label="Config" highlight />
+                        <Button id="data" icon={Database} label="Data" />
+                        <Button id="style" icon={Palette} label="Style" />
                         <Button id="dimensions" icon={Scaling} label="Size" />
                         <Button id="adjust" icon={Settings2} label="Adjust" />
                         <Button id="motion" icon={Sparkles} label="Motion" />
