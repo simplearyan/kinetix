@@ -27,6 +27,7 @@ import { ThemeDrawer } from "./drawers/ThemeDrawer";
 import { AssetsDrawer } from "./drawers/AssetsDrawer";
 import { DataDrawer } from "./drawers/DataDrawer";
 import { LayersDrawer } from "./drawers/LayersDrawer";
+import { ChartsDrawer } from "./drawers/ChartsDrawer";
 
 // Use a simple local context or prop drilling for this "one-page app"
 // to keep it self-contained for now.
@@ -67,7 +68,7 @@ export const EditorLayout = () => {
             setSelectedObjectType(null);
             // Close any object-specific sheets when deselected
             // NOTE: 'edit' is EXCLUDED because it is also used for Canvas Settings (no selection)
-            if (['font', 'style', 'motion', 'adjust', 'dimensions', 'position', 'settings', 'charts', 'text', 'shapes', 'code', 'config'].includes(activeBottomTab || '')) {
+            if (['font', 'style', 'motion', 'adjust', 'dimensions', 'position', 'settings', 'charts', 'text', 'elements', 'config'].includes(activeBottomTab || '')) {
                 setActiveBottomTab(null);
             }
         }
@@ -390,6 +391,13 @@ export const EditorLayout = () => {
                             engine={engine}
                             selectedId={selectedId}
                             isOpen={activeBottomTab === 'layers'}
+                            onClose={() => setActiveBottomTab(null)}
+                        />
+
+                        {/* CHARTS DRAWER (New Deck) */}
+                        <ChartsDrawer
+                            engine={engine}
+                            isOpen={activeBottomTab === 'charts'}
                             onClose={() => setActiveBottomTab(null)}
                         />
 

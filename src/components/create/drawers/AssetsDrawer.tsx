@@ -2,9 +2,8 @@ import React, { useMemo } from "react";
 import { Engine } from "../../../engine/Core";
 import { BottomSheet } from "../panels/BottomSheet";
 import { TextDrawerContent } from "./TextDrawer";
-import { ShapesDrawerContent } from "./ShapesDrawer";
-import { CodeDrawerContent } from "./CodeDrawer";
-import { ChartsDrawerContent } from "./ChartsDrawer";
+import { ElementsDrawerContent } from "./ElementsDrawer";
+
 
 interface AssetsDrawerProps {
     engine: Engine | null;
@@ -21,15 +20,14 @@ export const AssetsDrawer: React.FC<AssetsDrawerProps> = ({ engine, activeTab, o
     }, [activeTab]);
 
     const isOpen = useMemo(() => {
-        return ['text', 'shapes', 'code', 'charts'].includes(activeTab || '');
+        return ['text', 'elements'].includes(activeTab || '');
     }, [activeTab]);
 
     const title = useMemo(() => {
         switch (activeTab) {
             case 'text': return 'Typography';
-            case 'shapes': return 'Shapes & Assets';
-            case 'code': return 'Code Blocks';
-            case 'charts': return 'Charts & Data';
+            case 'elements': return 'Elements';
+
             default: return 'Assets';
         }
     }, [activeTab]);
@@ -37,9 +35,8 @@ export const AssetsDrawer: React.FC<AssetsDrawerProps> = ({ engine, activeTab, o
     const content = useMemo(() => {
         switch (activeTab) {
             case 'text': return <TextDrawerContent engine={engine} onClose={onClose} isExpanded={isExpanded} />;
-            case 'shapes': return <ShapesDrawerContent engine={engine} onClose={onClose} />;
-            case 'code': return <CodeDrawerContent engine={engine} onClose={onClose} />;
-            case 'charts': return <ChartsDrawerContent engine={engine} onClose={onClose} />;
+            case 'elements': return <ElementsDrawerContent engine={engine} onClose={onClose} />;
+
             default: return null;
         }
     }, [activeTab, engine, onClose, isExpanded]);

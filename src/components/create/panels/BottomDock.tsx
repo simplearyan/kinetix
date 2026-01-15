@@ -1,7 +1,7 @@
 import React from "react";
 import { Plus, SlidersHorizontal, Layers, Download, Type, Square, BarChart3, Terminal, Sparkles, Keyboard, Palette, User, Settings2, ChevronLeft, Database, Scaling, Move, Crop } from "lucide-react";
 
-export type BottomDockTab = "assets" | "text" | "shapes" | "code" | "charts" | "config" | "edit" | "font" | "style" | "motion" | "adjust" | "dimensions" | "position" | "layers" | "export" | "theme" | "settings" | "canvas" | null;
+export type BottomDockTab = "assets" | "text" | "elements" | "shapes" | "code" | "charts" | "config" | "edit" | "font" | "style" | "motion" | "adjust" | "dimensions" | "position" | "layers" | "export" | "theme" | "settings" | "canvas" | null;
 
 export type ObjectType = "text" | "shape" | "image" | "chart" | "bar-race" | "character" | "code" | "particle" | null;
 
@@ -122,11 +122,8 @@ export const BottomDock: React.FC<BottomDockProps> = ({ activeTab, onTabChange, 
                         {/* Text */}
                         <Button id="text" icon={Type} label="Text" />
 
-                        {/* Shapes */}
-                        <Button id="shapes" icon={Square} label="Shapes" />
-
-                        {/* Code */}
-                        <Button id="code" icon={Terminal} label="Code" />
+                        {/* Elements (Combined Shapes & Code) */}
+                        <Button id="elements" icon={Square} label="Elements" />
 
                         {/* Charts */}
                         <Button id="charts" icon={BarChart3} label="Charts" />
