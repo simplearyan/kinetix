@@ -1,123 +1,342 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Navbar from "../components/Navbar.astro";
-import CtaSection from "../components/CtaSection.astro";
-import { ArrowRight } from "lucide-react";
 ---
 
-<Layout title="About Us - Kinetix">
-    <Navbar />
-    <main class="bg-white min-h-screen">
-        {/* Header */}
-        <section class="pt-32 pb-16 px-6 text-center max-w-4xl mx-auto">
-            <h1
-                class="text-5xl md:text-6xl font-bold text-slate-900 mb-6 font-display"
+<Layout title="About Kinetix" showFooter={true} showAds={false}>
+    <div
+        class="min-h-screen bg-black text-white selection:bg-primary selection:text-white"
+    >
+        <!-- Hero Section -->
+        <section class="relative pt-32 pb-20 px-4 overflow-hidden">
+            <!-- Background Gradients -->
+            <div
+                class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/20 rounded-full blur-[120px] -z-10"
             >
-                About us
-            </h1>
-            <p class="text-xl md:text-2xl text-slate-600 leading-relaxed">
-                Join us in transforming business communication, one visual at a
-                time.
-            </p>
+            </div>
+
+            <div class="max-w-4xl mx-auto text-center">
+                <h1
+                    class="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-gradient-to-br from-white via-gray-200 to-gray-500 text-transparent bg-clip-text"
+                >
+                    Reimagining Video <br /> for the Web
+                </h1>
+                <p
+                    class="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed"
+                >
+                    Kinetix is an ultra-lightweight, open-source video engine
+                    designed for the AI era. No heavy rendering servers. No
+                    complex frameworks. Just pure performance.
+                </p>
+            </div>
         </section>
 
-        {/* Story Section */}
-        <section
-            class="py-20 px-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center"
-        >
-            {/* Visual - CSS Venn Diagram Placeholder */}
-            <div
-                class="relative h-[400px] w-full flex items-center justify-center"
-            >
+        <!-- Vision Grid -->
+        <section class="py-20 px-4">
+            <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+                <!-- Card 1 -->
                 <div
-                    class="absolute top-10 left-10 w-48 h-48 bg-blue-100 rounded-full mix-blend-multiply filter blur-sm opacity-70 animate-blob"
-                >
-                </div>
-                <div
-                    class="absolute top-10 right-10 w-48 h-48 bg-purple-100 rounded-full mix-blend-multiply filter blur-sm opacity-70 animate-blob animation-delay-2000"
-                >
-                </div>
-                <div
-                    class="absolute -bottom-8 left-20 w-48 h-48 bg-pink-100 rounded-full mix-blend-multiply filter blur-sm opacity-70 animate-blob animation-delay-4000"
-                >
-                </div>
-
-                <div
-                    class="relative z-10 bg-white/80 backdrop-blur border border-slate-200 p-8 rounded-2xl shadow-sm text-center"
+                    class="p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-primary/50 transition-colors backdrop-blur-sm"
                 >
                     <div
-                        class="w-12 h-12 bg-slate-900 rounded-lg mx-auto mb-4 flex items-center justify-center text-white font-bold"
+                        class="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6 text-primary"
                     >
-                        K
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path d="M12 2v20"></path><path d="M2 12h20"
+                            ></path><path d="m4.93 4.93 14.14 14.14"
+                            ></path><path d="m19.07 4.93-14.14 14.14"
+                            ></path></svg
+                        >
                     </div>
-                    <div class="font-bold text-slate-800">
-                        The Kinetix Vision
-                    </div>
-                    <div class="text-sm text-slate-500 mt-2">
-                        Text + Visuals + Logic
-                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Why Open Source?</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Video creation tools have been gatekept behind expensive
+                        software and heavy rendering farms for too long. We
+                        believe the browser is the future of video, and the
+                        engine powering it should be free, accessible, and
+                        hackable by everyone.
+                    </p>
                 </div>
-            </div>
-
-            {/* Text Content */}
-            <div>
-                <h2 class="text-3xl font-bold text-slate-900 mb-6 font-display">
-                    Our story
-                </h2>
-                <div class="space-y-6 text-lg text-slate-600 leading-relaxed">
-                    <p>
-                        About a decade ago, we realized that while writing tools
-                        had advanced significantly, visual communication was
-                        stuck in the past. Creating a simple diagram required
-                        complex software or messy freehand drawing.
-                    </p>
-                    <p>
-                        We built Kinetix with a mission to make visual thinking
-                        accessible to everyone. We believe that the best ideas
-                        live at the intersection of clear text and intuitive
-                        visuals.
-                    </p>
-                    <p>
-                        Unlike other tools that rely on unpredictable AI
-                        generation, Kinetix uses a deterministic logic engine.
-                        This ensures that your diagrams are precise, editable,
-                        and exactly what you intended—every single time.
+                <!-- Card 2 -->
+                <div
+                    class="p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-primary/50 transition-colors backdrop-blur-sm"
+                >
+                    <div
+                        class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-6 text-blue-400"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path
+                                d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"
+                            ></path><path d="m2 12 5-5m0 0 5 5"></path></svg
+                        >
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">The Philosophy</h3>
+                    <p class="text-gray-400 leading-relaxed">
+                        Most web video tools are wrappers around ffmpeg. Kinetix
+                        is different. It's a
+                        <strong>native canvas engine</strong> built for performance
+                        and AI agents. It's state-driven, serializable, and lightweight
+                        enough to run on a phone.
                     </p>
                 </div>
             </div>
         </section>
 
-        {/* CTA */}
-        <CtaSection />
-    </main>
+        <!-- Use Case / Roadmap -->
+        <section
+            class="py-20 px-4 bg-white/5 mx-4 mx-auto max-w-7xl rounded-[3rem] my-20"
+        >
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-6">The Roadmap</h2>
+                <p class="text-gray-400">
+                    From core engine to specialized creative tools.
+                </p>
+            </div>
+
+            <div
+                class="max-w-4xl mx-auto space-y-12 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-700 before:to-transparent"
+            >
+                <!-- Item 1 -->
+                <div
+                    class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
+                >
+                    <div
+                        class="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-black group-[.is-active]:bg-primary group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><polyline points="20 6 9 17 4 12"></polyline></svg
+                        >
+                    </div>
+                    <div
+                        class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-black/50 border border-white/10 hover:border-primary/30 transition-colors"
+                    >
+                        <div class="text-sm font-bold text-primary mb-1">
+                            PHASE 1 (COMPLETED)
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">The Core Engine</h3>
+                        <p class="text-gray-400 text-sm">
+                            Built the lightweight rendering kernel, scene graph,
+                            and timeline management. The foundation of
+                            everything.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div
+                    class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active"
+                >
+                    <div
+                        class="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-black group-[.is-active]:bg-primary group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2"
+                    >
+                        <span class="animate-pulse">●</span>
+                    </div>
+                    <div
+                        class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-black/50 border border-white/10 hover:border-primary/30 transition-colors border-primary/50"
+                    >
+                        <div class="text-sm font-bold text-primary mb-1">
+                            PHASE 2 (CURRENT)
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">
+                            Specialized Editors
+                        </h3>
+                        <p class="text-gray-400 text-sm">
+                            Building specific tools on top of the engine: <strong
+                                >Titles Animator</strong
+                            > for creators and <strong>Data Animator</strong> for
+                            data scientists.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div
+                    class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group"
+                >
+                    <div
+                        class="flex items-center justify-center w-10 h-10 rounded-full border border-white/10 bg-black shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 text-gray-500"
+                    >
+                        <span class="">3</span>
+                    </div>
+                    <div
+                        class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-black/50 border border-white/10 hover:border-primary/30 transition-colors"
+                    >
+                        <div class="text-sm font-bold text-gray-500 mb-1">
+                            PHASE 3
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">
+                            Ecosystem & Plugins
+                        </h3>
+                        <p class="text-gray-400 text-sm">
+                            Opening the engine for community plugins,
+                            AI-generated templates, and third-party
+                            integrations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Creator Section (Bento Grid) -->
+        <section class="py-20 px-4">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-5xl font-bold mb-6">
+                        Meet the Creator
+                    </h2>
+                </div>
+
+                <div
+                    class="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[200px]"
+                >
+                    <!-- 1. Photo Large (Aryan Hoodie) -->
+                    <div
+                        class="md:col-span-2 md:row-span-2 rounded-3xl overflow-hidden relative group"
+                    >
+                        <img
+                            src="/aryan_2.jpg"
+                            alt="Aryan"
+                            class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-105"
+                        />
+                        <div
+                            class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/90 to-transparent"
+                        >
+                            <h3 class="text-2xl font-bold">Aryan</h3>
+                            <p class="text-gray-300">Founder & Engineer</p>
+                        </div>
+                    </div>
+
+                    <!-- 2. IIT Badge -->
+                    <div
+                        class="md:col-span-2 bg-[#2D1B1B] rounded-3xl p-6 flex flex-col justify-center items-start relative overflow-hidden group"
+                    >
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-red-500/20 blur-[50px] rounded-full -translate-y-1/2 translate-x-1/2"
+                        >
+                        </div>
+                        <h3 class="text-lg font-medium text-red-200 mb-2">
+                            Education
+                        </h3>
+                        <p class="text-3xl font-bold text-white mb-1">
+                            IIT Madras
+                        </p>
+                        <p class="text-red-200/60">
+                            BS in Data Science & Applications
+                        </p>
+                    </div>
+
+                    <!-- 3. Quote -->
+                    <div
+                        class="md:col-span-1 md:row-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col justify-between"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            class="text-primary/50"
+                            ><path
+                                d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H15.017C14.4647 8 14.017 8.44772 14.017 9V11C14.017 11.5523 13.5693 12 13.017 12H12.017V5H22.017V15C22.017 18.3137 19.3307 21 16.017 21H14.017ZM5.0166 21L5.0166 18C5.0166 16.8954 5.91203 16 7.0166 16H10.0166C10.5689 16 11.0166 15.5523 11.0166 15V9C11.0166 8.44772 10.5689 8 10.0166 8H6.0166C5.46432 8 5.0166 8.44772 5.0166 9V11C5.0166 11.5523 4.56889 12 4.0166 12H3.0166V5H13.0166V15C13.0166 18.3137 10.3303 21 7.0166 21H5.0166Z"
+                            ></path></svg
+                        >
+                        <p class="text-lg italic text-gray-300 my-4">
+                            "The best way to predict the future is to build it.
+                            We're building the engine for the next generation of
+                            storytellers."
+                        </p>
+                        <div class="w-8 h-1 bg-primary rounded-full"></div>
+                    </div>
+
+                    <!-- 4. Data Science / Vision -->
+                    <div
+                        class="md:col-span-1 bg-gradient-to-br from-blue-900/40 to-black border border-white/5 rounded-3xl p-6 flex flex-col justify-center"
+                    >
+                        <div class="text-blue-400 mb-2">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                ><path d="M3 3v18h18"></path><path
+                                    d="m19 9-5 5-4-4-3 3"></path></svg
+                            >
+                        </div>
+                        <h3 class="font-bold text-lg mb-1">Data Animator</h3>
+                        <p class="text-xs text-gray-400">
+                            Bridging data science and motion graphics.
+                        </p>
+                    </div>
+
+                    <!-- 5. Setup Shot (Room) -->
+                    <div
+                        class="md:col-span-2 rounded-3xl overflow-hidden relative group"
+                    >
+                        <img
+                            src="/aryan_1.jpg"
+                            alt="Setup"
+                            class="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-700"
+                        />
+                        <div
+                            class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors"
+                        >
+                        </div>
+                        <div
+                            class="absolute bottom-4 right-6 bg-black/80 backdrop-blur px-3 py-1 rounded-full text-xs font-mono border border-white/10"
+                        >
+                            📍 The Lab
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="py-32 text-center">
+            <h2 class="text-4xl font-bold mb-8">Ready to create?</h2>
+            <div class="flex justify-center gap-4">
+                <a
+                    href="/titles"
+                    class="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-lg shadow-primary/25"
+                    >Try Title Animator</a
+                >
+                <a
+                    href="https://github.com/kinetix-lab"
+                    class="px-8 py-4 bg-white/10 text-white rounded-full font-bold text-lg hover:bg-white/20 transition-colors backdrop-blur"
+                    >View on GitHub</a
+                >
+            </div>
+        </section>
+    </div>
 </Layout>
-
-<style>
-    .font-display {
-        font-family: "Outfit", sans-serif;
-    }
-
-    @keyframes blob {
-        0% {
-            transform: translate(0px, 0px) scale(1);
-        }
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
-        100% {
-            transform: translate(0px, 0px) scale(1);
-        }
-    }
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-    .animation-delay-4000 {
-        animation-delay: 4s;
-    }
-</style>

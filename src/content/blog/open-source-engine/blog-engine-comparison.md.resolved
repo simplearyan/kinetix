@@ -1,0 +1,55 @@
+# Case Study: Kinetix Production vs. Open Source Engine
+
+**Subtitle: A Deep Dive into the Architecture of our `/create` Page**
+
+We analyzed the code powering our main production tool (`/create`) and compared it with the Open Source Engine you are using. Here is the breakdown.
+
+## 1. Architecture: Monolith vs. Modular
+
+The most striking difference is how the Core logic is organized.
+
+### Production Engine ([src/engine/Core.ts](file:///d:/Code/Antigravity/design_concepts/kinetix/src/engine/Core.ts))
+The production engine is a "God Class".
+-   **Interaction Logic**: Dragging, selecting, and moving objects are simulated directly inside [Core.ts](file:///d:/Code/Antigravity/design_concepts/kinetix/src/engine/Core.ts) (lines 83-88).
+-   **Scaling Logic**: Resize math is hardcoded in [resize()](file:///d:/Code/Antigravity/design_concepts/kinetix/src/open-source-engine/src/core/LayoutManager.ts#11-77) (lines 16-76).
+-   **State**: It mixes Playback state (`isPlaying`) with Editor state ([selectedObjectId](file:///d:/Code/Antigravity/design_concepts/kinetix/src/open-source-engine/src/core/Core.ts#68-72)).
+
+### Open Source Engine (`src/open-source-engine`)
+The OS engine is **Refactored & Modular**.
+-   **[InteractionManager](file:///d:/Code/Antigravity/design_concepts/kinetix/src/open-source-engine/src/core/InteractionManager.ts#3-134)**: We extracted all mouse event handling into a dedicated class.
+-   **[LayoutManager](file:///d:/Code/Antigravity/design_concepts/kinetix/src/open-source-engine/src/core/LayoutManager.ts#4-78)**: We extracted the "Smart Scaling" logic completely.
+-   **[ProjectManager](file:///d:/Code/Antigravity/design_concepts/kinetix/src/open-source-engine/src/core/ProjectManager.ts#17-113)**: Serialization is handled separately.
+
+**Winner**: The **Open Source Engine** has a cleaner, more maintainable architecture. The Production engine suffers from technical debt.
+
+## 2. The Application Layer (UI)
+
+### Production ([EditorLayout.tsx](file:///d:/Code/Antigravity/design_concepts/kinetix/src/components/create/EditorLayout.tsx))
+It is a fully-featured **React Application**.
+-   **Drawers & Panels**: Uses specialized UI containers ([ToolsDrawer](file:///d:/Code/Antigravity/design_concepts/kinetix/src/components/create/drawers/ToolsDrawer.tsx#22-80), `ThemeDrawer`) for mobile responsiveness.
+-   **State Sync**: Uses `useState` hooks to track engine properties (e.g., `currentTime`, `isPlaying`).
+-   **Optimization**: It has to handle "Layout Thrashing" and explicitly manage `ResizeObserver` to prevent UI glitches.
+
+### Open Source Demo ([engine.astro](file:///d:/Code/Antigravity/design_concepts/kinetix/src/pages/engine.astro))
+ इट is a **Vanilla JS Prototype**.
+-   **Direct DOM Manipulation**: Uses `document.getElementById` and `addEventListener`.
+-   **Simple**: Great for learning, but unscalable for building a real product.
+
+**Takeaway**: To build a real product with the Open Source Engine, you MUST wrap it in a framework like React (as recommended in our "Best Framework" blog).
+
+## 3. Feature Set
+
+| Feature | Production Engine | Open Source Engine |
+| :--- | :--- | :--- |
+| **Object Types** | Rich (Particles, Characters, Bar Races) | Basic (Text, Image, Rect, Chart) |
+| **Scaling Logic** | Geometric Mean (Legacy) | **Center-Pin ("Smart Scaling")** |
+| **Export** | WebM Muxer (WASM) | Standard MediaRecorder |
+| **Code Quality** | High Complexity / Legacy | Clean / Modern |
+
+## Conclusion
+
+The **Open Source Engine** is actually *architecturally superior* to our internal Production engine because it incorporates lessons learned from building the product. 
+
+While the Production engine has more "Toys" (specialized object types), the Open Source engine provides a better foundation for building *new* tools because it separates concerns (Interaction, Layout, Rendering) much more effectively.
+
+**Recommendation**: Use the Open Source Engine core, but port specific "Object Classes" (like [ParticleTextObject](file:///d:/Code/Antigravity/design_concepts/kinetix/src/engine/objects/ParticleTextObject.ts#21-224)) from production if you need those specific visual effects.

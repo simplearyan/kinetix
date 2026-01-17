@@ -1,0 +1,715 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { InspectorPanel } from "../open-source-engine/src/ui/InspectorPanel";
+---
+
+<Layout title="Kinetix Titles" showFooter={false} showAds={false} isApp={true}>
+    <div
+        class="h-full w-full bg-app-bg text-white overflow-hidden flex flex-col md:flex-row relative"
+    >
+        <!-- 1. LEFT PANEL: CANVAS -->
+        <div
+            class="flex-1 flex flex-col relative order-1 md:order-1 h-[55vh] md:h-full"
+        >
+            <!-- Header -->
+            <div
+                class="h-14 border-b border-app-border flex items-center justify-between px-4 shrink-0 bg-app-surface z-20"
+            >
+                <div class="flex items-center gap-4">
+                    <span
+                        class="font-bold text-lg bg-gradient-to-r from-primary-light to-primary-subtle text-transparent bg-clip-text"
+                        >Kinetix Titles</span
+                    >
+
+                    <!-- Debug Toggle -->
+                    <button
+                        id="btn-debug-toggle"
+                        class="p-2 text-gray-400 hover:text-white transition-colors"
+                        title="Toggle Debug Console"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path d="m8 2 1.88 1.88"></path><path
+                                d="M14.12 3.88 16 2"></path><path
+                                d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"
+                            ></path><path
+                                d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"
+                            ></path><path d="M12 20v-9"></path><path
+                                d="M6.53 9C4.6 8.8 3 7.1 3 5"></path><path
+                                d="M6 13H2"></path><path
+                                d="M3 21c0-2.1 1.7-3.9 3.8-4"></path><path
+                                d="M20.97 5c0 2.1-1.6 3.8-3.5 4"></path><path
+                                d="M22 13h-4"></path><path
+                                d="M17.2 17c2.1.1 3.8 1.9 3.8 4"></path></svg
+                        >
+                    </button>
+                </div>
+
+                <div class="flex gap-2">
+                    <button
+                        id="btn-export"
+                        class="bg-primary hover:bg-primary-hover text-white px-4 py-1.5 rounded-full text-sm font-medium transition-all"
+                        >Export MP4</button
+                    >
+                </div>
+            </div>
+
+            <!-- Canvas Workspace -->
+            <div
+                class="flex-1 bg-app-bg flex items-center justify-center p-4 relative overflow-hidden"
+            >
+                <!-- Canvas Container -->
+                <div
+                    id="canvas-container"
+                    class="relative group shadow-2xl shadow-black/50 h-full max-h-[85vh] md:max-h-[80vh] bg-black rounded-lg overflow-hidden border border-app-border transition-all duration-300"
+                    style="aspect-ratio: 9/16;"
+                >
+                    <canvas id="editor-canvas" class="w-full h-full block"
+                    ></canvas>
+
+                    <!-- Playback Controls & Timeline -->
+                    <div
+                        class="absolute bottom-4 left-4 right-4 flex items-center gap-3 bg-black/80 backdrop-blur rounded-lg px-4 py-2 border border-white/10 z-30"
+                    >
+                        <button
+                            id="btn-play"
+                            class="text-white hover:text-primary-light shrink-0"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                ><polygon points="5 3 19 12 5 21 5 3"
+                                ></polygon></svg
+                            >
+                        </button>
+                        <button
+                            id="btn-loop-toggle"
+                            class="text-gray-500 hover:text-primary-light shrink-0"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                ><path
+                                    d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                                ></path><path d="M3 3v5h5"></path><path
+                                    d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+                                ></path><path d="M16 21h5v-5"></path></svg
+                            >
+                        </button>
+
+                        <!-- Timeline -->
+                        <div
+                            class="flex-1 h-1.5 bg-gray-800 rounded-full relative overflow-hidden cursor-pointer group/timeline"
+                        >
+                            <div
+                                id="playhead"
+                                class="absolute top-0 left-0 h-full bg-primary w-0 transition-[width] duration-75"
+                            >
+                            </div>
+                        </div>
+                        <span
+                            id="time-display"
+                            class="text-[10px] font-mono text-gray-400 shrink-0 min-w-[60px] text-right"
+                            >00:00 / 00:00</span
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. RIGHT PANEL: INSPECTOR -->
+        <div
+            class="h-[45vh] md:h-full md:w-[400px] bg-app-surface border-t md:border-t-0 md:border-l border-app-border flex flex-col shrink-0 z-10 order-2 md:order-2 shadow-2xl md:shadow-none"
+        >
+            <!-- Tabs -->
+            <div class="flex border-b border-app-border" id="inspector-tabs">
+                <button
+                    class="flex-1 py-3 text-sm font-medium text-primary-light border-b-2 border-primary bg-app-surface"
+                    data-tab="create">Add</button
+                >
+                <button
+                    class="flex-1 py-3 text-sm font-medium text-gray-400 hover:text-primary-subtle hover:bg-app-surface-hover transition-colors"
+                    data-tab="style">Style</button
+                >
+                <button
+                    class="flex-1 py-3 text-sm font-medium text-gray-400 hover:text-primary-subtle hover:bg-app-surface-hover transition-colors"
+                    data-tab="animate">Animate</button
+                >
+                <button
+                    class="flex-1 py-3 text-sm font-medium text-gray-400 hover:text-primary-subtle hover:bg-app-surface-hover transition-colors"
+                    data-tab="settings">Settings</button
+                >
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                <!-- TAB: CREATE -->
+                <div id="tab-create" class="inspector-tab-content space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button
+                            id="add-title"
+                            class="p-4 bg-app-bg hover:bg-app-surface-hover rounded-xl border border-app-border hover:border-primary/50 transition-all group text-left"
+                        >
+                            <span class="block text-2xl mb-2 text-gray-100"
+                                >H1</span
+                            >
+                            <span
+                                class="text-sm text-gray-400 group-hover:text-primary-subtle"
+                                >Big Title</span
+                            >
+                        </button>
+                        <button
+                            id="add-subtitle"
+                            class="p-4 bg-app-bg hover:bg-app-surface-hover rounded-xl border border-app-border hover:border-primary/50 transition-all group text-left"
+                        >
+                            <span
+                                class="block text-xl mb-2 font-light text-gray-100"
+                                >T</span
+                            >
+                            <span
+                                class="text-sm text-gray-400 group-hover:text-primary-subtle"
+                                >Subtitle</span
+                            >
+                        </button>
+                        <button
+                            id="add-chart"
+                            class="p-4 bg-app-bg hover:bg-app-surface-hover rounded-xl border border-app-border hover:border-primary/50 transition-all group text-left"
+                        >
+                            <span class="block text-2xl mb-2">📊</span>
+                            <span
+                                class="text-sm text-gray-400 group-hover:text-primary-subtle"
+                                >Data Chart</span
+                            >
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB: STYLE -->
+                <div
+                    id="tab-style"
+                    class="inspector-tab-content hidden space-y-4"
+                >
+                    <p
+                        class="text-center text-gray-500 text-sm italic"
+                        id="no-selection-msg"
+                    >
+                        Select an object to style
+                    </p>
+                    <div id="inspector-container"></div>
+                </div>
+
+                <!-- TAB: ANIMATE -->
+                <div
+                    id="tab-animate"
+                    class="inspector-tab-content hidden space-y-6"
+                >
+                    <div>
+                        <h4
+                            class="text-xs font-bold uppercase text-gray-500 mb-2"
+                        >
+                            VOX Presets
+                        </h4>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button
+                                class="preset-btn p-3 bg-app-bg rounded-lg text-xs font-medium border border-app-border hover:border-accent hover:text-accent transition-colors"
+                                data-preset="highlight">📒 Highlight</button
+                            >
+                            <button
+                                class="preset-btn p-3 bg-app-bg rounded-lg text-xs font-medium border border-app-border hover:border-pink-400 hover:text-pink-400 transition-colors"
+                                data-preset="typewriter">⌨️ Typewriter</button
+                            >
+                            <button
+                                class="preset-btn p-3 bg-app-bg rounded-lg text-xs font-medium border border-app-border hover:border-green-400 hover:text-green-400 transition-colors"
+                                data-preset="fadeUp">⬆️ Fade Up</button
+                            >
+                        </div>
+                    </div>
+                    <div>
+                        <h4
+                            class="text-xs font-bold uppercase text-gray-500 mb-2"
+                        >
+                            Font Library
+                        </h4>
+                        <select
+                            id="google-font-select"
+                            class="w-full bg-app-bg border border-app-border text-gray-200 text-sm rounded-lg p-2.5 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        >
+                            <option value="Inter">Inter (Default)</option>
+                            <option value="Roboto">Roboto</option>
+                            <option value="Oswald">Oswald (Bold)</option>
+                            <option value="Playfair Display"
+                                >Playfair Display (Serif)</option
+                            >
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Lato">Lato</option>
+                            <option value="Merriweather">Merriweather</option>
+                            <option value="Bebas Neue">Bebas Neue (Caps)</option
+                            >
+                        </select>
+                    </div>
+                </div>
+
+                <!-- TAB: SETTINGS -->
+                <div
+                    id="tab-settings"
+                    class="inspector-tab-content hidden space-y-6"
+                >
+                    <!-- Aspect Ratio -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase"
+                            >Aspect Ratio</label
+                        >
+                        <select
+                            id="setting-aspect-ratio"
+                            class="w-full bg-app-bg border border-app-border text-gray-200 text-sm rounded-lg p-2.5 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        >
+                            <option value="9:16"
+                                >9:16 (Shorts - 1080x1920)</option
+                            >
+                            <option value="16:9"
+                                >16:9 (YouTube - 1920x1080)</option
+                            >
+                            <option value="4:5"
+                                >4:5 (Instagram - 1080x1350)</option
+                            >
+                            <option value="1:1">1:1 (Square - 1080x1080)</option
+                            >
+                        </select>
+                        <p
+                            class="text-[10px] text-gray-500 text-right"
+                            id="setting-resolution-display"
+                        >
+                            1080 x 1920
+                        </p>
+                    </div>
+
+                    <!-- Duration -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase"
+                            >Duration (Seconds)</label
+                        >
+                        <input
+                            type="number"
+                            id="setting-duration"
+                            value="5"
+                            min="1"
+                            max="60"
+                            step="0.5"
+                            class="w-full bg-app-bg border border-app-border text-gray-200 text-sm rounded-lg p-2.5 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        />
+                    </div>
+
+                    <!-- Background Color -->
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase"
+                            >Canvas Background</label
+                        >
+                        <div class="flex items-center gap-3">
+                            <input
+                                type="color"
+                                id="setting-bg-color"
+                                value="#000000"
+                                class="w-10 h-10 p-0 border-0 rounded bg-transparent cursor-pointer"
+                            />
+                            <span class="text-xs text-gray-400"
+                                >Click to change</span
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<!-- Debug Console -->
+<div
+    id="debug-console"
+    class="hidden fixed bottom-0 left-0 w-full h-32 bg-black/90 text-green-400 text-xs font-mono p-2 overflow-y-auto pointer-events-none z-50 border-t border-green-900 transition-opacity"
+>
+    <div class="font-bold border-b border-green-800 mb-1 flex justify-between">
+        <span>Debug Console</span>
+        <span class="text-[10px] text-gray-500">Logs interactions</span>
+    </div>
+    <div id="debug-logs"></div>
+</div>
+
+<script>
+    import { Engine } from "../open-source-engine/src/core/Core";
+    import { RichTextObject } from "../open-source-engine/src/objects/RichTextObject";
+    import { ChartObject } from "../open-source-engine/src/objects/ChartObject";
+    import { InspectorPanel } from "../open-source-engine/src/ui/InspectorPanel";
+    // @ts-ignore
+    import WebFont from "webfontloader";
+
+    // Logger
+    const debugLogs = document.getElementById("debug-logs");
+    const debugConsole = document.getElementById("debug-console");
+    function log(msg: string) {
+        console.log(`[App] ${msg}`);
+        if (debugLogs) {
+            const entry = document.createElement("div");
+            entry.textContent = `> ${msg}`;
+            debugLogs.appendChild(entry);
+            debugLogs.scrollTop = debugLogs.scrollHeight;
+        }
+    }
+
+    log("Initializing Titles Editor...");
+
+    const canvas = document.getElementById(
+        "editor-canvas",
+    ) as HTMLCanvasElement;
+    if (!canvas) {
+        log("CRITICAL: Canvas element not found!");
+        throw new Error("Canvas not found");
+    }
+    const engine = new Engine(canvas);
+
+    // Default 9:16
+    engine.resize(1080, 1920);
+    log("Engine resized to 9:16");
+
+    // UI Sync
+    engine.onSelectionChange = (id) => {
+        log(`Selection Changed: ${id}`);
+        if (id) {
+            document
+                .getElementById("no-selection-msg")
+                ?.classList.add("hidden");
+        } else {
+            document
+                .getElementById("no-selection-msg")
+                ?.classList.remove("hidden");
+            const inspectorContainer = document.getElementById(
+                "inspector-container",
+            );
+            if (inspectorContainer) inspectorContainer.innerHTML = "";
+        }
+    };
+
+    // Time Update for Timeline
+    const timeDisplay = document.getElementById("time-display");
+    const playhead = document.getElementById("playhead");
+
+    const formatTime = (ms: number) => {
+        const totalSeconds = Math.floor(ms / 1000);
+        const mins = Math.floor(totalSeconds / 60)
+            .toString()
+            .padStart(2, "0");
+        const secs = (totalSeconds % 60).toString().padStart(2, "0");
+        return `${mins}:${secs}`;
+    };
+
+    engine.onTimeUpdate = (time) => {
+        if (timeDisplay) {
+            timeDisplay.innerText = `${formatTime(time)} / ${formatTime(engine.totalDuration)}`;
+        }
+        if (playhead) {
+            const pct = (time / engine.totalDuration) * 100;
+            playhead.style.width = `${pct}%`;
+        }
+    };
+    engine.onTimeUpdate(0);
+
+    // Initialize Inspector - CORRECTED ORDER
+    const inspectorContainer = document.getElementById("inspector-container");
+    if (!inspectorContainer) {
+        log("CRITICAL: Inspector container not found!");
+    } else {
+        const inspector = new InspectorPanel(
+            engine,
+            inspectorContainer as HTMLElement,
+        );
+        log("Inspector initialized");
+        (window as any).inspector = inspector;
+    }
+
+    // Initial Object
+    const title = new RichTextObject("title_1", "CREATE\nTITLES");
+    title.fontSize = 120;
+    title.fontFamily = "Oswald";
+    title.backgroundColor = "#000000";
+    title.color = "#ffffff";
+    title.textAlign = "center";
+    title.width = 800;
+    title.x = (1080 - 800) / 2;
+    title.y = 800;
+    engine.scene.add(title);
+    engine.play();
+    log("Engine started with initial object");
+
+    // Debug Toggle
+    document
+        .getElementById("btn-debug-toggle")
+        ?.addEventListener("click", () => {
+            debugConsole?.classList.toggle("hidden");
+            log("Debug Console Toggled");
+        });
+
+    // Play/Pause
+    const btnPlay = document.getElementById("btn-play");
+    btnPlay?.addEventListener("click", () => {
+        if (engine.isPlaying) {
+            engine.pause();
+            btnPlay.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`; // Play
+        } else {
+            engine.play();
+            btnPlay.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`; // Pause
+        }
+    });
+
+    // Loop Toggle
+    const btnLoop = document.getElementById("btn-loop-toggle");
+    btnLoop?.addEventListener("click", () => {
+        engine.isLooping = !engine.isLooping;
+        btnLoop.classList.toggle("text-primary-light");
+        btnLoop.classList.toggle("text-gray-500");
+        log(`Looping: ${engine.isLooping}`);
+    });
+
+    // Aspect Ratio
+    const aspectSelect = document.getElementById(
+        "setting-aspect-ratio",
+    ) as HTMLSelectElement;
+    const canvasContainer = document.getElementById(
+        "canvas-container",
+    ) as HTMLElement;
+    const resolutionDisplay = document.getElementById(
+        "setting-resolution-display",
+    );
+
+    if (aspectSelect) {
+        aspectSelect.addEventListener("change", (e) => {
+            const ratio = (e.target as HTMLSelectElement).value;
+            log(`Aspect Ratio changed to ${ratio}`);
+            let width = 1080;
+            let height = 1920;
+
+            switch (ratio) {
+                case "9:16":
+                    width = 1080;
+                    height = 1920;
+                    break;
+                case "16:9":
+                    width = 1920;
+                    height = 1080;
+                    break;
+                case "4:5":
+                    width = 1080;
+                    height = 1350;
+                    break;
+                case "1:1":
+                    width = 1080;
+                    height = 1080;
+                    break;
+            }
+            canvasContainer.style.aspectRatio = ratio.replace(":", "/");
+            engine.resize(width, height);
+            if (resolutionDisplay)
+                resolutionDisplay.innerText = `${width} x ${height}`;
+        });
+    }
+
+    // Settings: BG Color
+    const bgColorInput = document.getElementById(
+        "setting-bg-color",
+    ) as HTMLInputElement;
+    if (bgColorInput) {
+        bgColorInput.addEventListener("input", (e) => {
+            const color = (e.target as HTMLInputElement).value;
+            canvasContainer.style.backgroundColor = color;
+            log("Canvas Background updated");
+        });
+    }
+
+    // Settings: Duration
+    const durationInput = document.getElementById(
+        "setting-duration",
+    ) as HTMLInputElement;
+    if (durationInput) {
+        durationInput.addEventListener("change", (e) => {
+            const seconds = parseFloat((e.target as HTMLInputElement).value);
+            if (!isNaN(seconds) && seconds > 0) {
+                engine.setTotalDuration(seconds * 1000);
+                log(`Total Duration set to ${seconds}s`);
+                engine.onTimeUpdate?.(engine.currentTime);
+            }
+        });
+    }
+
+    // Font Loading
+    const fontSelect = document.getElementById(
+        "google-font-select",
+    ) as HTMLSelectElement;
+    if (fontSelect) {
+        fontSelect.addEventListener("change", (e) => {
+            const fontName = (e.target as HTMLSelectElement).value;
+            if (!fontName) return;
+            log(`Loading Font: ${fontName}`);
+            WebFont.load({
+                google: { families: [fontName] },
+                active: () => {
+                    log(`Font Loaded: ${fontName}`);
+                    const selected = engine.interaction.selectedObjectId
+                        ? engine.scene.get(engine.interaction.selectedObjectId)
+                        : null;
+                    if (selected && selected instanceof RichTextObject) {
+                        selected.fontFamily = fontName;
+                        (selected as any)._layout = null;
+                        (window as any).inspector?.refresh();
+                    }
+                },
+            });
+        });
+    }
+
+    // Preset Logic
+    document.querySelectorAll(".preset-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            const preset = (e.currentTarget as HTMLElement).dataset.preset;
+            log(`Applying Preset: ${preset}`);
+            const selected = engine.interaction.selectedObjectId
+                ? engine.scene.get(engine.interaction.selectedObjectId)
+                : null;
+            if (selected && selected instanceof RichTextObject) {
+                if (preset === "highlight") {
+                    selected.color = "#000000";
+                    selected.backgroundColor = "#FACC15";
+                    selected.animation = {
+                        type: "slideUp",
+                        duration: 800,
+                        delay: 0,
+                    };
+                    (selected as any)._layout = null;
+                } else if (preset === "typewriter") {
+                    selected.color = "#ffffff";
+                    selected.backgroundColor = "";
+                    selected.animation = {
+                        type: "typewriter",
+                        duration: 1500,
+                        delay: 0,
+                    };
+                    (selected as any)._layout = null;
+                } else if (preset === "fadeUp") {
+                    selected.animation = {
+                        type: "fadeIn",
+                        duration: 1000,
+                        delay: 0,
+                    };
+                }
+                (window as any).inspector?.refresh();
+            } else {
+                log("No RichTextObject selected");
+            }
+        });
+    });
+
+    // Tab Switching
+    const tabButtons = document.querySelectorAll("#inspector-tabs button");
+    const tabContents = document.querySelectorAll(".inspector-tab-content");
+    tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const target = (btn as HTMLElement).dataset.tab;
+            if (!target) return;
+            tabButtons.forEach((b) => {
+                b.classList.remove(
+                    "text-primary-light",
+                    "border-b-2",
+                    "border-primary",
+                    "bg-app-surface",
+                );
+                b.classList.add("text-gray-400");
+            });
+            btn.classList.remove("text-gray-400");
+            btn.classList.add(
+                "text-primary-light",
+                "border-b-2",
+                "border-primary",
+                "bg-app-surface",
+            );
+            tabContents.forEach((content) => {
+                content.classList.add("hidden");
+                if (content.id === `tab-${target}`)
+                    content.classList.remove("hidden");
+            });
+        });
+    });
+
+    // Add Object Logic
+    document.getElementById("add-title")?.addEventListener("click", () => {
+        const obj = new RichTextObject(`text_${Date.now()}`, "NEW TITLE");
+        obj.fontSize = 80;
+        obj.x = 100;
+        obj.y = 500;
+        engine.scene.add(obj);
+        engine.interaction.selectObject(obj.id);
+    });
+    document.getElementById("add-subtitle")?.addEventListener("click", () => {
+        const obj = new RichTextObject(
+            `text_${Date.now()}`,
+            "Subtitle text goes here",
+        );
+        obj.fontSize = 40;
+        obj.fontWeight = "normal";
+        obj.x = 100;
+        obj.y = 800;
+        engine.scene.add(obj);
+        engine.interaction.selectObject(obj.id);
+    });
+    document.getElementById("add-chart")?.addEventListener("click", () => {
+        const obj = new ChartObject(`chart_${Date.now()}`);
+        obj.width = 800;
+        obj.height = 600;
+        obj.x = (engine.canvas.width - 800) / 2;
+        obj.y = engine.canvas.height / 2;
+        obj.color = "#6366f1";
+        obj.textColor = "#ffffff";
+        obj.axisColor = "#475569";
+        engine.scene.add(obj);
+        engine.interaction.selectObject(obj.id);
+    });
+
+    // Export
+    document.getElementById("btn-export")?.addEventListener("click", () => {
+        alert("Export not implemented in this demo.");
+    });
+</script>
+
+<style>
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #0f172a;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+    }
+</style>

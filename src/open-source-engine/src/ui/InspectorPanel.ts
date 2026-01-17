@@ -64,6 +64,12 @@ export class InspectorPanel {
         });
     }
 
+    refresh() {
+        if (this._currentObj) {
+            this.renderObject(this._currentObj);
+        }
+    }
+
     createField(item: PropertySchema, obj: any): HTMLElement {
         const wrapper = document.createElement("div");
         wrapper.className = "flex flex-col gap-1";

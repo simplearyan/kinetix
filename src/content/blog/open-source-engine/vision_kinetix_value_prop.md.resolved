@@ -1,4 +1,9 @@
-# The Value of Kinetix: Engine vs. Renderer
+---
+title: "The Value of Kinetix: Engine vs. Renderer"
+description: "The Commercial Open Source Playbook for Kinetix"
+pubDate: 2026-01-20
+tags: ["tutorial", "open-source", "react", "svelte", "video-engine"]
+---
 
 The user asked: *"If speed/lightweight comes from `mediaBunny`, why use Kinetix?"*
 

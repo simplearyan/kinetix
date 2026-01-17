@@ -1,0 +1,156 @@
+# How to Build a "Text & SVG Animator" SaaS with React & Kinetix
+
+**Subtitle: A Guide for Startups to Build Client-Side Video Tools for Free**
+
+Building a video creation product (like a Canva for Video, or a specialized Social Media Maker) historically required massive investment in server-side rendering farms (AWS Lambda + FFmpeg). 
+
+With **Kinetix**, our open-source canvas engine, you can build a fully functional video editor that runs **entirely in the user's browser**.
+
+This guide shows you how to build a **Text & SVG Animator**—a tool where users can upload logos (SVGs), add animated text, and export a 4K video—using **React** and **Kinetix**.
+
+---
+
+## The Stack
+
+-   **Framework**: React (for the UI)
+-   **Engine**: Kinetix Core (for the rendering)
+-   **Rendering**: HTML5 Canvas (2D Context)
+-   **Export**: WebCodecs / MediaRecorder (Zero-Cost Export)
+
+---
+
+## Step 1: Initialize the Engine
+
+First, we need to bridge the "imperative" world of a Game Engine with the "declarative" world of React. We do this with a `useRef`.
+
+```tsx
+import { useEffect, useRef, useState } from 'react';
+import { Engine, RectObject } from '@kinetix/core';
+
+export const VideoCanvas = () => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const engineRef = useRef<Engine | null>(null);
+
+    useEffect(() => {
+        if (!canvasRef.current) return;
+        
+        // 1. Initialize Engine
+        const engine = new Engine(canvasRef.current);
+        engine.resize(1920, 1080);
+        
+        // 2. Start Loop
+        engine.start();
+        
+        engineRef.current = engine;
+        
+        return () => engine.dispose();
+    }, []);
+
+    return <canvas ref={canvasRef} className="w-full h-auto border" />;
+};
+```
+
+## Step 2: Building the "Text Animator"
+
+We don't want users writing code. We want them typing into an Input field. We bridge React State to the Engine Object.
+
+```tsx
+export const TextEditor = ({ engine }: { engine: Engine }) => {
+    const [text, setText] = useState("Hello World");
+    const [color, setColor] = useState("#ffffff");
+
+    // Add Object on Mount
+    useEffect(() => {
+        const textObj = new RichTextObject("title", text);
+        textObj.fontSize = 80;
+        textObj.resizeBehavior = { mode: "center-pin" }; // Auto-scaling
+        
+        engine.scene.add(textObj);
+    }, []);
+
+    // Sync State -> Engine
+    const updateText = (val: string) => {
+        setText(val);
+        const obj = engine.scene.getObject("title");
+        if (obj) {
+            obj.text = val;
+            engine.render(); // Force redraw
+        }
+    };
+
+    return (
+        <div className="p-4 bg-gray-900 text-white">
+            <label>Caption</label>
+            <input 
+                value={text} 
+                onChange={(e) => updateText(e.target.value)} 
+                className="bg-gray-800 p-2 rounded"
+            />
+        </div>
+    );
+};
+```
+
+**Key Concept**: React handles the *Intent* (User typed "A"), and Kinetix handles the *Reality* (Draw pixel "A" at 60fps).
+
+## Step 3: The SVG Animator
+
+SVGs are perfect for video because they scale infinitely. In Kinetix, we treat them as `ImageObject` (or specialized `SVGObject` if you need path animation).
+
+For a startup building a "Logo Intro Maker", this is how you animate a user's uploaded SVG.
+
+```tsx
+const handleUpload = (file: File) => {
+    const url = URL.createObjectURL(file);
+    
+    const logo = new ImageObject("user-logo", url);
+    
+    // Center it
+    logo.resizeBehavior = { mode: "fit" }; 
+    logo.x = 1920 / 2 - 200;
+    logo.y = 1080 / 2 - 200;
+    logo.width = 400;
+    logo.height = 400;
+
+    // ADD ANIMATION
+    logo.animation = {
+        type: "scaleIn", // or 'bounce', 'spin'
+        duration: 1500,
+        easing: "easeOutElastic"
+    };
+
+    engine.scene.add(logo);
+};
+```
+
+## Step 4: Export ( The Money Maker )
+
+This is where Kinetix shines. In Remotion, you'd send this to an AWS Lambda function costing you $0.05 per render. In Kinetix, it runs on the user's GPU.
+
+```tsx
+const exportVideo = async () => {
+    const blob = await engine.export({
+        format: "mp4",
+        fps: 30,
+        duration: 5, // seconds
+        onProgress: (pct) => console.log(`Rendering: ${pct}%`)
+    });
+    
+    // Download
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "my-animation.mp4";
+    a.click();
+};
+```
+
+## Why This Matters for Startups
+
+1.  **Zero Marginal Cost**: Your users can render 1,000 videos a day, and your server bill is $0.
+2.  **Privacy**: Data never leaves the client. Great for enterprise tools.
+3.  **Performance**: It feels like a native desktop app, not a web form.
+
+## Conclusion
+
+By wrapping **Kinetix** in **React**, you separate concerns: React builds the lovely UI, Kinetix handles the brutal math of rendering pixels. This combination allows a single developer to build a "Canva-like" video tool in a weekend.
