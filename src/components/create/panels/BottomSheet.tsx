@@ -107,9 +107,9 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
 
                     {/* Sheet / Dock */}
                     <motion.div
-                        initial={{ y: "100%" }}
+                        initial={{ y: isDock ? "0%" : "100%" }}
                         animate={{ y: isDock ? "0%" : `${(1 - activeSnap) * 100}%` }}
-                        exit={{ y: "100%" }}
+                        exit={{ y: isDock ? "0%" : "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
                         drag={isDock ? false : "y"}
                         dragConstraints={{ top: 0 }}
