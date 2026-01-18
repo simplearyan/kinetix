@@ -73,6 +73,12 @@ import Layout from "../layouts/Layout.astro";
                                 class="hidden"
                                 accept=".json"
                             />
+                            <input
+                                type="file"
+                                id="video-upload"
+                                class="hidden"
+                                accept="video/*"
+                            />
                         </div>
                     </div>
 
@@ -107,6 +113,13 @@ import Layout from "../layouts/Layout.astro";
                                 <span
                                     class="w-2 h-2 rounded-full bg-emerald-400"
                                 ></span> Add Chart
+                            </button>
+                            <button
+                                id="btn-add-video"
+                                class="col-span-2 bg-gray-700 hover:bg-orange-600 text-white px-3 py-2 rounded text-sm transition text-left flex items-center gap-2"
+                            >
+                                <span class="w-2 h-2 rounded-full bg-orange-400"
+                                ></span> Import Video
                             </button>
                         </div>
                         <div
@@ -334,6 +347,41 @@ import Layout from "../layouts/Layout.astro";
                 } catch (e) {
                     console.error(e);
                     alert("Error adding chart: " + e);
+                }
+            });
+
+        document
+            .getElementById("btn-add-video")
+            ?.addEventListener("click", () => {
+                document.getElementById("video-upload")?.click();
+            });
+
+        document
+            .getElementById("video-upload")
+            ?.addEventListener("change", (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (!file) return;
+
+                const url = URL.createObjectURL(file);
+                console.log("Video selected:", file.name);
+
+                try {
+                    const id = "vid_" + Date.now();
+                    const videoObj = new VideoObject(id, url);
+
+                    // Center
+                    videoObj.x = 0;
+                    videoObj.y = 0;
+                    videoObj.width = engine.scene.width;
+                    videoObj.height = engine.scene.height;
+
+                    engine.scene.add(videoObj);
+                    updateCodePreview();
+                    addToList(id, "Video");
+                    engine.interaction.selectObject(id);
+                } catch (e) {
+                    console.error(e);
+                    alert("Error adding video: " + e);
                 }
             });
 

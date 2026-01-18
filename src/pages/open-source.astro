@@ -1,0 +1,240 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.astro";
+import {
+    ArrowRight,
+    Github,
+    Heart,
+    Rocket,
+    Code2,
+    Monitor,
+    Cpu,
+} from "lucide-react";
+---
+
+<Layout title="Kinetix Open Source - The Future of Web Video">
+    <Navbar />
+
+    <main
+        class="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100"
+    >
+        <div class="max-w-4xl mx-auto px-6 py-24">
+            {/* Minimal Hero */}
+            <section class="mb-32">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-sm font-medium mb-8"
+                >
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    Open Source Initiative
+                </div>
+                <h1
+                    class="text-6xl font-bold tracking-tight text-slate-900 mb-8 leading-tight"
+                >
+                    Building the <br />
+                    <span class="text-blue-600">Standard Library</span>
+                    <br />
+                    for Web Video.
+                </h1>
+                <p
+                    class="text-xl text-slate-600 leading-relaxed max-w-2xl mb-12"
+                >
+                    Kinetix is more than just an engine. It's a vision to
+                    democratize video creation using standard web technologies.
+                    No hidden fees, no proprietary black boxes. Just code.
+                </p>
+
+                <div class="flex flex-wrap gap-4">
+                    <a
+                        href="https://github.com/simplearyan/kinetix"
+                        target="_blank"
+                        class="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-semibold rounded-full hover:bg-slate-800 transition-colors"
+                    >
+                        <Github className="w-5 h-5" />
+                        Star on GitHub
+                    </a>
+                    <a
+                        href="#kenichi"
+                        class="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-semibold rounded-full hover:bg-slate-50 transition-colors"
+                    >
+                        <Heart className="w-5 h-5 text-red-500" />
+                        Support Kenichi
+                    </a>
+                </div>
+            </section>
+
+            {/* Vision & Future */}
+            <section class="mb-32 grid md:grid-cols-2 gap-16">
+                <div>
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <Rocket className="w-6 h-6 text-blue-600" />
+                        Vision
+                    </h2>
+                    <p class="text-slate-600 leading-relaxed mb-4">
+                        We believe video creation tools should be accessible,
+                        hackable, and run everywhere. The web has solved layout
+                        (`Flexbox`), typography, and reactivity
+                        (`React/NanoStores`). Kinetix leverages these primitives
+                        to build a video engine that feels like building a
+                        website.
+                    </p>
+                    <p class="text-slate-600 leading-relaxed">
+                        Our goal is to power the next generation of creative
+                        tools, from simple social editors to complex motion
+                        graphics stations.
+                    </p>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <Code2 className="w-6 h-6 text-purple-600" />
+                        Tech Stack
+                    </h2>
+                    <ul class="space-y-4 text-slate-600">
+                        <li class="flex items-start gap-3">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2.5"
+                            ></span>
+                            <span>
+                                <b>TypeScript Core</b>: Strictly typed,
+                                zero-dependency renderer.
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2.5"
+                            ></span>
+                            <span>
+                                <b>NanoStores</b>: State management decoupled
+                                from the render loop.
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span
+                                class="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2.5"
+                            ></span>
+                            <span>
+                                <b>Media Bunny</b>: Uses our custom `mediabunny`
+                                package for robust H.264/VP9 encoding in the
+                                browser.
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            {/* Kenichi Desktop Call to Action */}
+            <section
+                id="kenichi"
+                class="mb-32 p-12 bg-slate-50 rounded-3xl border border-slate-100"
+            >
+                <div class="md:flex items-start gap-12">
+                    <div class="flex-1">
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold mb-6 uppercase tracking-wider"
+                        >
+                            Upcoming Project
+                        </div>
+                        <h2 class="text-4xl font-bold mb-6 text-slate-900">
+                            Kenichi Desktop
+                        </h2>
+                        <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                            We are building a native desktop powerhouse. <br />
+                            <b>Kenichi</b> will bring the Kinetix engine to the desktop,
+                            unlocking full system resources.
+                        </p>
+
+                        <div class="grid grid-cols-2 gap-6 mb-8">
+                            <div class="flex items-center gap-3 text-slate-700">
+                                <Cpu className="w-5 h-5 text-orange-500" />
+                                <span class="font-medium">Rust Core</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-700">
+                                <Monitor className="w-5 h-5 text-blue-500" />
+                                <span class="font-medium">Tauri v2</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-700">
+                                <Code2 className="w-5 h-5 text-cyan-500" />
+                                <span class="font-medium">React + TS</span>
+                            </div>
+                        </div>
+
+                        <a
+                            href="https://github.com/sponsors/your-username"
+                            class="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 hover:scale-105 transition-all"
+                        >
+                            <Heart className="w-5 h-5 fill-current" />
+                            Support Development
+                        </a>
+                    </div>
+
+                    {/* Visual / Mockup Placeholder */}
+                    <div
+                        class="hidden md:flex w-1/3 aspect-[3/4] bg-white rounded-2xl border border-slate-200 shadow-sm items-center justify-center p-8 text-center"
+                    >
+                        <div>
+                            <Monitor
+                                className="w-12 h-12 text-slate-300 mx-auto mb-4"
+                            />
+                            <p class="text-slate-400 text-sm font-medium">
+                                Kenichi Concept <br /> Coming Soon
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Engine Demos Links */}
+            <section class="border-t border-slate-200 pt-16">
+                <h2 class="text-2xl font-bold mb-8">Explore Kinetix Engine</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <a
+                        href="/engine"
+                        class="group p-6 rounded-2xl bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all"
+                    >
+                        <div class="flex justify-between items-start mb-4">
+                            <div
+                                class="p-3 bg-blue-50 rounded-xl text-blue-600"
+                            >
+                                <Code2 className="w-6 h-6" />
+                            </div>
+                            <ArrowRight
+                                className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors"
+                            />
+                        </div>
+                        <h3
+                            class="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors"
+                        >
+                            Engine Playground
+                        </h3>
+                        <p class="text-slate-500">
+                            Raw engine capability tests and benchmarks.
+                        </p>
+                    </a>
+
+                    <a
+                        href="/titles"
+                        class="group p-6 rounded-2xl bg-white border border-slate-200 hover:border-purple-500 hover:shadow-md transition-all"
+                    >
+                        <div class="flex justify-between items-start mb-4">
+                            <div
+                                class="p-3 bg-purple-50 rounded-xl text-purple-600"
+                            >
+                                <Monitor className="w-6 h-6" />
+                            </div>
+                            <ArrowRight
+                                className="w-5 h-5 text-slate-400 group-hover:text-purple-500 transition-colors"
+                            />
+                        </div>
+                        <h3
+                            class="text-xl font-bold mb-2 group-hover:text-purple-600 transition-colors"
+                        >
+                            Titles App
+                        </h3>
+                        <p class="text-slate-500">
+                            Production-ready video creator microapp.
+                        </p>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+</Layout>
