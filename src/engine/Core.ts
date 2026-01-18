@@ -1,5 +1,4 @@
 import { Scene } from "./Scene";
-import { Muxer, ArrayBufferTarget } from "webm-muxer";
 
 export class Engine {
     canvas: HTMLCanvasElement;

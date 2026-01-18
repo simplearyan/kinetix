@@ -37,7 +37,6 @@
     "markmap-view": "^0.18.12",
     "mediabunny": "^1.27.3",
     "mermaid": "^11.12.2",
-    "mp4-muxer": "^5.2.2",
     "nanostores": "^1.1.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -49,7 +48,6 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.1",
     "webfontloader": "^1.6.28",
-    "webm-muxer": "^5.1.4",
     "zod": "^4.3.5",
     "zustand": "^5.0.9"
   },
