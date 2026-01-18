@@ -1,9 +1,13 @@
-import type { KinetixObjectProps } from "../types/Interfaces";
+import type { KinetixObjectProps, PropertySchema } from "../types/Interfaces";
+import type { Scene } from "../scene/Scene";
 
 export abstract class KinetixObject implements KinetixObjectProps {
     id: string;
     name: string;
     visible: boolean = true;
+
+    // Status
+    status: 'loading' | 'ready' | 'error' = 'ready';
 
     // Transform
     x: number = 0;
@@ -58,12 +62,17 @@ export abstract class KinetixObject implements KinetixObjectProps {
     abstract draw(ctx: CanvasRenderingContext2D, time: number): void;
 
     // Optional lifecycle hooks
-    onAdd(_scene: any) { }
-    onRemove(_scene: any) { }
+    onAdd(_scene: Scene) { }
+    onRemove(_scene: Scene) { }
+
+    // Asset Loading Hook
+    async load(): Promise<void> {
+        return Promise.resolve();
+    }
 
     // Async hook for pre-render logic (e.g. waiting for video seek)
     // Used primarily during offline export
-    async prepareForRender(time: number): Promise<void> {
+    async prepareForRender(_time: number): Promise<void> {
         return;
     }
 
@@ -103,7 +112,7 @@ export abstract class KinetixObject implements KinetixObjectProps {
         };
     }
 
-    getSchema(): import("../types/Interfaces").PropertySchema[] {
+    getSchema(): PropertySchema<KinetixObjectProps>[] {
         return [
             // Transform
             { key: 'x', label: 'X', type: 'number' },

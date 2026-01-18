@@ -2,6 +2,8 @@ import { Scene } from "../scene/Scene";
 import { InteractionManager } from "./InteractionManager";
 import { LayoutManager } from "./LayoutManager";
 import { ProjectManager } from "./ProjectManager";
+import type { EngineEvents } from "../types/Interfaces";
+import { EngineStore } from "./Store";
 
 export class Engine {
     canvas: HTMLCanvasElement;
@@ -12,6 +14,9 @@ export class Engine {
     interaction: InteractionManager;
     layout: LayoutManager;
     project: ProjectManager;
+    store: EngineStore;
+
+    // Time
 
     // Time
     currentTime: number = 0;
@@ -24,13 +29,59 @@ export class Engine {
     private _rafId: number = 0;
     private _lastFrameTime: number = 0;
 
+    // Render State
+    private _isDirty: boolean = false;
+    private _renderPending: boolean = false;
+
+    // Helper to clamp time
+    private _clampTime(time: number): number {
+        return Math.max(0, Math.min(time, this.totalDuration));
+    }
+
+    // Centralized time setter (internal use)
+    private _setTime(time: number) {
+        this.currentTime = this._clampTime(time);
+        this.store.currentTime.set(this.currentTime);
+        this._isDirty = true;
+    }
+
     // Event hooks
-    onTimeUpdate?: (time: number) => void;
-    onPlayStateChange?: (isPlaying: boolean) => void;
-    onSelectionChange?: (id: string | null) => void;
-    onObjectChange?: () => void; // Generic update for props
-    onResize?: (width: number, height: number) => void;
-    onDurationChange?: (duration: number) => void;
+    // Event hooks (Legacy Properties - Kept for backward compat, but strictly typed)
+    onTimeUpdate?: EngineEvents['timeUpdate'];
+    onPlayStateChange?: EngineEvents['playStateChange'];
+    onSelectionChange?: EngineEvents['selectionChange'];
+    onObjectChange?: EngineEvents['objectChange'];
+    onResize?: EngineEvents['resize'];
+    onDurationChange?: EngineEvents['durationChange'];
+
+    // New Event System
+    private _listeners: { [K in keyof EngineEvents]?: EngineEvents[K][] } = {};
+
+    on<K extends keyof EngineEvents>(event: K, cb: EngineEvents[K]) {
+        if (!this._listeners[event]) this._listeners[event] = [];
+        this._listeners[event]!.push(cb);
+        return () => this.off(event, cb);
+    }
+
+    off<K extends keyof EngineEvents>(event: K, cb: EngineEvents[K]) {
+        if (!this._listeners[event]) return;
+        this._listeners[event] = this._listeners[event]!.filter(l => l !== cb);
+    }
+
+    public emit<K extends keyof EngineEvents>(event: K, ...args: Parameters<EngineEvents[K]>) {
+        // 1. Call Listeners
+        if (this._listeners[event]) {
+            this._listeners[event]!.forEach(cb => (cb as any)(...args));
+        }
+
+        // 2. Call Legacy Property (Explicit casting to avoid tuple errors)
+        if (event === 'timeUpdate') this.onTimeUpdate?.(args[0] as number);
+        if (event === 'playStateChange') this.onPlayStateChange?.(args[0] as boolean);
+        if (event === 'selectionChange') this.onSelectionChange?.(args[0] as string | null);
+        if (event === 'objectChange') this.onObjectChange?.();
+        if (event === 'resize') this.onResize?.(args[0] as number, args[1] as number);
+        if (event === 'durationChange') this.onDurationChange?.(args[0] as number);
+    }
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -39,30 +90,40 @@ export class Engine {
         this.ctx = ctx;
         this.scene = new Scene();
         this.scene.onUpdate = () => {
-            this.render(); // Always re-render on visual change
-            this.onObjectChange?.(); // Notify listeners (UI)
+            this.invalidate(); // Request render on next frame
+            this.emit('objectChange'); // Notify listeners (UI)
         };
 
         // Initialize Managers
         this.interaction = new InteractionManager(this);
         this.layout = new LayoutManager(this);
         this.project = new ProjectManager(this);
+        this.store = new EngineStore();
 
-        this.render();
+        // Sync Initial State
+        this.store.width.set(this.canvas.width);
+        this.store.height.set(this.canvas.height);
+
+        this.invalidate();
     }
 
     // Delegate to LayoutManager
     resize(width: number, height: number) {
         this.layout.resize(width, height);
+        this.store.width.set(width);
+        this.store.height.set(height);
+        this.invalidate();
+        this.emit('resize', width, height);
     }
 
     setTotalDuration(duration: number) {
         this.totalDuration = Math.max(1000, duration); // Minimum 1 second
+        this.store.totalDuration.set(this.totalDuration);
         if (this.currentTime > this.totalDuration) {
-            this.currentTime = this.totalDuration;
-            this.onTimeUpdate?.(this.currentTime);
+            this._setTime(this.totalDuration);
+            // _setTime handles timeUpdate, but we need durationChange
         }
-        this.onDurationChange?.(this.totalDuration);
+        this.emit('durationChange', this.totalDuration);
     }
 
     // Delegate interaction state to Manager if needed, or expose it
@@ -70,30 +131,43 @@ export class Engine {
         return this.interaction.selectedObjectId;
     }
 
+    selectObject(id: string | null) {
+        this.interaction.selectObject(id);
+        this.store.selectedObjectId.set(id);
+        this.invalidate(); // Redraw selection box
+        this.emit('selectionChange', id);
+    }
+
     play() {
         if (this.isPlaying) return;
 
         if (this.currentTime >= this.totalDuration) {
-            this.currentTime = 0;
+            this._setTime(0);
         }
 
         this.isPlaying = true;
+        this.store.isPlaying.set(true);
         this._lastFrameTime = performance.now();
         this._rafId = requestAnimationFrame(this._loop);
-        this.onPlayStateChange?.(true);
+        this.emit('playStateChange', true);
     }
 
     pause() {
         if (!this.isPlaying) return;
         this.isPlaying = false;
+        this.store.isPlaying.set(false);
         cancelAnimationFrame(this._rafId);
-        this.onPlayStateChange?.(false);
+        this.emit('playStateChange', false);
     }
 
     seek(time: number) {
-        this.currentTime = Math.max(0, Math.min(time, this.totalDuration));
-        this.render();
-        this.onTimeUpdate?.(this.currentTime);
+        this._setTime(time);
+        this.renderImmediate(); // Seek is usually expected provided immediate visual feedback
+        // Time update handled in _setTime? No, _setTime is internal.
+        // Let's add emit to _setTime or call it here.
+        // _setTime is used in loop where we emit.
+        // Let's call emit here explicitly.
+        this.emit('timeUpdate', this.currentTime);
     }
 
     private _loop = (now: number) => {
@@ -113,14 +187,29 @@ export class Engine {
             }
         }
 
-        this.currentTime = nextTime;
-        this.render();
-        this.onTimeUpdate?.(this.currentTime);
+        this._setTime(nextTime);
+        this.renderImmediate(); // Force render in loop
+        this.emit('timeUpdate', this.currentTime);
 
         this._rafId = requestAnimationFrame(this._loop);
     }
 
-    render() {
+    // Public API: Schedules a render
+    invalidate() {
+        this._isDirty = true;
+        if (!this._renderPending) {
+            this._renderPending = true;
+            requestAnimationFrame(() => {
+                this.renderImmediate();
+                this._renderPending = false;
+            });
+        }
+    }
+
+    // Synchronous Render
+    renderImmediate(force: boolean = false) {
+        if (!this._isDirty && !force && !this.isPlaying) return; // Skip if clean (unless forced or playing)
+
         this.scene.render(this.ctx, this.currentTime);
 
         // Draw Selection Overlay
@@ -134,7 +223,16 @@ export class Engine {
                 this.ctx.restore();
             }
         }
+
+        this._isDirty = false;
     }
+
+    // Legacy/Alias for compat
+    render() {
+        this.invalidate();
+    }
+
+
 
     async exportVideo(
         duration: number,
@@ -215,7 +313,7 @@ export class Engine {
                         const reader = processor.readable.getReader();
 
                         // Start Playback
-                        this.currentTime = 0;
+                        this._setTime(0);
                         this.play();
 
                         let frameCount = 0;
@@ -330,7 +428,7 @@ export class Engine {
                         recorder.start(); // Standard recording (no timeslice)
 
                         // Realtime: Just play
-                        this.currentTime = 0;
+                        this._setTime(0);
                         this.play();
 
                         const checkInterval = setInterval(async () => {
@@ -550,8 +648,8 @@ export class Engine {
                     resolve(blob);
 
                     // Restore state
-                    this.currentTime = 0;
-                    this.render();
+                    this._setTime(0);
+                    this.renderImmediate();
 
                 } catch (e: any) {
                     cleanup();
